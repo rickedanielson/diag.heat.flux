@@ -1,0 +1,132 @@
+#=
+ = Loop through all analyses and visualize the availability of heat
+ = flux values at the position of interest - RD September 2015
+ =#
+
+using My, Gadfly
+const MISS             = -9999.0                        # generic missing value
+
+if size(ARGS) != (1,)
+  write("\nUsage: jj $(basename(@__FILE__)) ....45.000...-45.500\n\n")
+  exit(1)
+end
+
+shfx = Array(Float64, 1600, 3745)
+lhfx = Array(Float64, 1600, 3745)
+
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux"]
+
+for (a, dir) in enumerate(dirs)
+  fila = "$dir/$dir$(ARGS[1])"
+  fpa = My.ouvre(fila, "r")
+  lines = readlines(fpa)
+  close(fpa)
+  for (b, linb) in enumerate(lines)
+    vals = float(split(linb))
+    shfx[a,b] = -333 < vals[2] < 3333 ? 1.0 : 0.0
+    lhfx[a,b] = -333 < vals[3] < 3333 ? 1.0 : 0.0
+  end
+end
+
+for a = 1:3745
+  shfx[1501:1600,a] = shfx[8,a] ; shfx[1401:1500,a] = lhfx[8,a]
+  shfx[1301:1400,a] = shfx[7,a] ; shfx[1201:1300,a] = lhfx[7,a]
+  shfx[1101:1200,a] = shfx[6,a] ; shfx[1001:1100,a] = lhfx[6,a]
+  shfx[ 901:1000,a] = shfx[5,a] ; shfx[ 801: 900,a] = lhfx[5,a]
+  shfx[ 701: 800,a] = shfx[4,a] ; shfx[ 601: 700,a] = lhfx[4,a]
+  shfx[ 501: 600,a] = shfx[3,a] ; shfx[ 401: 500,a] = lhfx[3,a]
+  shfx[ 301: 400,a] = shfx[2,a] ; shfx[ 201: 300,a] = lhfx[2,a]
+  shfx[ 101: 200,a] = shfx[1,a] ; shfx[   1: 100,a] = lhfx[1,a]
+end
+
+fila = "insitu/insitu$(ARGS[1])"
+fpa = My.ouvre(fila, "r")
+lines = readlines(fpa)
+close(fpa)
+for (b, linb) in enumerate(lines)
+  vals = float(split(linb))
+  if -333 < vals[2] < 3333
+    if shfx[1501,b] == 0  shfx[1501:1600,a] = -1
+    if shfx[1301,b] == 0  shfx[1301:1400,a] = -1
+    if shfx[1101,b] == 0  shfx[1101:1200,a] = -1
+    if shfx[ 901,b] == 0  shfx[ 901:1000,a] = -1
+    if shfx[ 701,b] == 0  shfx[ 701: 800,a] = -1
+    if shfx[ 501,b] == 0  shfx[ 501: 600,a] = -1
+    if shfx[ 301,b] == 0  shfx[ 301: 400,a] = -1
+    if shfx[ 101,b] == 0  shfx[ 101: 200,a] = -1
+  end
+  if -333 < vals[3] < 3333
+    if shfx[1401,b] == 1  shfx[1401:1500,a] = -1
+    if shfx[1201,b] == 1  shfx[1201:1300,a] = -1
+    if shfx[1001,b] == 1  shfx[1001:1100,a] = -1
+    if shfx[ 801,b] == 1  shfx[ 801: 900,a] = -1
+    if shfx[ 601,b] == 1  shfx[ 601: 700,a] = -1
+    if shfx[ 401,b] == 1  shfx[ 401: 500,a] = -1
+    if shfx[ 201,b] == 1  shfx[ 201: 300,a] = -1
+    if shfx[   1,b] == 1  shfx[   1: 100,a] = -1
+  end
+end
+
+# shfx = lhfx = int(rand(1600, 3745) .> 0.5)
+
+xlab = Array(ASCIIString, 0)
+xpos = Array(      Int64, 0)
+date = "1999-10-01"
+push!(xlab, date[1:7]) ; push!(xpos, 1)
+for a = 2:3745
+  date = dateadd(date, 1, "dy")
+  if date[6:10] == "10-01"
+    push!(xlab, date[1:7]) ; push!(xpos, a)
+  end
+end
+
+xyzzy = "plot.avail$(ARGS[1]).png"
+write("writing $xyzzy\n")
+plot(shfx)
+#plot(dataset("Zelig", "macro"), x="Year", y="Country", color="GDP", Geom.rectbin)
+
+
+
+
+
+
+#=
+PyPlot.matshow(shfx)
+#PyPlot.title("Temporal coverage of TIE-OHF reference data (SHF at 45N,45W)")
+PyPlot.xticks(xpos, xlab, rotation = 90)
+PyPlot.yticks([100:200:1500], dirs)
+#PyPlot.ylabel("Reference data (SHF/LHF)")
+PyPlot.savefig(xyzzy)
+exit(0)
+=#
+
+#=
+PyPlot.xaxis.set_label_coords(0.5, -0.1)
+@pyimport 
+plt.figure(2)
+ax1 = plt.axes([0,0,1,0.5])
+ax2 = plt.axes([0,0.5,1,0.5])
+ax1.set_yticks([0.5])
+ax1.set_yticklabels(["very long label"])
+ax1.set_ylabel("Y label")
+ax2.set_title("Title")
+make_axes_area_auto_adjustable(ax1, pad=0.1, use_axes=[ax1, ax2])
+make_axes_area_auto_adjustable(ax2, pad=0.1, use_axes=[ax1, ax2])
+=#
+
+#=
+using Winston
+#tmp = Winston.FramedPlot(
+#        title="Availability of SHF data",
+#        xlabel="Days after launch", # xrange = (0,25),
+#        ylabel="Cumulative skill") #,  yrange = (-0.1,1.0))
+#ppp = Winston.add(tmp)
+#for a = 1:4:LEN
+#  tmp = Winston.DataLabel(hours[a], 240, "$(int(disnum[a]))", "textangle", 90.0, "texthalign", "right", "size", 1.1)
+#        Winston.add(ppp, tmp)
+#end
+tmp = Winston.imagesc(shfx)
+ppp = Winston.add(tmp)
+      Winston.savefig(ppp, xyzzy, "width", 1700, "height", 700)
+exit(0)
+=#
