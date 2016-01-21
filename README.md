@@ -46,7 +46,7 @@ split all.flux.locate.sort all.flux.locate.sort
 parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.locate.sorta* ::: cfsr erainterim hoaps ifremerflux j-ofuro merra oaflux seaflux | grep all.flux | sort > commands
 cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
 
-# pack up the results
+# pack up the results at Ifremer
 cd /home/cercache/users/rdaniels/work/workr/cfsr        ; tar cvfz ../x_cfs.taz *"..."*
 cd /home/cercache/users/rdaniels/work/workr/erainterim  ; tar cvfz ../x_era.taz *"..."*
 cd /home/cercache/users/rdaniels/work/workr/hoaps       ; tar cvfz ../x_hop.taz *"..."*
@@ -56,7 +56,7 @@ cd /home/cercache/users/rdaniels/work/workr/oaflux      ; tar cvfz ../x_oaf.taz 
 cd /home/cercache/users/rdaniels/work/workr/seaflux     ; tar cvfz ../x_sea.taz *"..."*
 cd /home/cercache/users/rdaniels/work/workr/j-ofuro     ; tar cvfz ../x_jro.taz *"..."*
 
-# and unpack them and plot availability at these open ocean locations
+# and unpack them locally and plot availability at these open ocean locations
 wrks
 mkdir cfsr erainterim hoaps ifremerflux j-ofuro merra oaflux seaflux
 cd /home/ricani/work/works/cfsr        ; tar xvf ../x_cfs.taz
