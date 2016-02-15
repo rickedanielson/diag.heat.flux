@@ -51,7 +51,7 @@ write("writing $xyzzy\n")
 tmp = Winston.FramedPlot(
         title="2001-2007 SHF Spectra (dB)", xlog = true,
         xlabel="Timescale (days)", xrange = (1/1000,1/2),
-                                   yrange = (-10,30))
+                                   yrange = (-15,30))
 setattr(tmp.x1, "ticks",          xposa) ; setattr(tmp.x2, "ticks",          xposb)
 setattr(tmp.x1, "tickdir",            1) ; setattr(tmp.x2, "tickdir",           -1)
                                            setattr(tmp.x2, "ticklabels_offset", -6)
