@@ -30,9 +30,9 @@ if size(ARGS) != (1,)
   exit(1)
 end
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux", "insitu"]
-shfr = [   717,          620,     474,           660,       617,     423,      606,       458,      000]
-lhfr = [   717,          620,     474,           660,       617,     423,      606,       458,      000]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "insitu"]
+shfr = [   717,          620,     474,           660,      617,     423,      606,       458,      000]
+lhfr = [   717,          620,     474,           660,      617,     423,      606,       458,      000]
 if ARGS[1][end-3:end] == ".shf"  rsqr = shfr  else  rsqr = lhfr  end
 
 fpa = My.ouvre(ARGS[1], "r")

@@ -1,7 +1,8 @@
 /*
  * Populate an "insitu" directory by collating and discretizing "all.flux" into averages
  * at the resolution of a set of reference analyses (daily/0.25-degree for 3745 days/5516
- * positions) - RD September, October 2015
+ * positions) and include the flux input variables (wspd, sst, airt, shum) - RD September,
+ * October 2015, February 2016.
  */
 
 #include <stdlib.h>

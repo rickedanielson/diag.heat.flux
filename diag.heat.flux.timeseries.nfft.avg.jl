@@ -15,7 +15,7 @@ if size(ARGS) != (1,)
   exit(1)
 end
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux"]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
 csv = readcsv(ARGS[1])                                                        # read the flux data to identify
 (locs,) = size(csv)                                                           # locations with good timeseries
 

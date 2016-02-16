@@ -14,8 +14,8 @@ if size(ARGS) != (1,)
   exit(1)
 end
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux", "insitu"]
-rsqr = [   717,          620,     474,           660,       617,     423,      606,       458,      000]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "insitu"]
+rsqr = [   717,          620,     474,           660,      617,     423,      606,       458,      000]
 
 fpa = My.ouvre(ARGS[1], "r")
 lines = readlines(fpa)

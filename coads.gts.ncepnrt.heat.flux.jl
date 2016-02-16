@@ -4,7 +4,7 @@
  = pressure and in the flux calculation ignore cool skin, wave, and rain corrections - RD June 2015
  =#
 
-pytest = false
+pytest = false                                                                # include a python library check
 
 using My, COARE
 # using PyCall ; @pyimport cerform.flux.coare3 as coare3
@@ -18,8 +18,8 @@ for fila in ARGS
   filb = replace(fila, ".ncepnrt", ".flux")
   fpa = My.ouvre(fila, "r")
   fpb = My.ouvre(filb, "w")
-  while !eof(fpa)
-    line = readline(fpa)
+  while !eof(fpa)                                                             # get deq (ssq saturation wrt SST) specific
+    line = readline(fpa)                                                      # humidity in units of g/kg, as expected
     vals = split(line, ',')
     lat  = float(strip(vals[ 3]))
     lon  = float(strip(vals[ 4]))

@@ -13,7 +13,7 @@ if size(ARGS) != (1,)
   exit(1)
 end
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux"]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
 
 specval = Array(Float64, length(dirs), div(TIMES, 2) + 1)
 spectra = Array(Float64, length(dirs), div(TIMES, 2) + 1)

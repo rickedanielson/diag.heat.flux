@@ -14,7 +14,7 @@ end
 shfx = Array(Float64, 1800, 3745)                                             # allocate for all days between
 lhfx = Array(Float64, 1800, 3745)                                             # 1999-10-01 and 2009-12-31
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux", "insitu"]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "insitu"]
 
 for (a, dir) in enumerate(dirs)                                               # and read the daily fluxes
   fila = "$dir/$dir$(ARGS[1])"

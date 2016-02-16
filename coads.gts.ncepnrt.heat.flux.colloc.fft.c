@@ -35,7 +35,7 @@ main (int argc, char *argv[])
     char line[LOTS], lina[LEN], linb[LEN], linc[LEN], lind[LEN];
     char date[LEN], datempa[LEN], datempb[LEN], tmp[LEN];
     float inshf, inlhf, inlat, inlon, grdlat, grdlon, lldel, llmin, ****shf, ****lhf;
-    char *dir[ESTS] = {"cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux"};
+    char *dir[ESTS] = {"cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"};
     char *lagnam[LAGS] = {".bef", "", ".aft"};
 
     if (argc != 2) {

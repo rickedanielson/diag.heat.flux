@@ -11,7 +11,7 @@ if size(ARGS) != (1,)
   exit(1)
 end
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux", "insitu"]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "insitu"]
 
 fila = "$(ARGS[1])"
 fpa = My.ouvre(fila, "r")

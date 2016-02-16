@@ -15,9 +15,9 @@ if size(ARGS) != (1,)
   exit(1)
 end
 
-dirs   = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux"]
-calalp = [   2.2,          4.1,     3.4,           3.4,       3.3,     1.9,      3.3,       5.6]
-calbet = [  0.96,         0.92,    0.82,          0.98,      0.91,    0.87,     0.95,      0.85]
+dirs   = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
+calalp = [   2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
+calbet = [  0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
 dlen   = length(dirs) + 1
 data   = Array(Float64, dlen, DAYS)                                           # allocate space for timeseries in all dirs
 
