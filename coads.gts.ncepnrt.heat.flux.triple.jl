@@ -7,7 +7,7 @@ using My, NetCDF
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) == (0,) || size(ARGS) == (1,)
-  write("\nUsage: jj $(basename(@__FILE__)) all.flux cfsr erainterim\n\n")
+  write("\nUsage: jjj $(basename(@__FILE__)) all.flux cfsr erainterim\n\n")
   exit(1)
 elseif size(ARGS) == (2,)
   (dseta, dsetb) = split(ARGS[2])

@@ -7,16 +7,16 @@ using My, Winston
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) != (1,)
-  write("\nUsage: jj $(basename(@__FILE__)) ....45.000...-45.500\n\n")
+  write("\nUsage: jjj $(basename(@__FILE__)) ....45.000...-45.500\n\n")
   exit(1)
 end
 
-shfx = Array(Float64, 1800, 3745)
-lhfx = Array(Float64, 1800, 3745)
+shfx = Array(Float64, 1800, 3745)                                             # allocate for all days between
+lhfx = Array(Float64, 1800, 3745)                                             # 1999-10-01 and 2009-12-31
 
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "j-ofuro", "merra", "oaflux", "seaflux", "insitu"]
 
-for (a, dir) in enumerate(dirs)
+for (a, dir) in enumerate(dirs)                                               # and read the daily fluxes
   fila = "$dir/$dir$(ARGS[1])"
   fpa = My.ouvre(fila, "r")
   lines = readlines(fpa)
@@ -28,7 +28,7 @@ for (a, dir) in enumerate(dirs)
   end
 end
 
-for a = 1:3745
+for a = 1:3745                                                                # map each dir to a thick line
   shfx[1701:1800,a] = shfx[9,a] ; shfx[1601:1700,a] = lhfx[9,a]
   shfx[1501:1600,a] = shfx[8,a] ; shfx[1401:1500,a] = lhfx[8,a]
   shfx[1301:1400,a] = shfx[7,a] ; shfx[1201:1300,a] = lhfx[7,a]
@@ -76,9 +76,9 @@ end
 
 # shfx = lhfx = int(rand(1800, 3745) .> 0.5)
 
-xlab = Array(ASCIIString, 0)
-xpos = Array(      Int64, 0)
-date = "1999-10-01"
+xlab = Array(ASCIIString, 0)                                                  # initialize the date label strings
+xpos = Array(      Int64, 0)                                                  # (first date and then first day of
+date = "1999-10-01"                                                           #  each subsequent year)
 push!(xlab, "1 Oct\n$(date[1:4])") ; push!(xpos, 1)
 for a = 2:3745
   date = dateadd(date, 1, "dy")

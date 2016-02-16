@@ -9,7 +9,7 @@ const TIMES            = 2556                           # number of days in duri
 const VARSUM           = 30                             # cutoff timescale for variance summation (days)
 
 if size(ARGS) != (1,)
-  write("\nUsage: jj $(basename(@__FILE__)) all.flux.locate.min2000\n\n")
+  write("\nUsage: jjj $(basename(@__FILE__)) all.flux.locate.min2000\n\n")
   exit(1)
 end
 

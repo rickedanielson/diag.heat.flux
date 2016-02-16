@@ -20,25 +20,25 @@ mkdir limbo ; mv nq0503 limbo/nq0503_incomplete ; mv nq0503_complete nq0503
 # assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
 wrkr ; cd coads
 ls -1 nq????         | parallel -j 7     coads.gts.ncepnrt
-ls -1 nq????.ncepnrt | parallel -j 7 "jj coads.gts.ncepnrt.heat.flux.jl"
+ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
 cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
 mv all.flux ..
 
 # identify the location of available observations, excluding inland waters
 wrkr
-jj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
+jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
 sort all.flux.locate > all.flux.locate.sort
 
 # create local links to all analysis data files
 wrkr ; mkdir cfsr erainterim hoaps ifremerflux j-ofuro merra oaflux seaflux
-cd /home/cercache/users/rdaniels/work/workr/cfsr        ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
-cd /home/cercache/users/rdaniels/work/workr/erainterim  ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
-cd /home/cercache/users/rdaniels/work/workr/hoaps       ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
-cd /home/cercache/users/rdaniels/work/workr/ifremerflux ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/ifremerflux
-cd /home/cercache/users/rdaniels/work/workr/j-ofuro     ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/j-ofuro
-cd /home/cercache/users/rdaniels/work/workr/merra       ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
-cd /home/cercache/users/rdaniels/work/workr/oaflux      ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
-cd /home/cercache/users/rdaniels/work/workr/seaflux     ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
+cd /home/cercache/users/rdaniels/work/workr/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
+cd /home/cercache/users/rdaniels/work/workr/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
+cd /home/cercache/users/rdaniels/work/workr/hoaps       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
+cd /home/cercache/users/rdaniels/work/workr/ifremerflux ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/ifremerflux
+cd /home/cercache/users/rdaniels/work/workr/j-ofuro     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/j-ofuro
+cd /home/cercache/users/rdaniels/work/workr/merra       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
+cd /home/cercache/users/rdaniels/work/workr/oaflux      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
+cd /home/cercache/users/rdaniels/work/workr/seaflux     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
 
 # get all analysis timeseries at these open ocean locations
 wrkr
@@ -76,8 +76,8 @@ mkdir insitu
 coads.gts.ncepnrt.heat.flux.collate all.flux
 
 # plot temporal coverage of all data (including in situ) at one location (using subdirectory data)
-jj diag.heat.flux.timeseries.available.jl ....45.000...-45.500 ; di plot.avail....45.000...-45.500.png
-jj diag.heat.flux.timeseries.available.jl ....55.000...-12.500 ; di plot.avail....55.000...-12.500.png
+jjj diag.heat.flux.timeseries.available.jl ....45.000...-45.500 ; di plot.avail....45.000...-45.500.png
+jjj diag.heat.flux.timeseries.available.jl ....55.000...-12.500 ; di plot.avail....55.000...-12.500.png
 
 # for good measure, list all 5516 files with 3745 dates for each dataset (in subdirectories)
 cd /home/ricani/work/works/insitu      ; ls -1 ins* > z.list
@@ -102,13 +102,13 @@ grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate.min2000" ; di plo
 
 # for best flux locations, identify all insitu/analysis collocations valid at all lags (using subdirectory data)
 # create all.flux.common.min2000.lhf and all.flux.common.min2000.shf then report their triple collocation averages
-   coads.gts.ncepnrt.heat.flux.colloc.common            all.flux.common.min2000
-jj coads.gts.ncepnrt.heat.flux.colloc.common.jl         all.flux.common.min2000.shf
-jj coads.gts.ncepnrt.heat.flux.colloc.common.iterate.jl all.flux.common.min2000.shf
+    coads.gts.ncepnrt.heat.flux.colloc.common            all.flux.common.min2000
+jjj coads.gts.ncepnrt.heat.flux.colloc.common.jl         all.flux.common.min2000.shf
+jjj coads.gts.ncepnrt.heat.flux.colloc.common.iterate.jl all.flux.common.min2000.shf
 
 # export the NFFT timeseries data (edit CALIB first!)
 cat all.flux.locate.min2000.pos | parallel -j 8 "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.nfft.jl"
-jj  diag.heat.flux.timeseries.nfft.avg.jl  all.flux.locate.min2000
+jjj diag.heat.flux.timeseries.nfft.avg.jl  all.flux.locate.min2000
 jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectrum.all.flux.locate.min2000.png
 jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectruo.all.flux.locate.min2000.png
 parallel -j 8 "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.nfft.by.analysis.jl all.flux.locate.min2000" ::: cfsr erainterim hoaps ifremerflux j-ofuro merra oaflux seaflux
@@ -157,80 +157,80 @@ parallel < commands.colloc
 
 # calculate paired triple collocation stats
 wrks ; vi commands.triple
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr erainterim
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr            hoaps
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                  ifremerflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                              j-ofuro
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                                      merra
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                                            oaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                                                   seaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim hoaps
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim       ifremerflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim                   j-ofuro
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim                           merra
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim                                 oaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim                                        seaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps ifremerflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps             j-ofuro
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps                     merra
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps                           oaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps                                  seaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                       ifremerflux j-ofuro
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                       ifremerflux         merra
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                       ifremerflux               oaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                       ifremerflux                      seaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                   j-ofuro merra
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                   j-ofuro       oaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                   j-ofuro              seaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                           merra oaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                           merra        seaflux
-jj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                                 oaflux seaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr erainterim
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr            hoaps
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                  ifremerflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                              j-ofuro
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                                      merra
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                                            oaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux cfsr                                                   seaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim hoaps
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim       ifremerflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim                   j-ofuro
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim                           merra
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim                                 oaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux      erainterim                                        seaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps ifremerflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps             j-ofuro
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps                     merra
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps                           oaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                 hoaps                                  seaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                       ifremerflux j-ofuro
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                       ifremerflux         merra
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                       ifremerflux               oaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                       ifremerflux                      seaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                   j-ofuro merra
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                   j-ofuro       oaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                   j-ofuro              seaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                           merra oaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                           merra        seaflux
+jjj coads.gts.ncepnrt.heat.flux.triple.jl all.flux                                                 oaflux seaflux
 parallel < commands.triple
 
 parallel --dry-run ::: cfsr erainterim hoaps ifremerflux j-ofuro merra oaflux seaflux ::: cfsr erainterim hoaps ifremerflux j-ofuro merra oaflux seaflux > commands.dataset.pairs
 vi commands.datasetpairs
 split -n all.flux ; wc x?? ; rm x?? ; split -l 737526 all.flux
-parallel --dry-run "jj coads.gts.ncepnrt.heat.flux.stdev.jl" ::: xaa  xab  xac  xad  xae  xaf  xag  xah ::: "cfsr erainterim" "cfsr hoaps" "cfsr ifremerflux" "cfsr j-ofuro" "cfsr merra" "cfsr oaflux" "cfsr seaflux" "erainterim hoaps" "erainterim ifremerflux" "erainterim j-ofuro" "erainterim merra" "erainterim oaflux" "erainterim seaflux" "hoaps ifremerflux" "hoaps j-ofuro" "hoaps merra" "hoaps oaflux" "hoaps seaflux" "ifremerflux j-ofuro" "ifremerflux merra" "ifremerflux oaflux" "ifremerflux seaflux" "j-ofuro merra" "j-ofuro oaflux" "j-ofuro seaflux" "merra oaflux" "merra seaflux" "oaflux seaflux"
+parallel --dry-run "jjj coads.gts.ncepnrt.heat.flux.stdev.jl" ::: xaa  xab  xac  xad  xae  xaf  xag  xah ::: "cfsr erainterim" "cfsr hoaps" "cfsr ifremerflux" "cfsr j-ofuro" "cfsr merra" "cfsr oaflux" "cfsr seaflux" "erainterim hoaps" "erainterim ifremerflux" "erainterim j-ofuro" "erainterim merra" "erainterim oaflux" "erainterim seaflux" "hoaps ifremerflux" "hoaps j-ofuro" "hoaps merra" "hoaps oaflux" "hoaps seaflux" "ifremerflux j-ofuro" "ifremerflux merra" "ifremerflux oaflux" "ifremerflux seaflux" "j-ofuro merra" "j-ofuro oaflux" "j-ofuro seaflux" "merra oaflux" "merra seaflux" "oaflux seaflux"
 
 wrke ; mkdir cfsr erainterim hoaps ifremerflux j-ofuro merra oaflux seaflux
-cd /home/cercache/users/rdaniels/work/worke/cfsr        ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
-cd /home/cercache/users/rdaniels/work/worke/erainterim  ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
-cd /home/cercache/users/rdaniels/work/worke/hoaps       ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
-cd /home/cercache/users/rdaniels/work/worke/ifremerflux ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/ifremerflux
-cd /home/cercache/users/rdaniels/work/worke/j-ofuro     ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/j-ofuro
-cd /home/cercache/users/rdaniels/work/worke/merra       ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
-cd /home/cercache/users/rdaniels/work/worke/oaflux      ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
-cd /home/cercache/users/rdaniels/work/worke/seaflux     ; jj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
+cd /home/cercache/users/rdaniels/work/worke/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
+cd /home/cercache/users/rdaniels/work/worke/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
+cd /home/cercache/users/rdaniels/work/worke/hoaps       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
+cd /home/cercache/users/rdaniels/work/worke/ifremerflux ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/ifremerflux
+cd /home/cercache/users/rdaniels/work/worke/j-ofuro     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/j-ofuro
+cd /home/cercache/users/rdaniels/work/worke/merra       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
+cd /home/cercache/users/rdaniels/work/worke/oaflux      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
+cd /home/cercache/users/rdaniels/work/worke/seaflux     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
 cp /home/cercache/users/rdaniels/work/workr/all* /home/cercache/users/rdaniels/work/worke
 
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr erainterim
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr            hoaps
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                  ifremerflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                              j-ofuro
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                                      merra
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                                            oaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                                                   seaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim hoaps
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim       ifremerflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim                   j-ofuro
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim                           merra
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim                                 oaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim                                        seaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps ifremerflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps             j-ofuro
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps                     merra
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps                           oaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps                                  seaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                       ifremerflux j-ofuro
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                       ifremerflux         merra
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                       ifremerflux               oaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                       ifremerflux                      seaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                   j-ofuro merra
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                   j-ofuro       oaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                   j-ofuro              seaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                           merra oaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                           merra        seaflux
-jj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                                 oaflux seaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr erainterim
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr            hoaps
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                  ifremerflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                              j-ofuro
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                                      merra
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                                            oaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux cfsr                                                   seaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim hoaps
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim       ifremerflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim                   j-ofuro
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim                           merra
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim                                 oaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux      erainterim                                        seaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps ifremerflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps             j-ofuro
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps                     merra
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps                           oaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                 hoaps                                  seaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                       ifremerflux j-ofuro
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                       ifremerflux         merra
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                       ifremerflux               oaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                       ifremerflux                      seaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                   j-ofuro merra
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                   j-ofuro       oaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                   j-ofuro              seaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                           merra oaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                           merra        seaflux
+jjj coads.gts.ncepnrt.heat.flux.stdev.jl all.flux                                                 oaflux seaflux
 
 cfsr erainterim
 cfsr hoaps

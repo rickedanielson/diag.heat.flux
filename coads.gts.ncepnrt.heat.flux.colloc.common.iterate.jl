@@ -26,7 +26,7 @@ const FRAC             = 2.0 / 3.0                      # fractional update duri
 const DELTA            = 0.001                          # generic convergence criterion
 
 if size(ARGS) != (1,)
-  write("\nUsage: jj $(basename(@__FILE__)) all.flux.common.shf\n\n")
+  write("\nUsage: jjj $(basename(@__FILE__)) all.flux.common.shf\n\n")
   exit(1)
 end
 

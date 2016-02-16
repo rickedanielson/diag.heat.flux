@@ -5,7 +5,7 @@
  =#
 
 if size(ARGS) != (1,)
-  write("\nUsage: jj $(basename(@__FILE__)) /home/cercache/project/oceanheatflux/data/references/ifremerflux\n\n")
+  write("\nUsage: jjj $(basename(@__FILE__)) /home/cercache/project/oceanheatflux/data/references/ifremerflux\n\n")
   exit(1)
 end
 

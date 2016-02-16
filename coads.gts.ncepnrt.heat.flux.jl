@@ -10,7 +10,7 @@ using My, COARE
 # using PyCall ; @pyimport cerform.flux.coare3 as coare3
 
 if size(ARGS) == (0,)
-  write("\nUsage: jj $(basename(@__FILE__)) nq9901 nq9902 ... nq1102\n\n")
+  write("\nUsage: jjj $(basename(@__FILE__)) nq9901 nq9902 ... nq1102\n\n")
   exit(1)
 end
 

@@ -11,7 +11,7 @@ const TIMES            = 2556                           # number of days in duri
 const CALIB            = 1                              # flag determining whether to calibrate (1 = yes)
 
 if size(ARGS) != (1,)
-  write("\nUsage: jj $(basename(@__FILE__)) ....41.750...148.250\n\n")
+  write("\nUsage: jjj $(basename(@__FILE__)) ....41.750...148.250\n\n")
   exit(1)
 end
 

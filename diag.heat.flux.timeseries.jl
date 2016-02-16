@@ -7,7 +7,7 @@ using My, NetCDF, Grid
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) != (2,)
-  write("\nUsage: jj $(basename(@__FILE__)) all.flux.locate.sort cfsr\n\n")
+  write("\nUsage: jjj $(basename(@__FILE__)) all.flux.locate.sort cfsr\n\n")
   exit(1)
 end
 
