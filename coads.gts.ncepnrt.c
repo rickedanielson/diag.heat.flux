@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include "/home/ricani/prog/include.netcdf/include/coadstruct.h"
+#include "prog/include.netcdf/include/coadstruct.h"
 
 #define LEN        100
 #define LOTS       500

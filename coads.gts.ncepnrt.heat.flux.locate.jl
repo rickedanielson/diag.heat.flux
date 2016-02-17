@@ -19,7 +19,8 @@ tons = collect(0.1250: 0.25:359.875) ; for a = 1:1440  tons[a] > 180 && (tons[a]
 #try topo = NetCDF.readvar(nc, "data", start=[1,1,1], count=[-1,-1,-1])  catch  topo = false  end
 #           NetCDF.close(nc)
 tmparr = Array(Float32, 1036800) ; topo = Array(Float64, (1440,720))
-ccall((:cdcread, "/home/ricani/lib/libcdcnetcdf.so"), Void, (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cfloat}, Int32), "/home/ricani/data/topography/elev.0.25-deg.nc", "data", "0001-01-01-00", tmparr, 1036800)
+#ccall((:cdcread, "/home/ricani/lib/libcdcnetcdf.so"), Void, (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cfloat}, Int32), "/home/ricani/data/topography/elev.0.25-deg.nc", "data", "0001-01-01-00", tmparr, 1036800)
+ccall((:cdcread, "/home1/homedir1/perso/rdaniels/lib/libcdcnetcdf.so"), Void, (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cfloat}, Int32), "/home/cercache/users/rdaniels/topography/elev.0.25-deg.nc", "data", "0001-01-01-00", tmparr, 1036800)
 c = 1 ; for a = 1:720, b = 1:1440  topo[b,a] = tmparr[c] ; c += 1  end
 
 lats = collect( -90.0:0.25:89.75)                                             # define the grid and initialize
