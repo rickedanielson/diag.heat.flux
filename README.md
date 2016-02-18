@@ -5,10 +5,10 @@ git clone git@github.com:rickedanielson/diag.heat.flux.git
 # requirements on ubuntu 14.04 (local) and at Ifremer (12.04)
 julia (http://julialang.org/)
 GNU parallel (http://www.gnu.org/software/parallel/)
-alias wrkr 'cd ~/work/workr; ls'
+alias wrks 'cd ~/work/works; ls'
 
 # download the NCEP NRT data and unpack them
-wrkr ; mkdir coads ; cd coads
+wrks ; mkdir coads ; cd coads
 wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq991*'
 wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq0*'
 # wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq1*'
@@ -18,19 +18,19 @@ ls -1 *Z  | parallel -j 7 uncompress
 mkdir limbo ; mv nq0503 limbo/nq0503_incomplete ; mv nq0503_complete nq0503
 
 # assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
-wrkr ; cd coads
+wrks ; cd coads
 ls -1 nq????         | parallel -j 7      coads.gts.ncepnrt
 ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
 cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
 mv all.flux ..
 
 # identify the location of available observations, excluding inland waters
-wrkr
+wrks
 jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
 sort all.flux.locate > all.flux.locate.sort
 
 # create local links to all analysis data files and example ncdumps too
-wrkr ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
+wrks ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
 cd /home/cercache/users/rdaniels/work/workr/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
 cd /home/cercache/users/rdaniels/work/workr/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
 cd /home/cercache/users/rdaniels/work/workr/hoaps       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
@@ -50,7 +50,7 @@ ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7
 ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
 
 # get all analysis timeseries at these open ocean locations
-wrkr
+wrks
 split all.flux.locate.sort all.flux.locate.sort
 parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.locate.sorta* ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
 cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julio --mem=2000mb
@@ -80,25 +80,26 @@ wrks ; cp ../workr/all.flux* .
 grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
 
 # create insitu dir files by discretizing all.flux into averages at the resolution of reference analyses
-# (as daily/0.25-degree files for 3745 days/5516 positions) and include daily flux input variables also
+# (as daily/0.25-degree files for 3745 days/4793 positions) and include daily flux input variables also
 wrks
 mkdir insitu
+cd hoaps ; ls -1 hoa* | grep -v OHF > z.list ; cd ..
 coads.gts.ncepnrt.heat.flux.collate all.flux
 
 # plot temporal coverage of all data (including in situ) at one location (using subdirectory data)
 jjj diag.heat.flux.timeseries.available.jl ....45.000...-45.500 ; di plot.avail....45.000...-45.500.png
 jjj diag.heat.flux.timeseries.available.jl ....55.000...-12.500 ; di plot.avail....55.000...-12.500.png
 
-# for good measure, list all 5516 files with 3745 dates for each dataset (in subdirectories)
-cd /home/ricani/work/works/insitu      ; ls -1 ins* > z.list
-cd /home/ricani/work/works/cfsr        ; ls -1 cfs* > z.list
-cd /home/ricani/work/works/erainterim  ; ls -1 era* > z.list
-cd /home/ricani/work/works/hoaps       ; ls -1 hoa* > z.list
-cd /home/ricani/work/works/ifremerflux ; ls -1 ifr* > z.list
-cd /home/ricani/work/works/merra       ; ls -1 mer* > z.list
-cd /home/ricani/work/works/oaflux      ; ls -1 oaf* > z.list
-cd /home/ricani/work/works/seaflux     ; ls -1 sea* > z.list
-cd /home/ricani/work/works/jofuro      ; ls -1 jof* > z.list
+# for good measure, list all 4793 (previously 5516) files with 3745 dates for each dataset (in subdirectories)
+wrks ; cd insitu      ; ls -1 ins* | grep -v OHF > z.list
+wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF > z.list
+wrks ; cd erainterim  ; ls -1 era* | grep -v OHF > z.list
+wrks ; cd hoaps       ; ls -1 hoa* | grep -v OHF > z.list
+wrks ; cd ifremerflux ; ls -1 ifr* | grep -v OHF > z.list
+wrks ; cd merra       ; ls -1 mer* | grep -v OHF > z.list
+wrks ; cd oaflux      ; ls -1 oaf* | grep -v OHF > z.list
+wrks ; cd seaflux     ; ls -1 sea* | grep -v OHF > z.list
+wrks ; cd jofuro      ; ls -1 jof* | grep -v OHF > z.list
 
 # create the forward and backward extrapolated timeseries (using z.list)
 wrks
