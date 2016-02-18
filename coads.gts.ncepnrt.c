@@ -1,6 +1,8 @@
 /*
- * This program is designed to isolate NRT GTS obs within a
- * specific time and space domain - RD Dec 2004, May 2011.
+ * This program is designed to isolate NRT GTS obs within a specific time and
+ * space domain.  Also convert dewpoint depression to specific humidity using
+ * https://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html
+ * (Bolton 1980) - RD Dec 2004, May 2011, February 2016.
  */
 
 #include <stdlib.h>
@@ -22,7 +24,7 @@ main (int argc, char *argv[])
     int a, b, c, d, count, lines, pos, chs;
     char infile[LEN], outfile[LEN], datafile[LEN], datbfile[LEN];
     char line[LOTS], tag[LEN], date[LEN], datempa[LEN], datempb[LEN], tmp[LEN];
-    float maxlat, minlat, maxlon, minlon, inlat, inlon;
+    float vapres, shum, maxlat, minlat, maxlon, minlon, inlat, inlon;
     struct header hdr;  struct report rpt;
     double delmin, delmina, delminb;
 
@@ -75,11 +77,13 @@ main (int argc, char *argv[])
           rpt.sst != OBSMISS && rpt.slp != OBSMISS) {
 /*        hdr.lat <= maxlat  && hdr.lat >= minlat &&
           hdr.lon <= maxlon  && hdr.lon >= minlon &&  */
+        vapres = 6.112 * expf((17.67 * rpt.dpt) / (rpt.dpt + 243.5));
+        shum   = 1000.0 * (0.622 * vapres) / (rpt.slp - (0.378 * vapres));
         hdr.id[5] = ',';
         fprintf(fpb,
-          "%8s %15s, %7.3f, %8.3f, %4.1f, %4.1f, %8.2f, %8.3f, %8.3f, %8.3f, %8.3f, %8.2f, %8.2f, %8.2f, %8.2f\n",
+          "%8s %15s, %7.3f, %8.3f, %4.1f, %4.1f, %8.2f, %8.3f, %8.3f, %8.3f, %8.3f, %8.2f, %8.2f, %8.2f, %8.2f, %8.3f\n",
           hdr.id, datempa, hdr.lat, hdr.lon, rpt.sid, rpt.wi, rpt.slp, rpt.d, rpt.w,
-          rpt.uwnd, rpt.vwnd, rpt.at, rpt.dpt, rpt.n, rpt.sst);
+          rpt.uwnd, rpt.vwnd, rpt.at, rpt.dpt, rpt.n, rpt.sst, shum);
         count++;
       }
       lines++;
