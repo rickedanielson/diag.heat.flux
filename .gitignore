@@ -30,4 +30,5 @@
 
 # Debug files
 *.dSYM/
+.*.swp
 limbo/

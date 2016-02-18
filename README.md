@@ -29,7 +29,7 @@ wrkr
 jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
 sort all.flux.locate > all.flux.locate.sort
 
-# create local links to all analysis data files
+# create local links to all analysis data files and example ncdumps too
 wrkr ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
 cd /home/cercache/users/rdaniels/work/workr/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
 cd /home/cercache/users/rdaniels/work/workr/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
@@ -39,12 +39,21 @@ cd /home/cercache/users/rdaniels/work/workr/jofuro      ; jjj diag.heat.flux.lin
 cd /home/cercache/users/rdaniels/work/workr/merra       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
 cd /home/cercache/users/rdaniels/work/workr/oaflux      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
 cd /home/cercache/users/rdaniels/work/workr/seaflux     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
+mkdir ncdump
+ncdump               cfsr/cfsr-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/cfsr
+ncdump   erainterim/erainterim-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/erainterim
+ncdump             hoaps/hoaps-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/hoaps
+ncdump ifremerflux/ifremerflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/ifremerflux
+ncdump           jofuro/jofuro-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/jofuro
+ncdump             merra/merra-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/merra
+ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/oaflux
+ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
 
 # get all analysis timeseries at these open ocean locations
 wrkr
 split all.flux.locate.sort all.flux.locate.sort
 parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.locate.sorta* ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
-cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julio --mem=2000mb
 
 # pack up the results at Ifremer
 cd /home/cercache/users/rdaniels/work/workr/cfsr        ; tar cvfz ../x_cfs.taz *"..."*
