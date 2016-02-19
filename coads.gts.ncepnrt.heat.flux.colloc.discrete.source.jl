@@ -8,7 +8,7 @@ const VARN             = 21                             # number of output varia
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (1,)
+if size(ARGS) != (0,)
   write("\nUsage: jjj $(basename(@__FILE__))\n\n")
   exit(1)
 end
@@ -24,10 +24,10 @@ for fila in files                                                             # 
   tail = fila[7:end]
   (lat, lon) = float(split(replace(tail, r"[\.]{2,}", " ")))
 
-  tmp = "insitu/$fila"           ; fpb = My.ouvre(tmp, "r")                   # open this set of files
+  tmp = "insitu/$fila"           ; fpb = My.ouvre(tmp, "r", false)            # open this set of files
   for dira in dirs
-    tmp = "$dira/$dira$tail.bef" ; fpc = My.ouvre(tmp, "r") ; push!(fpn, fpc)
-    tmp = "$dira/$dira$tail.aft" ; fpc = My.ouvre(tmp, "r") ; push!(fpn, fpc)
+    tmp = "$dira/$dira$tail.bef" ; fpc = My.ouvre(tmp, "r", false) ; push!(fpn, fpc)
+    tmp = "$dira/$dira$tail.aft" ; fpc = My.ouvre(tmp, "r", false) ; push!(fpn, fpc)
   end
 
   for a = 1:TIMS                                                              # loop through the 3745 times of all nine
