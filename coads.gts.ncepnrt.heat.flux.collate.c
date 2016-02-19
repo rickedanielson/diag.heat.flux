@@ -94,7 +94,7 @@ main (int argc, char *argv[])
     }
     obsnum = totnum = 0;
     while (fgets(line,LOTS,fpa) != NULL) {
-      sscanf(line, "%f, %f, %*s %s %f, %f, %*s %*s %*s %*s %f, %*s %*s %f, %*s %*s %f, %f", &inshfx, &inlhfx, date, &inlat, &inlon, &inwspd, &inairt, &insstt, &inshum);
+      sscanf(line, "%f, %f, %*s %s, %f, %f, %*s %*s %*s %*s %f, %*s %*s %f, %*s %*s %f, %f", &inshfx, &inlhfx, date, &inlat, &inlon, &inwspd, &inairt, &insstt, &inshum);
       if (inlon < -180.125) inlon += 360.0;
       sscanf(date, "%4d%2d%2d%2d", &yr, &mo, &dy, &hr) ; chkdat = 10000 * yr + 100 * mo + dy;
       if (chkdat > 19990999 && chkdat < 20100000) {
@@ -105,12 +105,12 @@ main (int argc, char *argv[])
         lonind = -9999 ; for (a = 0; a < LONS; a++) if (fabs(inlon - (FIRSTLON + a * DELLON)) <= 0.125) {lonind = a ; break;}
 /*      if (lonind < 0) {fprintf(stderr, "ERROR : %f seems to be outside [-180.125, 179.875]\n", inlon) ; exit(1);}  */
         posind = grdind[latind][lonind];
-        if (dayind < 0 || latind < 0 || lonind < 0 || posind < 0) {
+/*      if (dayind < 0 || latind < 0 || lonind < 0 || posind < 0) {
           fprintf(stderr, "WARNING : unable to index %s %d %d %d %d %f\n", line, dayind, latind, lonind, posind, fabs(inlon-FIRSTLON));
           lonind = LONS - 1;
           posind = grdind[latind][lonind];
           fprintf(stderr, "QUESTION : ?able to index %s %d %d %d %d\n", line, dayind, latind, lonind, posind);
-        }
+        }  */
 
         if (dayind >= 0 && latind >= 0 && lonind >= 0 && posind >= 0) {
           if (inshfx > -333 && inshfx < 3333) {obs[SHFX][posind][dayind] += inshfx ; num[SHFX][posind][dayind] += 1;}

@@ -25,8 +25,8 @@ cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
 mv all.flux ..
 
 # identify the location of available observations, excluding inland waters
-wrks
-jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
+wrks ; jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
+grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
 sort all.flux.locate > all.flux.locate.sort
 
 # create local links to all analysis data files and example ncdumps too
@@ -50,10 +50,62 @@ ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7
 ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
 
 # get all analysis timeseries at these open ocean locations
-wrks
-split all.flux.locate.sort all.flux.locate.sort
+wrks ; split all.flux.locate.sort all.flux.locate.sort
 parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.locate.sorta* ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
 cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julio --mem=2000mb
+
+# create insitu dir files by discretizing all.flux into averages at the resolution of reference analyses
+# (as daily/0.25-degree files for 3745 days/4793 positions) and include daily flux input variables also
+wrks ; mkdir insitu
+cd hoaps ; ls -1 hoa* | grep -v OHF > z.list ; cd ..
+coads.gts.ncepnrt.heat.flux.collate all.flux
+
+# plot temporal coverage of all data (including in situ) at one location (using subdirectory data)
+jjj diag.heat.flux.timeseries.available.jl ....45.000...-45.500 ; di plot.avail....45.000...-45.500.png
+jjj diag.heat.flux.timeseries.available.jl ....55.000...-12.500 ; di plot.avail....55.000...-12.500.png
+
+# for good measure, list all 4793 (previously 5516) files with 3745 dates for each dataset (in subdirectories)
+wrks ; cd insitu      ; ls -1 ins* | grep -v OHF > z.list
+wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF > z.list
+wrks ; cd erainterim  ; ls -1 era* | grep -v OHF > z.list
+wrks ; cd hoaps       ; ls -1 hoa* | grep -v OHF > z.list
+wrks ; cd ifremerflux ; ls -1 ifr* | grep -v OHF > z.list
+wrks ; cd merra       ; ls -1 mer* | grep -v OHF > z.list
+wrks ; cd oaflux      ; ls -1 oaf* | grep -v OHF > z.list
+wrks ; cd seaflux     ; ls -1 sea* | grep -v OHF > z.list
+wrks ; cd jofuro      ; ls -1 jof* | grep -v OHF > z.list
+
+# create the forward and backward extrapolated timeseries (using z.list)
+wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep extrapolated | sort > commands
+cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+or
+parallel --dry-run "julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
+parallel -j 8      "julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
+
+# create all.flux.locate.min2000(.pos) to identify the best (non-coastal) flux locations for much of 2001-2007
+wrks ; coads.gts.ncepnrt.heat.flux.colloc.fft all.flux.common ; mv all.flux.common.lhf.mask all.flux.common.shf.mask limbo
+grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate.min2000" ; di plot.ocean.heat.flux.dots.all.flux.locate.min2000.png
+
+# for best flux locations, identify all insitu/analysis collocations valid at all lags (using subdirectory data)
+# create all.flux.common.min2000.lhf and all.flux.common.min2000.shf then report their triple collocation averages
+    coads.gts.ncepnrt.heat.flux.colloc.common            all.flux.common.min2000
+jjj coads.gts.ncepnrt.heat.flux.colloc.common.jl         all.flux.common.min2000.shf
+jjj coads.gts.ncepnrt.heat.flux.colloc.common.iterate.jl all.flux.common.min2000.shf
+
+# export the NFFT timeseries data (edit CALIB first!)
+cat all.flux.locate.min2000.pos | parallel -j 8 "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.nfft.jl"
+jjj diag.heat.flux.timeseries.nfft.avg.jl  all.flux.locate.min2000
+jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectrum.all.flux.locate.min2000.png
+jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectruo.all.flux.locate.min2000.png
+parallel -j 8 "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.nfft.by.analysis.jl all.flux.locate.min2000" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
+jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectrun.all.flux.locate.min2000.png
+
+
+
+
+
+
+
 
 # pack up the results at Ifremer
 cd /home/cercache/users/rdaniels/work/workr/cfsr        ; tar cvfz ../x_cfs.taz *"..."*
@@ -78,61 +130,6 @@ cd /home/ricani/work/works/seaflux     ; tar xvf ../x_sea.taz
 cd /home/ricani/work/works/jofuro      ; tar xvf ../x_jro.taz
 wrks ; cp ../workr/all.flux* .
 grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
-
-# create insitu dir files by discretizing all.flux into averages at the resolution of reference analyses
-# (as daily/0.25-degree files for 3745 days/4793 positions) and include daily flux input variables also
-wrks
-mkdir insitu
-cd hoaps ; ls -1 hoa* | grep -v OHF > z.list ; cd ..
-coads.gts.ncepnrt.heat.flux.collate all.flux
-
-# plot temporal coverage of all data (including in situ) at one location (using subdirectory data)
-jjj diag.heat.flux.timeseries.available.jl ....45.000...-45.500 ; di plot.avail....45.000...-45.500.png
-jjj diag.heat.flux.timeseries.available.jl ....55.000...-12.500 ; di plot.avail....55.000...-12.500.png
-
-# for good measure, list all 4793 (previously 5516) files with 3745 dates for each dataset (in subdirectories)
-wrks ; cd insitu      ; ls -1 ins* | grep -v OHF > z.list
-wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF > z.list
-wrks ; cd erainterim  ; ls -1 era* | grep -v OHF > z.list
-wrks ; cd hoaps       ; ls -1 hoa* | grep -v OHF > z.list
-wrks ; cd ifremerflux ; ls -1 ifr* | grep -v OHF > z.list
-wrks ; cd merra       ; ls -1 mer* | grep -v OHF > z.list
-wrks ; cd oaflux      ; ls -1 oaf* | grep -v OHF > z.list
-wrks ; cd seaflux     ; ls -1 sea* | grep -v OHF > z.list
-wrks ; cd jofuro      ; ls -1 jof* | grep -v OHF > z.list
-
-# create the forward and backward extrapolated timeseries (using z.list)
-wrks
-parallel --dry-run "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.extrapolated.jl" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
-parallel -j 7      "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.extrapolated.jl" :::      erainterim hoaps ifremerflux jofuro merra oaflux seaflux
-
-# create all.flux.locate.min2000(.pos) to identify the best (non-coastal) flux locations for much of 2001-2007
-wrks
-coads.gts.ncepnrt.heat.flux.colloc.fft all.flux.common ; mv all.flux.common.lhf.mask all.flux.common.shf.mask limbo
-grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate.min2000" ; di plot.ocean.heat.flux.dots.all.flux.locate.min2000.png
-
-# for best flux locations, identify all insitu/analysis collocations valid at all lags (using subdirectory data)
-# create all.flux.common.min2000.lhf and all.flux.common.min2000.shf then report their triple collocation averages
-    coads.gts.ncepnrt.heat.flux.colloc.common            all.flux.common.min2000
-jjj coads.gts.ncepnrt.heat.flux.colloc.common.jl         all.flux.common.min2000.shf
-jjj coads.gts.ncepnrt.heat.flux.colloc.common.iterate.jl all.flux.common.min2000.shf
-
-# export the NFFT timeseries data (edit CALIB first!)
-cat all.flux.locate.min2000.pos | parallel -j 8 "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.nfft.jl"
-jjj diag.heat.flux.timeseries.nfft.avg.jl  all.flux.locate.min2000
-jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectrum.all.flux.locate.min2000.png
-jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectruo.all.flux.locate.min2000.png
-parallel -j 8 "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.nfft.by.analysis.jl all.flux.locate.min2000" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
-jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectrun.all.flux.locate.min2000.png
-
-
-
-
-
-
-
-
-
 
 # calculate paired collocations
 wrks ; vi commands.colloc
