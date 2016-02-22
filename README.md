@@ -24,7 +24,7 @@ ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
 cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
 mv all.flux ..
 
-# identify the location of available observations, excluding inland waters
+# identify the location of available observations, excluding inland waters (4793 at 0.25-deg resolution)
 wrks ; jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
 grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
 sort all.flux.locate > all.flux.locate.sort
@@ -64,7 +64,7 @@ coads.gts.ncepnrt.heat.flux.collate all.flux
 jjj diag.heat.flux.timeseries.available.jl ....45.000...-45.500 ; di plot.avail....45.000...-45.500.png
 jjj diag.heat.flux.timeseries.available.jl ....55.000...-12.500 ; di plot.avail....55.000...-12.500.png
 
-# for good measure, list all 4793 (previously 5516) files with 3745 dates for each dataset (in subdirectories)
+# for good measure, list all 4793 files with 3745 dates for each dataset (in subdirectories)
 wrks ; cd insitu      ; ls -1 ins* | grep -v OHF > z.list
 wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF > z.list
 wrks ; cd erainterim  ; ls -1 era* | grep -v OHF > z.list
@@ -75,18 +75,25 @@ wrks ; cd oaflux      ; ls -1 oaf* | grep -v OHF > z.list
 wrks ; cd seaflux     ; ls -1 sea* | grep -v OHF > z.list
 wrks ; cd jofuro      ; ls -1 jof* | grep -v OHF > z.list
 
-# create the forward and backward extrapolated timeseries (using z.list)
+# create the forward and backward extrapolated timeseries (probably easiest to do pairs on br156-097,099,241,252)
+wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl cfsr
+wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl erainterim
+wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl hoaps
+wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl ifremerflux
+wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl jofuro
+wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl merra
+wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl oaflux
+wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl seaflux
+or
+parallel -j 8 "julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
+or
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep extrapolated | sort > commands
 cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-or
-parallel --dry-run "jjj diag.heat.flux.timeseries.extrapolated.jl" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
-parallel --dry-run "julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
-parallel -j 8      "julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
 
 # create all.flux.combined including buoy (shfx lhfx shum wspd airt sstt) and eight analysis extrapolations before and after
 wrks ; jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl
 
-# Partition a set of collocations into subsets that are geometrically closest to the coordinates of a cube that (mostly) encompasses them
+# partition a set of collocations into subsets that are geometrically closest to the coordinates of a cube that (mostly) encompasses them
 wrks ; jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.cube.jl all.flux.combined
 jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.plot.jl all.flux.combined.-30....0....0
 jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.plot.jl all.flux.combined.-30....0...40

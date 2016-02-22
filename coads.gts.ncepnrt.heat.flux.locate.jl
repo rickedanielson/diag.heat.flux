@@ -1,8 +1,8 @@
 #=
- = Identify a set of locations covering all observations in a file,
- = but where locations are only defined at the resolution of a grid
- = (for subsequent collocation) and where elevations are below sea
- = level (i.e., excluding inland waters) - RD June 2015
+ = Identify and count the location of all observations in the input file,
+ = where locations are defined at the resolution of a grid (for subsequent
+ = collocation) and only for elevations below sea level (i.e., excluding
+ = inland waters) - RD June 2015
  =#
 
 using My #, NetCDF
@@ -12,7 +12,7 @@ if size(ARGS) == (0,)
   exit(1)
 end
 
-tats = collect(89.875:-0.25:-89.875)                                          # define a topographic mask
+tats = collect(89.875:-0.25:-89.875)                                          # first read height relative to sea level
 tons = collect(0.1250: 0.25:359.875) ; for a = 1:1440  tons[a] > 180 && (tons[a] -= 360)  end
 #topo = ncread("/home/ricani/data/topography/elev.0.25-deg.nc", "data", start=[1,1,1], count=[-1,-1,-1])
 #      nc = NetCDF.open("/home/ricani/data/topography/elev.0.25-deg.nc", mode=NC_NOWRITE, readdimvar=false)
@@ -23,14 +23,14 @@ tmparr = Array(Float32, 1036800) ; topo = Array(Float64, (1440,720))
 ccall((:cdcread, "/home1/homedir1/perso/rdaniels/lib/libcdcnetcdf.so"), Void, (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cfloat}, Int32), "/home/cercache/users/rdaniels/topography/elev.0.25-deg.nc", "data", "0001-01-01-00", tmparr, 1036800)
 c = 1 ; for a = 1:720, b = 1:1440  topo[b,a] = tmparr[c] ; c += 1  end
 
-lats = collect( -90.0:0.25:89.75)                                             # define the grid and initialize
-lons = collect(-180.0:0.25:179.75)                                            # the collocations
+lats = collect( -90.0:0.25:89.75)                                             # then define the collocation grid
+lons = collect(-180.0:0.25:179.75)                                            # and initialize the counts
 subs = Set(Array(Tuple{Float64, Float64}, 0))
 numb = zeros(length(lons), length(lats))
 
-csv = readcsv(ARGS[1])                                                        # find the set of collocations
-vals, = size(csv)
-for a = 1:vals
+csv = readcsv(ARGS[1])                                                        # identify and count the collocations
+vals, = size(csv)                                                             # between 1999-10 and 2009-12 (as long
+for a = 1:vals                                                                # as the gridbox is below sea level)
   lat = csv[a,5]
   lon = csv[a,6] ; lon < -180 && (lon += 360)
   dellat, indlat = findmin(abs(tats - lat))
@@ -43,7 +43,7 @@ for a = 1:vals
   end
 end
 
-fpa = My.ouvre("$(ARGS[1]).locate", "w")                                      # and save it
+fpa = My.ouvre("$(ARGS[1]).locate", "w")                                      # and save them
 for loc in subs
   (lat, lon) = loc
   indlat = findfirst(lats, lat)
@@ -53,7 +53,6 @@ for loc in subs
 end
 close(fpa)
 exit(0)
-
 
 
 #=

@@ -69,7 +69,7 @@ main (int argc, char *argv[])
     fclose(fpa);
 
     get_mem4Dfloat(&shf, LAGS, ESTS, POSS, DAYS);                             /* allocate the full grids */
-    get_mem4Dfloat(&lhf, LAGS, ESTS, POSS, DAYS);
+/*  get_mem4Dfloat(&lhf, LAGS, ESTS, POSS, DAYS);  */
 
     for (d = 1; d < LAGS-1; d++)
       for (a = 0; a < ESTS; a++) {                                            /* then read the heat fluxes */
@@ -82,7 +82,8 @@ main (int argc, char *argv[])
           }
           daynum = 0;
           while (fgets(lina,LEN,fpa) != NULL) {
-            sscanf(lina, "%*s %f %f", &shf[d][a][b][daynum], &lhf[d][a][b][daynum]);
+/*          sscanf(lina, "%*s %f %f", &shf[d][a][b][daynum], &lhf[d][a][b][daynum]);  */
+            sscanf(lina, "%*s %f", &shf[d][a][b][daynum]);
             daynum++;
           }
           if (daynum != DAYS) {fprintf(stderr, "ERROR : read %d days\n", daynum) ; exit(1);}
@@ -141,7 +142,7 @@ main (int argc, char *argv[])
     fclose(fpa);
 
     daynum = 0;                                                               /* (and for LHF we ignore CFSR entirely) */
-    for (a = 0; a < DAYS; a++) {
+/*  for (a = 0; a < DAYS; a++) {
       obsnum = 0;
       for (b = 0; b < POSS; b++)
         if (posdup[b] > 0) {
@@ -153,7 +154,7 @@ main (int argc, char *argv[])
       fprintf(fpb, "%d %5d %5d %5.1f\n", datref[a], obsnum, posnum, 100.0 * (float)obsnum / (float)posnum);
       if (obsnum == posnum) daynum++;
     }
-    printf("found %d perfectly valid SHF collocations (out of %d) in %s\n", daynum, DAYS, datbfile);
+    printf("found %d perfectly valid SHF collocations (out of %d) in %s\n", daynum, DAYS, datbfile);  */
     fclose(fpb);
     exit(0);
 }
