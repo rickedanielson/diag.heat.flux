@@ -56,10 +56,9 @@ for fila in files                                                             # 
     if flag                                                                   # and store the line if so
       line = @sprintf("%s %9.3f %9.3f", date, lat, lon)
       for b = 1:VARN
-        linb = @sprintf(" %9.3f", data[b])
-        line *= linb
+        linb = @sprintf(" %9.3f", data[b]) ; line *= linb
       end
-      write(fpa, line)
+      line *= "\n" ; write(fpa, line)
     end
   end
 
