@@ -27,7 +27,6 @@ mv all.flux ..
 # identify the location of available observations, excluding inland waters (4793 at 0.25-deg resolution)
 wrks ; jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
 grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
-sort all.flux.locate > all.flux.locate.sort
 
 # create local links to all analysis data files and example ncdumps too
 wrks ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
@@ -50,7 +49,7 @@ ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7
 ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
 
 # get all analysis timeseries at these open ocean locations
-wrks ; split all.flux.locate.sort all.flux.locate.sort
+wrks ; sort all.flux.locate > all.flux.locate.sort ; split all.flux.locate.sort all.flux.locate.sort
 parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.locate.sorta* ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
 cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julio --mem=2000mb
 

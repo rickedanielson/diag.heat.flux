@@ -54,9 +54,9 @@ while int(date) < 20100101000000                                              # 
       flag = dat3 = false
       if vars[a] != ""
         flag = true
-               nc = NetCDF.open(file, mode=NC_NOWRITE, readdimvar=false)
-        try  dat3 = NetCDF.readvar(nc, vars[a], start=[1,1,1], count=[-1,-1,-1])  catch  flag = false  end
-                    NetCDF.close(nc)
+                 try    nc = NetCDF.open(file, mode=NC_NOWRITE, readdimvar=false)          catch  flag = false  end
+        if flag  try  dat3 = NetCDF.readvar(nc, vars[a], start=[1,1,1], count=[-1,-1,-1])  catch  flag = false  end  end
+                 try         NetCDF.close(nc)                                                                   end
       end
       if flag
         dat2 = dat3[:,:,1]
