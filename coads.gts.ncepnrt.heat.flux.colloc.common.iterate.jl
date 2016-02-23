@@ -26,7 +26,7 @@ const FRAC             = 2.0 / 3.0                      # fractional update duri
 const DELTA            = 0.001                          # generic convergence criterion
 
 if size(ARGS) != (1,)
-  write("\nUsage: jjj $(basename(@__FILE__)) all.flux.common.shf\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.common.shf\n\n")
   exit(1)
 end
 
@@ -49,7 +49,7 @@ for (a, line) in enumerate(lines)
 # flux[2,a,:] = [vals[ 4] vals[ 5] vals[ 6] vals[ 7] vals[ 8] vals[ 9] vals[10] vals[11] vals[12]]
 # flux[3,a,:] = [vals[ 4] vals[ 5] vals[ 6] vals[ 7] vals[ 8] vals[ 9] vals[10] vals[11] vals[12]]
 end
-write("found $num collocations in $(ARGS[1])\n")
+print("found $num collocations in $(ARGS[1])\n")
 
 allsiga = Array(Float64, 8, 8)                                                # use in situ and (a) any one analysis
 allcora = Array(Float64, 8, 8)                                                # in turn as references and store the
@@ -95,7 +95,7 @@ for a = 1:8
       sampfore = (flux[3,:,b] - alp3) / bet3
       rsqrsate =      rsqr[a]         / bet2
       rsqrfore =      rsqr[b]         / bet3
-      write("$a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
+      print("$a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
 
       deltaold = deltasqr
       deltasqr = rsqrfore > rsqrsate ? rsqrfore - rsqrsate : 0.0
@@ -157,7 +157,7 @@ for a = 1:8
       sampfore = (flux[3,:,b] - alp3) / bet3
       rsqrsate =      rsqr[a]         / bet2
       rsqrfore =      rsqr[b]         / bet3
-      write("$a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
+      print("$a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
 
       deltaold = deltasqr
       deltasqr = rsqrfore > rsqrsate ? rsqrfore - rsqrsate : 0.0
@@ -189,7 +189,7 @@ for a = 1:8
   end
 end
 
-write("allalp\n")
+print("allalp\n")
 for b = 1:8                                                                   # then output the average alpha
   tmpa = tmpb = 0.0
   for a = 1:8
@@ -202,7 +202,7 @@ for b = 1:8                                                                   # 
   @printf("%22s %15.1f %15.1f %15.1f\n", dirs[b], tmpa, tmpb, tmpc)
 end
 
-write("allbet\n")
+print("allbet\n")
 for b = 1:8                                                                   # then output the average beta
   tmpa = tmpb = 0.0
   for a = 1:8
@@ -215,7 +215,7 @@ for b = 1:8                                                                   # 
   @printf("%22s %15.2f %15.2f %15.2f\n", dirs[b], tmpa, tmpb, tmpc)
 end
 
-write("allsig\n")
+print("allsig\n")
 for b = 1:8                                                                   # then output the average RMSE
   tmpa = tmpb = 0.0
   for a = 1:8
@@ -229,7 +229,7 @@ for b = 1:8                                                                   # 
   @printf("%22s %15.0f %15.0f %15.0f\n", dirs[b], tmpa, tmpb, tmpc)
 end
 
-write("allcor\n")
+print("allcor\n")
 for b = 1:8                                                                   # then output the average correlation
   tmpa = tmpb = 0.0
   for a = 1:8

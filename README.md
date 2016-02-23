@@ -31,14 +31,14 @@ sort all.flux.locate > all.flux.locate.sort
 
 # create local links to all analysis data files and example ncdumps too
 wrks ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
-cd /home/cercache/users/rdaniels/work/workr/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
-cd /home/cercache/users/rdaniels/work/workr/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
-cd /home/cercache/users/rdaniels/work/workr/hoaps       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
-cd /home/cercache/users/rdaniels/work/workr/ifremerflux ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/ifremerflux
-cd /home/cercache/users/rdaniels/work/workr/jofuro      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/jofuro
-cd /home/cercache/users/rdaniels/work/workr/merra       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
-cd /home/cercache/users/rdaniels/work/workr/oaflux      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
-cd /home/cercache/users/rdaniels/work/workr/seaflux     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
+cd /home/cercache/users/rdaniels/work/works/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
+cd /home/cercache/users/rdaniels/work/works/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
+cd /home/cercache/users/rdaniels/work/works/hoaps       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
+cd /home/cercache/users/rdaniels/work/works/ifremerflux ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/ifremerflux
+cd /home/cercache/users/rdaniels/work/works/jofuro      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/jofuro
+cd /home/cercache/users/rdaniels/work/works/merra       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
+cd /home/cercache/users/rdaniels/work/works/oaflux      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
+cd /home/cercache/users/rdaniels/work/works/seaflux     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
 mkdir ncdump
 ncdump               cfsr/cfsr-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/cfsr
 ncdump   erainterim/erainterim-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/erainterim
@@ -108,6 +108,9 @@ di plot.all.flux.combined.*
 
 
 
+
+
+
 # create all.flux.locate.min2000(.pos) to identify the best (non-coastal) flux locations for much of 2001-2007
 wrks ; coads.gts.ncepnrt.heat.flux.colloc.fft all.flux.common ; mv all.flux.common.lhf.mask all.flux.common.shf.mask limbo
 grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate.min2000" ; di plot.ocean.heat.flux.dots.all.flux.locate.min2000.png
@@ -128,20 +131,15 @@ jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectrun
 
 
 
-
-
-
-
-
 # pack up the results at Ifremer
-cd /home/cercache/users/rdaniels/work/workr/cfsr        ; tar cvfz ../x_cfs.taz *"..."*
-cd /home/cercache/users/rdaniels/work/workr/erainterim  ; tar cvfz ../x_era.taz *"..."*
-cd /home/cercache/users/rdaniels/work/workr/hoaps       ; tar cvfz ../x_hop.taz *"..."*
-cd /home/cercache/users/rdaniels/work/workr/ifremerflux ; tar cvfz ../x_ifr.taz *"..."*
-cd /home/cercache/users/rdaniels/work/workr/merra       ; tar cvfz ../x_mer.taz *"..."*
-cd /home/cercache/users/rdaniels/work/workr/oaflux      ; tar cvfz ../x_oaf.taz *"..."*
-cd /home/cercache/users/rdaniels/work/workr/seaflux     ; tar cvfz ../x_sea.taz *"..."*
-cd /home/cercache/users/rdaniels/work/workr/jofuro      ; tar cvfz ../x_jro.taz *"..."*
+cd /home/cercache/users/rdaniels/work/works/cfsr        ; tar cvfz ../x_cfs.taz *"..."*
+cd /home/cercache/users/rdaniels/work/works/erainterim  ; tar cvfz ../x_era.taz *"..."*
+cd /home/cercache/users/rdaniels/work/works/hoaps       ; tar cvfz ../x_hop.taz *"..."*
+cd /home/cercache/users/rdaniels/work/works/ifremerflux ; tar cvfz ../x_ifr.taz *"..."*
+cd /home/cercache/users/rdaniels/work/works/merra       ; tar cvfz ../x_mer.taz *"..."*
+cd /home/cercache/users/rdaniels/work/works/oaflux      ; tar cvfz ../x_oaf.taz *"..."*
+cd /home/cercache/users/rdaniels/work/works/seaflux     ; tar cvfz ../x_sea.taz *"..."*
+cd /home/cercache/users/rdaniels/work/works/jofuro      ; tar cvfz ../x_jro.taz *"..."*
 
 # and unpack them locally and plot availability at these open ocean locations
 wrks

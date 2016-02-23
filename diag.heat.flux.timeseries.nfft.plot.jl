@@ -9,7 +9,7 @@ const TIMES            = 2556                           # number of days in duri
 const VARSUM           = 30                             # cutoff timescale for variance summation (days)
 
 if size(ARGS) != (1,)
-  write("\nUsage: jjj $(basename(@__FILE__)) all.flux.locate.min2000\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.locate.min2000\n\n")
   exit(1)
 end
 
@@ -37,7 +37,7 @@ order = sortperm(specvar, rev=true)
 
 for a in order
   specstr[a] = @sprintf("%.0lf", specvar[a])
-  write("variance $(specstr[a]) in $(dirs[a])\n")
+  print("variance $(specstr[a]) in $(dirs[a])\n")
 end
 
 #xlaba = ["121", "60", "30", "14", "5", "3", "2"]
@@ -47,7 +47,7 @@ xposa = float(xlaba).^-1
 xposb = float(xlabb)
 
 xyzzy = "spectruo.$(ARGS[1]).png"
-write("writing $xyzzy\n")
+print("writing $xyzzy\n")
 tmp = Winston.FramedPlot(
         title="2001-2007 SHF Spectra (dB)", xlog = true,
         xlabel="Timescale (days)", xrange = (1/1000,1/2),

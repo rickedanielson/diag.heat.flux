@@ -10,7 +10,7 @@ using My
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) != (1,)
-  write("\nUsage: jjj $(basename(@__FILE__)) all.flux.common.shf\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.common.shf\n\n")
   exit(1)
 end
 
@@ -31,7 +31,7 @@ for (a, line) in enumerate(lines)
 # flux[2,a,:] = [vals[ 4] vals[ 5] vals[ 6] vals[ 7] vals[ 8] vals[ 9] vals[10] vals[11] vals[12]]
 # flux[3,a,:] = [vals[ 4] vals[ 5] vals[ 6] vals[ 7] vals[ 8] vals[ 9] vals[10] vals[11] vals[12]]
 end
-write("found $num collocations in $(ARGS[1])\n")
+print("found $num collocations in $(ARGS[1])\n")
 
 allsiga = Array(Float64, 8, 8)                                                # use in situ and (a) any one analysis
 allcora = Array(Float64, 8, 8)                                                # in turn as references and store the
@@ -62,7 +62,7 @@ for a = 1:8
     bet3 = cv23 / cv12
     alp2 = avg2 - bet2 * avg1
     alp3 = avg3 - bet3 * avg1
-# write("bet2 = $bet2\nbet3 = $bet3\nalp2 = $alp2\nalp3 = $alp3\n")
+# print("bet2 = $bet2\nbet3 = $bet3\nalp2 = $alp2\nalp3 = $alp3\n")
 
     sampsate = (flux[1,:,a] - alp2) / bet2
     sampfore = (flux[3,:,b] - alp3) / bet3
@@ -106,7 +106,7 @@ for a = 1:8
     bet3 = cv23 / cv12
     alp2 = avg2 - bet2 * avg1
     alp3 = avg3 - bet3 * avg1
-# write("bet2 = $bet2\nbet3 = $bet3\nalp2 = $alp2\nalp3 = $alp3\n")
+# print("bet2 = $bet2\nbet3 = $bet3\nalp2 = $alp2\nalp3 = $alp3\n")
 
     sampsate = (flux[1,:,a] - alp2) / bet2
     sampfore = (flux[3,:,b] - alp3) / bet3
@@ -135,7 +135,7 @@ for a = 1:8
   end
 end
 
-write("allalp\n")
+print("allalp\n")
 for b = 1:8                                                                   # then output the average alpha
   tmpa = tmpb = 0.0
   for a = 1:8
@@ -148,7 +148,7 @@ for b = 1:8                                                                   # 
   @printf("%22s %15.1f %15.1f %15.1f\n", dirs[b], tmpa, tmpb, tmpc)
 end
 
-write("allbet\n")
+print("allbet\n")
 for b = 1:8                                                                   # then output the average beta
   tmpa = tmpb = 0.0
   for a = 1:8
@@ -161,7 +161,7 @@ for b = 1:8                                                                   # 
   @printf("%22s %15.2f %15.2f %15.2f\n", dirs[b], tmpa, tmpb, tmpc)
 end
 
-write("allsig\n")
+print("allsig\n")
 for b = 1:8                                                                   # then output the average RMSE
   tmpa = tmpb = 0.0
   for a = 1:8
@@ -175,7 +175,7 @@ for b = 1:8                                                                   # 
   @printf("%22s %15.0f %15.0f %15.0f\n", dirs[b], tmpa, tmpb, tmpc)
 end
 
-write("allcor\n")
+print("allcor\n")
 for b = 1:8                                                                   # then output the average correlation
   tmpa = tmpb = 0.0
   for a = 1:8

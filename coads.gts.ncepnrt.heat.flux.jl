@@ -10,7 +10,7 @@ using My, COARE
 # using PyCall ; @pyimport cerform.flux.coare3 as coare3
 
 if size(ARGS) == (0,)
-  write("\nUsage: jjj $(basename(@__FILE__)) nq9901 nq9902 ... nq1102\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) nq9901 nq9902 ... nq1102\n\n")
   exit(1)
 end
 
@@ -40,7 +40,7 @@ for fila in ARGS
       z    = coare3.coare3(y)
       shf = z[:"hsb"][1]
       lhf = z[:"hlb"][1]
-#     if abs(shf) > 0.1 || abs(lhf) > 0.1  write("$shf $lhf\n")  end
+#     if abs(shf) > 0.1 || abs(lhf) > 0.1  print("$shf $lhf\n")  end
     end
     bigline = @sprintf("%8.2f, %8.2f, %s", shf, lhf, line)
     write(fpb, bigline)

@@ -7,7 +7,7 @@ using My, Winston
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) != (1,)
-  write("\nUsage: jjj $(basename(@__FILE__)) ....45.000...-45.500\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) ....45.000...-45.500\n\n")
   exit(1)
 end
 
@@ -88,18 +88,18 @@ for a = 2:3745
 end
 
 xyzzy = "plot.avail$(ARGS[1]).png"
-write("writing $xyzzy\n")
+print("writing $xyzzy\n")
 Colors.colormap("Blues", 3)
 tmp = Winston.imagesc(shfx)
-setattr(tmp.x2, "ticks",           xpos) ; setattr(tmp.x1, "draw_nothing",    true)
-setattr(tmp.x2, "tickdir",            1) ; setattr(tmp.x1, "tickdir",            1)
-setattr(tmp.x2, "ticklabels",      xlab) ; setattr(tmp.x1, "draw_ticks",     false)
-setattr(tmp.x2, "draw_subticks",  false) ; setattr(tmp.x1, "draw_subticks",  false)
+setattr(tmp.x2, "ticks",                  xpos) ; setattr(tmp.x1, "draw_nothing",           true)
+setattr(tmp.x2, "tickdir",                   1) ; setattr(tmp.x1, "tickdir",                   1)
+setattr(tmp.x2, "ticklabels",             xlab) ; setattr(tmp.x1, "draw_ticks",            false)
+setattr(tmp.x2, "draw_subticks",         false) ; setattr(tmp.x1, "draw_subticks",         false)
 #setattr(tmp.x1, "ticklabels_style.rotation", "90")
-setattr(tmp.y1, "ticks", [100:200:1700])#; setattr(tmp.y2, "ticks", [100:200:1700])
-setattr(tmp.y1, "tickdir",            1) ; setattr(tmp.y2, "tickdir",            1)
-setattr(tmp.y1, "ticklabels",      dirs) ; setattr(tmp.y2, "draw_ticks",     false)
-setattr(tmp.y1, "draw_subticks",  false) ; setattr(tmp.y2, "draw_subticks",  false)
+setattr(tmp.y1, "ticks", collect(100:200:1700))#; setattr(tmp.y2, "ticks", collect(100:200:1700))
+setattr(tmp.y1, "tickdir",                   1) ; setattr(tmp.y2, "tickdir",                   1)
+setattr(tmp.y1, "ticklabels",             dirs) ; setattr(tmp.y2, "draw_ticks",            false)
+setattr(tmp.y1, "draw_subticks",         false) ; setattr(tmp.y2, "draw_subticks",         false)
 ppp = Winston.add(tmp)
       Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
 exit(0)

@@ -11,7 +11,7 @@ const TIMES            = 2556                           # number of days in duri
 const CALIB            = 1                              # flag determining whether to calibrate (1 = yes)
 
 if size(ARGS) != (1,)
-  write("\nUsage: jjj $(basename(@__FILE__)) ....41.750...148.250\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) ....41.750...148.250\n\n")
   exit(1)
 end
 
@@ -71,7 +71,7 @@ for (a, dir) in enumerate(dirs)                                               # 
   end
   close(fpa)
 
-# write("diag.heat.flux.timeseries.nfft $tmpa\n")
+# print("diag.heat.flux.timeseries.nfft $tmpa\n")
     run(`diag.heat.flux.timeseries.nfft $tmpa`)                               # and compute each spectra
 end
 exit(0)

@@ -7,7 +7,7 @@ using My, NetCDF, Grid
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) != (2,)
-  write("\nUsage: jjo $(basename(@__FILE__)) all.flux.locate.sort cfsr\n\n")
+  print("\nUsage: jjo $(basename(@__FILE__)) all.flux.locate.sort cfsr\n\n")
   exit(1)
 end
 
@@ -82,6 +82,6 @@ while int(date) < 20100101000000                                              # 
   date = My.dateadd(date, 1, "dy")
 end
 
-write("closing...\n")
+print("closing...\n")
 for a = 1:locn  close(fpn[a])  end
 exit(0)

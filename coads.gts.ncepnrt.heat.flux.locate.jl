@@ -8,7 +8,7 @@
 using My #, NetCDF
 
 if size(ARGS) == (0,)
-  write("\nUsage: jjj $(basename(@__FILE__)) all.flux\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) all.flux\n\n")
   exit(1)
 end
 

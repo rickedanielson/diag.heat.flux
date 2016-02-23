@@ -10,7 +10,7 @@ const DAYS             = 3745                           # number of days in full
 const TIMES            = 2556                           # number of days in during 2001-2007 (and number of spectral coefficients)
 
 if size(ARGS) != (2,)
-  write("\nUsage: jjj $(basename(@__FILE__)) all.flux.locate.min2000 cfsr\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.locate.min2000 cfsr\n\n")
   exit(1)
 end
 

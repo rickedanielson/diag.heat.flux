@@ -5,7 +5,7 @@
  =#
 
 if size(ARGS) != (1,)
-  write("\nUsage: jjj $(basename(@__FILE__)) /home/cercache/project/oceanheatflux/data/references/ifremerflux\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) /home/cercache/project/oceanheatflux/data/references/ifremerflux\n\n")
   exit(1)
 end
 
@@ -18,7 +18,7 @@ function walkdir(dir)
       if !islink(file)
         symlink(full, file)
       else
-        write("$file link already exists, so not replacing with a link to $full\n")
+        print("$file link already exists, so not replacing with a link to $full\n")
       end
     elseif isdir(full)
       walkdir(full)
