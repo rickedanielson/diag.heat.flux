@@ -47,16 +47,19 @@ end
 
 date = "19991001120000"                                                       # and fill the output files (all
 while int(date) < 20100101000000                                              # locs and vars) one date at a time
-  stor = fill(MISS, locn, varn)
+  stor = fill(MISS, locn, varn)                                               # (careful: try introduces new scope)
   file = ARGS[2] * "/" * stem * date * tail ; println(file)
   if isfile(file)
     for a = 1:varn
       flag = dat3 = false
       if vars[a] != ""
-        flag = true
-                 try    nc = NetCDF.open(file, mode=NC_NOWRITE, readdimvar=false)          catch  flag = false  end
-        if flag  try  dat3 = NetCDF.readvar(nc, vars[a], start=[1,1,1], count=[-1,-1,-1])  catch  flag = false  end  end
-                 try         NetCDF.close(nc)                                                                   end
+        flag = nc = true
+                 try    nc = NetCDF.open(file, mode=NC_NOWRITE, readdimvar=false)          catch;  flag = false  end
+        if flag  try  dat3 = NetCDF.readvar(nc, vars[a], start=[1,1,1], count=[-1,-1,-1])  catch;  flag = false  end  end
+                 try         NetCDF.close(nc)                                                                    end
+#       try    nc = NetCDF.open(file, mode=NC_NOWRITE, readdimvar=false)          end
+#       try  dat3 = NetCDF.readvar(nc, vars[a], start=[1,1,1], count=[-1,-1,-1])  end
+#       try         NetCDF.close(nc)                                              end
       end
       if flag
         dat2 = dat3[:,:,1]

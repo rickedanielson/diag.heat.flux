@@ -90,7 +90,15 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.time
 cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
 
 # create all.flux.combined including buoy (shfx lhfx shum wspd airt sstt) and eight analysis extrapolations before and after
+# then perform the partitioned triple collocations and create a cal/val hypercube
 wrks ; jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl
+       jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl all.flux.combined
+
+
+
+
+
+
 
 # partition a set of collocations into subsets that are geometrically closest to the coordinates of a cube that (mostly) encompasses them
 wrks ; jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.cube.jl all.flux.combined
@@ -103,12 +111,6 @@ jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.plot.jl all.flux.combined..40...
 jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.plot.jl all.flux.combined..40...40....0
 jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.plot.jl all.flux.combined..40...40...40
 di plot.all.flux.combined.*
-
-
-
-
-
-
 
 # create all.flux.locate.min2000(.pos) to identify the best (non-coastal) flux locations for much of 2001-2007
 wrks ; coads.gts.ncepnrt.heat.flux.colloc.fft all.flux.common ; mv all.flux.common.lhf.mask all.flux.common.shf.mask limbo
@@ -127,8 +129,6 @@ jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectrum
 jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectruo.all.flux.locate.min2000.png
 parallel -j 8 "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.nfft.by.analysis.jl all.flux.locate.min2000" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
 jjo diag.heat.flux.timeseries.nfft.plot.jl all.flux.locate.min2000 ; di spectrun.all.flux.locate.min2000.png
-
-
 
 # pack up the results at Ifremer
 cd /home/cercache/users/rdaniels/work/works/cfsr        ; tar cvfz ../x_cfs.taz *"..."*

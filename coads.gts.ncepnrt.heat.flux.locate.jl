@@ -16,7 +16,7 @@ tats = collect(89.875:-0.25:-89.875)                                          # 
 tons = collect(0.1250: 0.25:359.875) ; for a = 1:1440  tons[a] > 180 && (tons[a] -= 360)  end
 #topo = ncread("/home/ricani/data/topography/elev.0.25-deg.nc", "data", start=[1,1,1], count=[-1,-1,-1])
 #      nc = NetCDF.open("/home/ricani/data/topography/elev.0.25-deg.nc", mode=NC_NOWRITE, readdimvar=false)
-#try topo = NetCDF.readvar(nc, "data", start=[1,1,1], count=[-1,-1,-1])  catch  topo = false  end
+#try topo = NetCDF.readvar(nc, "data", start=[1,1,1], count=[-1,-1,-1])  catch;  topo = false  end
 #           NetCDF.close(nc)
 tmparr = Array(Float32, 1036800) ; topo = Array(Float64, (1440,720))
 #ccall((:cdcread, "/home/ricani/lib/libcdcnetcdf.so"), Void, (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cfloat}, Int32), "/home/ricani/data/topography/elev.0.25-deg.nc", "data", "0001-01-01-00", tmparr, 1036800)
