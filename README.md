@@ -5,24 +5,24 @@ git clone git@github.com:rickedanielson/diag.heat.flux.git
 # requirements on ubuntu 14.04 (local) and at Ifremer (12.04)
 julia (http://julialang.org/)
 GNU parallel (http://www.gnu.org/software/parallel/)
+alias ohf  'cd $STEMC/Projects/OHF; lst'
 alias wrks 'cd ~/work/works; ls'
 
-# download the NCEP NRT data and unpack them
-wrks ; mkdir coads ; cd coads
-wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq991*'
-wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq0*'
-# wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq1*'
-# wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/gts.sfcmar_201101.gz
-ls -1 *gz | parallel -j 7 gunzip
-ls -1 *Z  | parallel -j 7 uncompress
-mkdir limbo ; mv nq0503 limbo/nq0503_incomplete ; mv nq0503_complete nq0503
-
-# assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
-wrks ; cd coads
-ls -1 nq????         | parallel -j 7      coads.gts.ncepnrt
-ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
-cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
-mv all.flux ..
+# download the ICOADS data and assemble a COARE flux file
+ohf ; mkdir coads ; cd coads
+http://rda.ucar.edu/datasets/ds540.0/index.html#!access         (select all then run the download script locally)
+tar xvf IMMA1_R3.0_BETA3_CLEAN_1998_2000.tar ; rm ICOADS_R3_Beta3_1998* ICOADS_R3_Beta3_19990*
+tar xvf IMMA1_R3.0_BETA3_CLEAN_2001-2002.tar
+tar xvf IMMA1_R3.0_BETA3_CLEAN_2003-2004.tar
+tar xvf IMMA1_R3.0_BETA3_CLEAN_2005.tar
+tar xvf IMMA1_R3.0_BETA3_CLEAN_2006.tar
+tar xvf IMMA1_R3.0_BETA3_CLEAN_2007.tar
+tar xvf IMMA1_R3.0_BETA3_CLEAN_2008.tar
+tar xvf IMMA1_R3.0_BETA3_CLEAN_2009.tar
+mv *gz .. ; cd .. ; ls -1 | grep -E 'gz$' | parallel gunzip
+ls -1 ICOADS_R3_Beta3_??????.dat | parallel -j 7 "jjj coads.gts.ncepnrt.jl"
+cat   ICOADS_R3_Beta3_??????.dat.flux > all.flux
+mv all.flux ~/work/works
 
 # identify the location of available observations, excluding inland waters (4793 at 0.25-deg resolution)
 wrks ; jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
@@ -98,7 +98,26 @@ wrks ; jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl
 
 
 
+# or else download the NCEP NRT data and assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
+ohf ; mkdir coads ; cd coads
+wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq991*'
+wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq0*'
+# wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq1*'
+# wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/gts.sfcmar_201101.gz
+ls -1 *gz | parallel -j 7 gunzip
+ls -1 *Z  | parallel -j 7 uncompress
+mkdir limbo ; mv nq0503 limbo/nq0503_incomplete ; mv nq0503_complete nq0503
+ls -1 nq????         | parallel -j 7      coads.gts.ncepnrt
+ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
+cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
+cp all.flux ~/work/works
 
+# assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
+wrks ; cd coads
+ls -1 nq????         | parallel -j 7      coads.gts.ncepnrt
+ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
+cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
+mv all.flux ..
 
 # partition a set of collocations into subsets that are geometrically closest to the coordinates of a cube that (mostly) encompasses them
 wrks ; jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.cube.jl all.flux.combined
