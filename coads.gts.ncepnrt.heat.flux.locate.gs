@@ -23,8 +23,9 @@ fpz = "xyzzy.forgetit" ; "!echo $HOME > "fpz ; line = read(fpz) ; home = sublin(
 "set xlint 30"
 "set ylint 15"
 "set digsiz 0.09"
-"set lat -65 85"
+"set lat -85 85"
 "set lon -182 182"
+*"set lon -182 362"
 "set cthick 15"
 "set clab off"
 "set ccolor 0"
@@ -43,6 +44,9 @@ while (sublin(filestat,1) = 0)
   cyclat = subwrd(line,1)
   cyclon = subwrd(line,2)
   cycnum = subwrd(line,3)
+say line
+say cyclon
+  if (cyclon > 180) ; cyclon = cyclon - 360.0 ; endif
   if (cycnum > 0) ; counta = counta + 1 ; endif
   if (cycnum > 0) ; countb = countb + cycnum ; endif
   if (cycnum >  10000) ; cyccol = 14 ; endif

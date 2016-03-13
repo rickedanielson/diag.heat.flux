@@ -5,11 +5,10 @@ git clone git@github.com:rickedanielson/diag.heat.flux.git
 # requirements on ubuntu 14.04 (local) and at Ifremer (12.04)
 julia (http://julialang.org/)
 GNU parallel (http://www.gnu.org/software/parallel/)
-alias ohf  'cd $STEMC/Projects/OHF; lst'
 alias wrks 'cd ~/work/works; ls'
 
 # download the ICOADS data and assemble a COARE flux file
-ohf ; mkdir coads ; cd coads
+wrks ; cd coads
 http://rda.ucar.edu/datasets/ds540.0/index.html#!access         (select all then run the download script locally)
 tar xvf IMMA1_R3.0_BETA3_CLEAN_1998_2000.tar ; rm ICOADS_R3_Beta3_1998* ICOADS_R3_Beta3_19990*
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2001-2002.tar
@@ -19,10 +18,11 @@ tar xvf IMMA1_R3.0_BETA3_CLEAN_2006.tar
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2007.tar
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2008.tar
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2009.tar
-mv *gz .. ; cd .. ; ls -1 | grep -E 'gz$' | parallel gunzip
-ls -1 ICOADS_R3_Beta3_??????.dat | parallel -j 7 "jjj coads.gts.ncepnrt.jl"
-cat   ICOADS_R3_Beta3_??????.dat.flux > all.flux
-mv all.flux ~/work/works
+ls -1 | grep -E 'gz$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e gunzip --mem=2000mb
+ls -1 | grep -E 'gz$' |                                      parallel    gunzip
+ls -1 | grep -E '^ICOADS' | grep -E 'dat$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "julia /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.jl" --mem=2000mb
+ls -1 | grep -E '^ICOADS' | grep -E 'dat$' |                                      parallel -j 7                                    "jjj coads.gts.ncepnrt.jl"
+cd .. ; cat coads/ICOADS*dat.flux > all.flux
 
 # identify the location of available observations, excluding inland waters (4793 at 0.25-deg resolution)
 wrks ; jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
