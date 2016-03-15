@@ -35,36 +35,47 @@ fpz = "xyzzy.forgetit" ; "!echo $HOME > "fpz ; line = read(fpz) ; home = sublin(
 "set shpopts 99" ; "set line 99"
 "draw shp "home"/prog/graphics.grads/lib/www.shapefiles/countries" ; "set line 1 1 6"
 
-counta = 0
-countb = 0
-filestat = read(dotfile)
-while (sublin(filestat,1) = 0)
-* counta = counta + 1
-  line = sublin(filestat,2)
-  cyclat = subwrd(line,1)
-  cyclon = subwrd(line,2)
-  cycnum = subwrd(line,3)
-say line
-say cyclon
-  if (cyclon > 180) ; cyclon = cyclon - 360.0 ; endif
-  if (cycnum > 0) ; counta = counta + 1 ; endif
-  if (cycnum > 0) ; countb = countb + cycnum ; endif
-  if (cycnum >  10000) ; cyccol = 14 ; endif
-  if (cycnum <= 10000) ; cyccol = 11 ; endif
-  if (cycnum <=  1000) ; cyccol = 13 ; endif
-  if (cycnum <=   100) ; cyccol = 10 ; endif
-  if (cycnum <=    10) ; cyccol = 12 ; endif
-  if (cycnum  =     1) ; cyccol =  2 ; endif
-  "q w2xy "cyclon" "cyclat
-  rec = sublin(result,1)
-  obsx = subwrd(rec,3)
-  obsy = subwrd(rec,6)
-  "set line "cyccol" 1 5"
-  if (cycnum > 0) ; "draw mark 3 "obsx" "obsy" "dotsiz ; endif
-  "set line 1 1 5"
+countc = 0
+while (countc < 6)
+  counta = 0
+  countb = 0
   filestat = read(dotfile)
+  while (sublin(filestat,1) = 0)
+*   counta = counta + 1
+    line = sublin(filestat,2)
+    cyclat = subwrd(line,1)
+    cyclon = subwrd(line,2)
+    cycnum = subwrd(line,3)
+    if (cyclon > 180) ; cyclon = cyclon - 360.0 ; endif
+    if (cycnum > 0) ; counta = counta + 1 ; endif
+    if (cycnum > 0) ; countb = countb + cycnum ; endif
+    if (cycnum >  10000) ; cyccol = 14 ; endif
+    if (cycnum <= 10000) ; cyccol = 11 ; endif
+    if (cycnum <=  1000) ; cyccol = 13 ; endif
+    if (cycnum <=   100) ; cyccol = 10 ; endif
+    if (cycnum <=    10) ; cyccol = 12 ; endif
+    if (cycnum  =     1) ; cyccol =  2 ; endif
+    flag = 0
+    if (cyccol =  2 & countc = 0) ; flag = 1 ; endif
+    if (cyccol = 12 & countc = 1) ; flag = 1 ; endif
+    if (cyccol = 10 & countc = 2) ; flag = 1 ; endif
+    if (cyccol = 13 & countc = 3) ; flag = 1 ; endif
+    if (cyccol = 11 & countc = 4) ; flag = 1 ; endif
+    if (cyccol = 14 & countc = 5) ; flag = 1 ; endif
+    if (flag = 1)
+      "q w2xy "cyclon" "cyclat
+      rec = sublin(result,1)
+      obsx = subwrd(rec,3)
+      obsy = subwrd(rec,6)
+      "set line "cyccol" 1 5"
+      if (cycnum > 0) ; "draw mark 3 "obsx" "obsy" "dotsiz ; endif
+      "set line 1 1 5"
+    endif
+    filestat = read(dotfile)
+  endwhile
+  filestat = close(dotfile)
+  countc = countc + 1
 endwhile
-filestat = close(dotfile)
 
 refx = 7.1 ; refy = 7.3
 "set line 0"

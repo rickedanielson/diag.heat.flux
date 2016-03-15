@@ -7,9 +7,9 @@ julia (http://julialang.org/)
 GNU parallel (http://www.gnu.org/software/parallel/)
 alias wrks 'cd ~/work/works; ls'
 
-# download the ICOADS data and assemble a COARE flux file
+# download (by NCAR script) and unpack the ICOADS data
 wrks ; cd coads
-http://rda.ucar.edu/datasets/ds540.0/index.html#!access         (select all then run the download script locally)
+http://rda.ucar.edu/datasets/ds540.0/index.html#!access
 tar xvf IMMA1_R3.0_BETA3_CLEAN_1998_2000.tar ; rm ICOADS_R3_Beta3_1998* ICOADS_R3_Beta3_19990*
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2001-2002.tar
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2003-2004.tar
@@ -18,15 +18,28 @@ tar xvf IMMA1_R3.0_BETA3_CLEAN_2006.tar
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2007.tar
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2008.tar
 tar xvf IMMA1_R3.0_BETA3_CLEAN_2009.tar
-ls -1 | grep -E 'gz$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e gunzip --mem=2000mb
-ls -1 | grep -E 'gz$' |                                      parallel    gunzip
-ls -1 | grep -E '^ICOADS' | grep -E 'dat$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "julia /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.jl" --mem=2000mb
-ls -1 | grep -E '^ICOADS' | grep -E 'dat$' |                                      parallel -j 7                                    "jjj coads.gts.ncepnrt.jl"
-cd .. ; cat coads/ICOADS*dat.flux > all.flux
 
-# identify the location of available observations, excluding inland waters (4793 at 0.25-deg resolution)
-wrks ; jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux
-grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
+# assemble daily average COARE flux files (either at Ifremer or locally)
+ls -1 | grep -E '^ICOADS' | grep -E  'gz$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e   gunzip --mem=2000mb
+ls -1 | grep -E '^ICOADS' | grep -E 'dat$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "julia /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.jl" --mem=2000mb
+ls -1 | grep -E '^ICOADS' | grep -E 'lux$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "julia /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.collate.jl" --mem=2000mb
+ls -1 | grep -E '^ICOADS' | grep -E  'gz$' |                                      parallel -j 7 gunzip
+ls -1 | grep -E '^ICOADS' | grep -E 'dat$' |                                      parallel -j 7                                    "jjj coads.gts.ncepnrt.jl"
+ls -1 | grep -E '^ICOADS' | grep -E 'lux$' |                                      parallel -j 7                                    "jjj coads.gts.ncepnrt.heat.flux.collate.jl"
+cd .. ; cat coads/ICOADS*dat.flux       > all.flux
+        cat coads/ICOADS*dat.flux.daily > all.flux.daily
+
+# identify the location of available observations, both raw and daily
+wrks ; jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux       /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
+       jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
+       jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux       /home/ricani/data/topography/elev.0.25-deg.nc
+       jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/ricani/data/topography/elev.0.25-deg.nc
+grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate"       ; di plot.ocean.heat.flux.dots.all.flux.locate.png
+grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate.daily" ; di plot.ocean.heat.flux.dots.all.flux.locate.daily.png
+
+
+
+
 
 # create local links to all analysis data files and example ncdumps too
 wrks ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux

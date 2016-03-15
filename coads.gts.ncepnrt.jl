@@ -4,7 +4,7 @@
  = https://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html (Bolton 1980)
  = is included.  Where observation height is available, this is included and boundary layer
  = height is simply parameterized by latitude (2km at the equator and 0.5km at the poles,
- = with a Gaussian transition) - RD March 2016.
+ = with a Gaussian transition and no seasonality) - RD March 2016.
  =#
 
 using My, ICOADS, COARE
@@ -15,10 +15,7 @@ if size(ARGS) != (1,)
   print("\nUsage: jjj $(basename(@__FILE__)) ICOADS_R3_Beta3_199910.dat\n\n")
   exit(1)
 end
-
-if isfile(ARGS[1]*".flux")
-  exit(0)
-end
+if isfile(ARGS[1]*".flux")  exit(0)  end
 
 fpa = My.ouvre(ARGS[1],         "r")
 fpb = My.ouvre(ARGS[1]*".flux", "w")
