@@ -33,10 +33,12 @@ for line in readlines(fpa)
   dellat, indlat = findmin(abs(lats - lat))
   dellon, indlon = findmin(abs(lons - lon))
 
-  for (a, vind) in enumerate(inds)
-    sums[indlon,indlat,inddat,a] += float(vals[vind])
+  if inddat > 0
+    for (a, vind) in enumerate(inds)
+      sums[indlon,indlat,inddat,a] += float(vals[vind])
+    end
+    numb[indlon,indlat,inddat] += 1.0
   end
-  numb[indlon,indlat,inddat] += 1.0
 end
 close(fpa)
 
