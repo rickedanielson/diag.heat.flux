@@ -1,4 +1,4 @@
-```shell
+```shell `
 
 # get a copy
 git clone git@github.com:rickedanielson/diag.heat.flux.git
@@ -9,108 +9,97 @@ GNU parallel (http://www.gnu.org/software/parallel/)
 alias wrks 'cd ~/work/works; ls'
 
 # download (by NCAR script) and unpack the ICOADS data
-wrks ; cd coads
-http://rda.ucar.edu/datasets/ds540.0/index.html#!access
-tar xvf IMMA1_R3.0_BETA3_CLEAN_1998_2000.tar ; rm ICOADS_R3_Beta3_1998* ICOADS_R3_Beta3_19990*
-tar xvf IMMA1_R3.0_BETA3_CLEAN_2001-2002.tar
-tar xvf IMMA1_R3.0_BETA3_CLEAN_2003-2004.tar
-tar xvf IMMA1_R3.0_BETA3_CLEAN_2005.tar
-tar xvf IMMA1_R3.0_BETA3_CLEAN_2006.tar
-tar xvf IMMA1_R3.0_BETA3_CLEAN_2007.tar
-tar xvf IMMA1_R3.0_BETA3_CLEAN_2008.tar
-tar xvf IMMA1_R3.0_BETA3_CLEAN_2009.tar
+wrks ; cd coads ; navigate to http://rda.ucar.edu/datasets/ds540.0/index.html#!access
+       tar xvf IMMA1_R3.0_BETA3_CLEAN_1998_2000.tar ; rm ICOADS_R3_Beta3_1998* ICOADS_R3_Beta3_19990*
+       tar xvf IMMA1_R3.0_BETA3_CLEAN_2001-2002.tar
+       tar xvf IMMA1_R3.0_BETA3_CLEAN_2003-2004.tar
+       tar xvf IMMA1_R3.0_BETA3_CLEAN_2005.tar
+       tar xvf IMMA1_R3.0_BETA3_CLEAN_2006.tar
+       tar xvf IMMA1_R3.0_BETA3_CLEAN_2007.tar
+       tar xvf IMMA1_R3.0_BETA3_CLEAN_2008.tar
+       tar xvf IMMA1_R3.0_BETA3_CLEAN_2009.tar
 
 # assemble daily average COARE flux files (either at Ifremer or locally)
 wrks ; cd coads
-ls -1 | grep -E '^ICOADS' | grep -E  'gz$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e   gunzip --mem=2000mb
-ls -1 | grep -E '^ICOADS' | grep -E 'dat$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "julia /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.jl" --mem=2000mb
-ls -1 | grep -E '^ICOADS' | grep -E 'lux$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "julia /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.collate.jl"
-ls -1 | grep -E '^ICOADS' | grep -E  'gz$' |                                      parallel -j 7 gunzip
-ls -1 | grep -E '^ICOADS' | grep -E 'dat$' |                                      parallel -j 7                                    "jjj coads.gts.ncepnrt.jl"
-ls -1 | grep -E '^ICOADS' | grep -E 'lux$' |                                      parallel -j 7                                    "jjj coads.gts.ncepnrt.heat.flux.collate.jl"
+       ls -1 | grep -E '^ICOADS' | grep -E  'gz$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e   gunzip --mem=2000mb
+       ls -1 | grep -E '^ICOADS' | grep -E 'dat$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "julia /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.jl" --mem=2000mb
+       ls -1 | grep -E '^ICOADS' | grep -E 'lux$' | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "julia /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.collate.jl"
+       ls -1 | grep -E '^ICOADS' | grep -E  'gz$' |                                      parallel -j 7 gunzip
+       ls -1 | grep -E '^ICOADS' | grep -E 'dat$' |                                      parallel -j 7                                    "jjj coads.gts.ncepnrt.jl"
+       ls -1 | grep -E '^ICOADS' | grep -E 'lux$' |                                      parallel -j 7                                    "jjj coads.gts.ncepnrt.heat.flux.collate.jl"
 
 # (this step can be skipped) identify the location of individual observations
 wrks ; mkdir all ; cat coads/ICOADS*dat.flux > all/all.flux ; cd all
-jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
-jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux /home/ricani/data/topography/elev.0.25-deg.nc
-grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
+       jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
+       jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux /home/ricani/data/topography/elev.0.25-deg.nc
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
 
 # identify the location of daily average observations
 wrks ; mkdir all ; cat coads/ICOADS*dat.flux.daily > all/all.flux.daily ; cd all
-jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
-jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/ricani/data/topography/elev.0.25-deg.nc
-grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate" ; di plot.ocean.heat.flux.dots.all.flux.daily.locate.png
+       jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
+       jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/ricani/data/topography/elev.0.25-deg.nc
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate" ; di plot.ocean.heat.flux.dots.all.flux.daily.locate.png
 
 # split the daily average observations into calibration and validation groups
 wrks ; cd all
-jjj coads.gts.ncepnrt.heat.flux.collate.split.jl all.flux.daily
-grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily_2.0_locate.calib"
-grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily_2.0_locate.valid"
-di plot.ocean.heat.flux.dots.all.flux.daily*png
+       jjj coads.gts.ncepnrt.heat.flux.collate.split.jl all.flux.daily
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily_2.0_locate.calib"
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily_2.0_locate.valid"
+       di plot.ocean.heat.flux.dots.all.flux.daily*png
 
 # create local links to all analysis data files and example ncdumps too
 wrks ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
-cd /home/cercache/users/rdaniels/work/works/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
-cd /home/cercache/users/rdaniels/work/works/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
-cd /home/cercache/users/rdaniels/work/works/hoaps       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
-cd /home/cercache/users/rdaniels/work/works/ifremerflux ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/ifremerflux
-cd /home/cercache/users/rdaniels/work/works/jofuro      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/jofuro
-cd /home/cercache/users/rdaniels/work/works/merra       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
-cd /home/cercache/users/rdaniels/work/works/oaflux      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
-cd /home/cercache/users/rdaniels/work/works/seaflux     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
+       cd /home/cercache/users/rdaniels/work/works/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
+       cd /home/cercache/users/rdaniels/work/works/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
+       cd /home/cercache/users/rdaniels/work/works/hoaps       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
+       cd /home/cercache/users/rdaniels/work/works/ifremerflux ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/ifremerflux
+       cd /home/cercache/users/rdaniels/work/works/jofuro      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/jofuro
+       cd /home/cercache/users/rdaniels/work/works/merra       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
+       cd /home/cercache/users/rdaniels/work/works/oaflux      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
+       cd /home/cercache/users/rdaniels/work/works/seaflux     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
 wrks ; mkdir ncdump
-ncdump               cfsr/cfsr-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/cfsr
-ncdump   erainterim/erainterim-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/erainterim
-ncdump             hoaps/hoaps-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/hoaps
-ncdump ifremerflux/ifremerflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/ifremerflux
-ncdump           jofuro/jofuro-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/jofuro
-ncdump             merra/merra-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/merra
-ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/oaflux
-ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
+       ncdump               cfsr/cfsr-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/cfsr
+       ncdump   erainterim/erainterim-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/erainterim
+       ncdump             hoaps/hoaps-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/hoaps
+       ncdump ifremerflux/ifremerflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/ifremerflux
+       ncdump           jofuro/jofuro-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/jofuro
+       ncdump             merra/merra-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/merra
+       ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/oaflux
+       ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
 
 # get all analysis timeseries at these open ocean locations
 wrks ; sort all/all.flux.daily_2.0_locate.calib    > all.flux.daily_2.0_locate.calib.sort
        split    all.flux.daily_2.0_locate.calib.sort all.flux.daily_2.0_locate.calib.sort
-parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.daily_2.0_locate.calib.sorta* ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
-cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-rm commands all.flux.daily_2.0_locate.calib.sor*
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.daily_2.0_locate.calib.sorta* ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+       rm commands all.flux.daily_2.0_locate.calib.sor*
 
 # verify that each subdir contains the expected number of files (e.g., 4010 files with 3745 dates)
-wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF > z.list
-wrks ; cd erainterim  ; ls -1 era* | grep -v OHF > z.list
-wrks ; cd hoaps       ; ls -1 hoa* | grep -v OHF > z.list
-wrks ; cd ifremerflux ; ls -1 ifr* | grep -v OHF > z.list
-wrks ; cd merra       ; ls -1 mer* | grep -v OHF > z.list
-wrks ; cd oaflux      ; ls -1 oaf* | grep -v OHF > z.list
-wrks ; cd seaflux     ; ls -1 sea* | grep -v OHF > z.list
-wrks ; cd jofuro      ; ls -1 jof* | grep -v OHF > z.list
+wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF > z.list ; split -n 10 z.list z.list
+wrks ; cd erainterim  ; ls -1 era* | grep -v OHF > z.list ; split -n 10 z.list z.list
+wrks ; cd hoaps       ; ls -1 hoa* | grep -v OHF > z.list ; split -n 10 z.list z.list
+wrks ; cd ifremerflux ; ls -1 ifr* | grep -v OHF > z.list ; split -n 10 z.list z.list
+wrks ; cd merra       ; ls -1 mer* | grep -v OHF > z.list ; split -n 10 z.list z.list
+wrks ; cd oaflux      ; ls -1 oaf* | grep -v OHF > z.list ; split -n 10 z.list z.list
+wrks ; cd seaflux     ; ls -1 sea* | grep -v OHF > z.list ; split -n 10 z.list z.list
+wrks ; cd jofuro      ; ls -1 jof* | grep -v OHF > z.list ; split -n 10 z.list z.list
 wrks ; wc *./z.list
 
 # split the daily average calibration observations by location and store files in an insitu dir
 wrks ; mkdir insitu
-sort -k5,5 -k6,6 -k4,4 all/all.flux.daily > all.flux.daily.sort
-jjj coads.gts.ncepnrt.heat.flux.collate.split.location.jl all/all.flux.daily_2.0_locate.calib all.flux.daily.sort
-cd insitu ; ls -1 ins* | grep -v OHF > z.list ; cd .. ; wc insitu/z.list
-rm all.flux.daily.sort
+       sort -k5,5 -k6,6 -k4,4 all/all.flux.daily > all.flux.daily.sort
+       jjj coads.gts.ncepnrt.heat.flux.collate.split.location.jl all/all.flux.daily_2.0_locate.calib all.flux.daily.sort
+       cd insitu ; ls -1 ins* | grep -v OHF > z.list ; cd .. ; wc insitu/z.list
+       rm all.flux.daily.sort
 
 # plot temporal coverage of all data (including in situ) at one location (using subdirectory data)
 wrks ; jjj diag.heat.flux.timeseries.available.jl ....45.000...-45.500 ; di plot.avail....45.000...-45.500.png
        jjj diag.heat.flux.timeseries.available.jl ....55.000...-12.500 ; di plot.avail....55.000...-12.500.png
 
 # create the forward and backward extrapolated timeseries (probably easiest to do pairs on br156-097,099,241,252)
-wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl cfsr
-wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl erainterim
-wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl hoaps
-wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl ifremerflux
-wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl jofuro
-wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl merra
-wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl oaflux
-wrks ; jjj diag.heat.flux.timeseries.extrapolated.jl seaflux
-or
-parallel -j 8 "julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl" ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
-or
-wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep extrapolated | sort > commands
-cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.listaa z.listab z.listac z.listad z.listae z.listaf z.listag z.listah z.listai z.listaj | grep timeseries | sort > commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+       rm commands
 
 # create all.flux.combined including buoy (shfx lhfx shum wspd airt sstt) and eight analysis extrapolations before and after
 # then perform the partitioned triple collocations and create a cal/val hypercube
@@ -120,27 +109,6 @@ wrks ; jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl
 
 
 
-
-# or else download the NCEP NRT data and assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
-ohf ; mkdir coads ; cd coads
-wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq991*'
-wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq0*'
-# wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq1*'
-# wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/gts.sfcmar_201101.gz
-ls -1 *gz | parallel -j 7 gunzip
-ls -1 *Z  | parallel -j 7 uncompress
-mkdir limbo ; mv nq0503 limbo/nq0503_incomplete ; mv nq0503_complete nq0503
-ls -1 nq????         | parallel -j 7      coads.gts.ncepnrt
-ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
-cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
-cp all.flux ~/work/works
-
-# assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
-wrks ; cd coads
-ls -1 nq????         | parallel -j 7      coads.gts.ncepnrt
-ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
-cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
-mv all.flux ..
 
 # partition a set of collocations into subsets that are geometrically closest to the coordinates of a cube that (mostly) encompasses them
 wrks ; jjj coads.gts.ncepnrt.heat.flux.colloc.discrete.cube.jl all.flux.combined
@@ -198,3 +166,24 @@ cd /home/ricani/work/works/seaflux     ; tar xvf ../x_sea.taz
 cd /home/ricani/work/works/jofuro      ; tar xvf ../x_jro.taz
 wrks ; cp ../workr/all.flux* .
 grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
+
+# or else download the NCEP NRT data and assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
+ohf ; mkdir coads ; cd coads
+wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq991*'
+wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq0*'
+# wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/nq1*'
+# wget 'ftp://ftp.ncdc.noaa.gov/pub/data/ncep_gts/gts.sfcmar_201101.gz
+ls -1 *gz | parallel -j 7 gunzip
+ls -1 *Z  | parallel -j 7 uncompress
+mkdir limbo ; mv nq0503 limbo/nq0503_incomplete ; mv nq0503_complete nq0503
+ls -1 nq????         | parallel -j 7      coads.gts.ncepnrt
+ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
+cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
+cp all.flux ~/work/works
+
+# assemble a COARE flux file (convert from nq???? to .ncepnrt to .flux into all.flux)
+wrks ; cd coads
+ls -1 nq????         | parallel -j 7      coads.gts.ncepnrt
+ls -1 nq????.ncepnrt | parallel -j 7 "jjj coads.gts.ncepnrt.heat.flux.jl"
+cat   nq991?.flux    > all.flux ; cat nq0???.flux >> all.flux
+mv all.flux ..

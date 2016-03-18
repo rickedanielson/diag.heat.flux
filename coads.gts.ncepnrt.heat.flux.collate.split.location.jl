@@ -1,9 +1,9 @@
 #=
- = Split a set of daily observations by location and store the resulting
- = files in the insitu dir (assuming that the observations have been sorted
- = already).  First read the locations of interest, as given, for example,
- = by a list of calibration locations and only the store daily obs groups
- = at these locations - RD March 2016.
+ = Split many daily observations by location and store the resulting files
+ = in an insitu dir (assuming that the observations have been sorted already).
+ = First read the locations of interest, as given, for example, by a list of
+ = calibration locations and only the store daily obs groups at these
+ = locations - RD March 2016.
  =#
 
 using My
@@ -16,12 +16,11 @@ if size(ARGS) == (0,)
   exit(1)
 end
 
-locs = Set(Array(Tuple{Float64, Float64}, 0))                                 # allocate for the locations of interest
-lins = Array(ASCIIString, 1)                                                  # and initialize some arrays with the first
-lats = Array(ASCIIString, 1)                                                  # entry undefined (starting with the second
-lons = Array(ASCIIString, 1)                                                  # entry, data for a new location is stored)
+miss = "-9999.00 -9999.00      0000   200007260000  77.500   11.500 -9999.00 -9999.00 -9999.00 -9999.00 -9999.00 -9999.00 -9999.00 -9999.00 -9999.00 -9999.00 -9999.00 -9999.00"
+locs = Set(Array(Tuple{Float64, Float64}, 0))                                 # allocate for and read the locations
+lins = Array(ASCIIString, 1)                                                  # of interest
 
-fpa = My.ouvre(ARGS[1], "r")                                                  # read the locations of interest
+fpa = My.ouvre(ARGS[1], "r")
 for line in eachline(fpa)
   vals = split(line)
   lat = float(vals[1])
@@ -30,57 +29,41 @@ for line in eachline(fpa)
 end
 close(fpa)
 
-fpb = My.ouvre(ARGS[2], "r")
-for line in eachline(fpb)
-  vals = split(line)
-  lat = float(vals[1])
-  lon = float(vals[2]) 
-  push!(locs, (lat, lon))
-end
-close(fpb)
-exit(0)
-
-#=
-lines = readlines(fpa) ; close(fpa)                                           # convert to float (also for speed)
-valn = length(lines)
-vals = Array(Float64, valn, PARAMS)
-for (a, line) in enumerate(lines)
-  tmp = split(line)
-  vals[a,LAT] = float(tmp[1])
-  vals[a,LON] = float(tmp[2])
-  vals[a,NUM] = float(tmp[3])
-end
-
-locs = Array(Tuple{Float64, Float64}, 0)                                      # find the calib locations
-for a = 1:numlons                                                             # (largest number of daily obs
-  for b = 1:numlats                                                           #  in each gridbox if available)
-    @printf("%8.2f %8.2f\n", midlons[a], midlats[b])
-    maxlat = maxlon = maxnum = -1.0
-    for c = 1:valn
-      if vals[c,NUM] > maxnum && minlons[a] <= vals[c,LON] < maxlons[a] &&
-                                 minlats[b] <= vals[c,LAT] < maxlats[b]
-        maxlat = vals[c,LAT]
-        maxlon = vals[c,LON]
-        maxnum = vals[c,NUM]
-      end
+n = 0 ; i = START                                                             # having initialized arrays with the first
+fpb = My.ouvre(ARGS[2], "r")                                                  # entry undefined, starting with the second
+for line in eachline(fpb)                                                     # entry, data for a new location is stored
+  push!(lins, line)
+  if i != START && lins[i][44:59] != lins[i-1][44:59]                         # at end of one location and beginning of
+    vals = split(lins[i-1])                                                   # next (where 44:59 cover lat and lon):
+    lat = float(vals[5])
+    lon = float(vals[6])
+    if in((lat, lon), locs)                                                   # if the location is of interest then write
+      tmp = @sprintf("insitu/insitu.%9.3f.%9.3f", lat, lon)
+      tmp = replace(tmp, " ", ".")
+      fpc = My.ouvre(tmp, "w")
+      for j = START:i-1  write(fpc, lins[j])  end
+      close(fpc)
+      n += 1
     end
-    if maxnum > CUTOFF
-      push!(locs, (maxlat, maxlon))
-    end
+
+    lins = Array(ASCIIString, 1) ; push!(lins, line)                          # then reset arrays with the new starting line
+    i = START
   end
-end
-
-tmp = @sprintf("%s_%.1f_locate.calib", ARGS[1], RESOL) ; fpb = My.ouvre(tmp, "w")
-tmp = @sprintf("%s_%.1f_locate.valid", ARGS[1], RESOL) ; fpc = My.ouvre(tmp, "w")
-for line in lines
-  vals = split(line)
-  vlat = float(vals[1])
-  vlon = float(vals[2])
-  if findfirst(locs, (vlat, vlon)) > 0  write(fpb, line)
-  else                                  write(fpc, line)  end
+  i += 1
 end
 close(fpb)
-close(fpc)
-exit(0)
 
-=#
+vals = split(lins[i-1])                                                       # write the last file, if also of interest
+lat = float(vals[5])
+lon = float(vals[6])
+if in((lat, lon), locs)
+  tmp = @sprintf("insitu/insitu.%9.3f.%9.3f", lat, lon)
+  tmp = replace(tmp, " ", ".")
+  fpc = My.ouvre(tmr, "w")
+  for j = START:i-1  write(fpc, lins[j])  end
+  close(fpc)
+  n += 1
+end
+
+print("wrote $n insitu files\n\n")
+exit(0)

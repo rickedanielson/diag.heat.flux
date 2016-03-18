@@ -1,72 +1,94 @@
 #=
- = Loop through all timeseries of a given analysis and create the
- = corresponding forward and backward extrapolated timeseries - RD
- = September 2015
+ = Loop through timeseries of a given analysis and create the corresponding forward and
+ = backward extrapolated timeseries for available variables - RD September 2015, March 2016.
  =#
 
 using My, Interpolations
-const BEF              = 1
+const SHFX             = 1                              # indecies of all data variables
+const LHFX             = 2
+const WSPD             = 3
+const AIRT             = 4
+const SSTT             = 5
+const SHUM             = 6
+const PARS             = 6
+
+const BEF              = 1                              # indecies of the source of extrapolations
 const NOW              = 2
 const AFT              = 3
+const SRCS             = 3
+
 const EXTRA            = 9                              # number of points used for extrapolation
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) != (1,)
-  print("\nUsage: jjj $(basename(@__FILE__)) cfsr\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) cfsr z.listah\n\n")
   exit(1)
 end
 
 inner = div(EXTRA - 1, 2)
 outer = div(EXTRA + 1, 2)
-dat = Array(Float64,      TIMS)
-shf = Array(Float64, AFT, TIMS)
-lhf = Array(Float64, AFT, TIMS)
+dats = Array(Float64,             TIMS)
+data = Array(Float64, PARS, SRCS, TIMS)
 
-fpa = My.ouvre("$(ARGS[1])/z.list", "r")                                      # get the list of timeseries
-files = readlines(fpa) ; close(fpa)                                           # and process each in turn
+fpa = My.ouvre("$(ARGS[1])/$(ARGS[2])", "r")                                  # loop through the list of locations
+files = readlines(fpa) ; close(fpa)                                           # and process each timeseries
 for fila in files
   fila = strip(fila)
   fpa = My.ouvre("$(ARGS[1])/$fila", "r", false)
   lines = readlines(fpa) ; close(fpa)
   for (a, line) in enumerate(lines)
     vals = float(split(line))
-    dat[    a] = vals[1]
-    shf[NOW,a] = vals[2]
-    lhf[NOW,a] = vals[3]
+    data[SHFX,NOW,a] = float(vals[1])
+    data[LHFX,NOW,a] = float(vals[2])
+    dats[a]          =       vals[4]
+    data[WSPD,NOW,a] = float(vals[9])
+    data[AIRT,NOW,a] = float(vals[12])
+    data[SSTT,NOW,a] = float(vals[14])
+    data[SHUM,NOW,a] = float(vals[15])
   end
 
-  for a = 1:EXTRA+1  shf[BEF,a] = lhf[BEF,a] = MISS  end                      # simultaneously extrapolate
-  for a = 1+outer:TIMS-outer                                                  # from BEF and AFT
-    shftmp = vec(shf[NOW,a-inner:a+inner])
-    if all(-333 .< shftmp .< 3333)
-      itpshf = interpolate(shftmp, BSpline(Quadratic(Line)), OnCell)
-      shf[BEF,a+outer] = itpshf[10]
-      shf[AFT,a-outer] = itpshf[0]
-    else
-      shf[BEF,a+outer] = shf[AFT,a-outer] = MISS
-    end
-    lhftmp = vec(lhf[NOW,a-inner:a+inner])
-    if all(-333 .< lhftmp .< 3333)
-      itplhf = interpolate(lhftmp, BSpline(Quadratic(Line)), OnCell)
-      lhf[BEF,a+outer] = itplhf[10]
-      lhf[AFT,a-outer] = itplhf[0]
-    else
-      lhf[BEF,a+outer] = lhf[AFT,a-outer] = MISS
+  for a = 1:PARS                                                              # set to missing the first few BEF
+    for b = 1:EXTRA+1                                                         # extrapolations (not defined below)
+      data[a,BEF,b] = MISS
     end
   end
-  for a = 0:EXTRA  shf[AFT,end-a] = lhf[AFT,end-a] = MISS  end
 
-  filb = "$fila.bef"                                                          # then save the extrapolations
+  for a = 1:PARS                                                              # simultaneously extrap from BEF and AFT
+    for b = 1+outer:TIMS-outer
+      tmp = vec(data[a,NOW,b-inner:b+inner])
+      if all(-333 .< tmp .< 3333)
+        itp = interpolate(tmp, BSpline(Quadratic(Line())), OnCell())
+        data[a,BEF,b+outer] = itp[10]
+        data[a,AFT,b-outer] = itp[0]
+      else
+        data[a,BEF,b+outer] = data[a,AFT,b-outer] = MISS
+      end
+    end
+  end
+
+  for a = 1:PARS                                                              # set to missing the last few AFT
+    for b = 0:EXTRA                                                           # extrapolations (not defined above)
+      data[a,AFT,TIMS-b] = MISS
+    end
+  end
+
+  filb = "$fila.bef"                                                          # then save all extrapolations
   filc = "$fila.aft"
   fpb = My.ouvre("$(ARGS[1])/$filb", "w", false)
   fpc = My.ouvre("$(ARGS[1])/$filc", "w", false)
+  (lll, lat, lon) = split(replace(fila, r"[\.]{2,}", " "))
   for a = 1:TIMS
-    tmpb = @sprintf("%.0f %9.3f %9.3f\n", dat[a], shf[BEF,a], lhf[BEF,a])
-    tmpc = @sprintf("%.0f %9.3f %9.3f\n", dat[a], shf[AFT,a], lhf[AFT,a])
-    write(fpb, tmpb)
-    write(fpc, tmpc)
+    formb = @sprintf("%8.2f %8.2f %9s %14s %7.3f %8.3f %8.2f %8.3f %8.3f %8.3f %8.3f %8.2f %8.2f %8.2f %8.3f %8.2f %8.2f %8.2f\n",
+      data[SHFX,BEF,a],       data[LHFX,BEF,a], "0000", dats[a], float(lat), float(lon), MISS, MISS, data[WSPD,BEF,a], MISS, MISS,
+      data[AIRT,BEF,a], MISS, data[SSTT,BEF,a],                                                      data[SHUM,BEF,a], MISS, MISS, MISS)
+    formc = @sprintf("%8.2f %8.2f %9s %14s %7.3f %8.3f %8.2f %8.3f %8.3f %8.3f %8.3f %8.2f %8.2f %8.2f %8.3f %8.2f %8.2f %8.2f\n",
+      data[SHFX,AFT,a],       data[LHFX,AFT,a], "0000", dats[a], float(lat), float(lon), MISS, MISS, data[WSPD,AFT,a], MISS, MISS,
+      data[AIRT,AFT,a], MISS, data[SSTT,AFT,a],                                                      data[SHUM,AFT,a], MISS, MISS, MISS)
+    write(fpb, formb)
+    write(fpc, formc)
   end
   close(fpb)
   close(fpc)
 end
+exit(0)
