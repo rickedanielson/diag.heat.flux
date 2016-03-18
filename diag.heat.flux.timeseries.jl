@@ -64,7 +64,7 @@ for a = 1:locn                                                                # 
 end
 
 date = "19991001120000"                                                       # and fill the output files (all
-while int(date) < 20100101000000                                              # locs and vars) one date at a time
+while parse(Int, date) < 20100101000000                                       # locs and vars) one date at a time
   stor = fill(MISS, locn, PARAMS)                                             # (careful: try introduces new scope)
   file = ARGS[2] * "/" * stem * date * tail ; println(file)
 
@@ -85,6 +85,7 @@ while int(date) < 20100101000000                                              # 
   end
 
   for a = 1:locn
+    (lon, lat) = fend[a]
     stor[a,:] = map(x -> begin
           if x > -MISS return MISS
       elseif x <  MISS return MISS

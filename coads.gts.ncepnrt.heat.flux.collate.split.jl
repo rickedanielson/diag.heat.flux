@@ -26,8 +26,8 @@ maxlats = minlats + RESOL
 numlons = length(minlons)
 numlats = length(minlats)
 
-fpa = My.ouvre(ARGS[1]*".locate", "r")                                        # read the available obs counts and
-lines = readlines(fpa) ; close(fpa)                                           # convert to float (also for speed)
+fpa = My.ouvre(ARGS[1]*".locate", "r")                                        # read the available obs counts
+lines = readlines(fpa) ; close(fpa)                                           # and convert to float
 valn = length(lines)
 vals = Array(Float64, valn, PARAMS)
 for (a, line) in enumerate(lines)

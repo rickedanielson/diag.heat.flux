@@ -67,20 +67,4 @@ exit(0)
 #        shf, lhf, iden, date, val[:LAT], val[:LON], val[:SLP], val[:D], val[:W], uwnd, vwnd, val[:AT], val[:DPT], val[:SST], shum,
 #        blay, hgtu, hgtt)
 #   -0.07     0.21   384LNXH   199910010000  74.500   22.000   999.50  100.000    0.500   -0.492    0.087     2.00    -2.10     2.50    3.268   546.73    10.00    10.00
-
-const SHFX             = 1                              # identify indecies of the input data
-const LHFX             = 2
-const SLPP             = 3
-const WDIR             = 4
-const WSPD             = 5
-const UWND             = 6
-const VWND             = 7
-const AIRT             = 8
-const DPTT             = 9
-const SSTT             = 10
-const SHUM             = 11
-const BLAY             = 12
-const HGTU             = 13
-const HGTT             = 14
-const PARAMS           = 14
 =#
