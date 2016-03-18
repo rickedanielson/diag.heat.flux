@@ -21,14 +21,14 @@ const EXTRA            = 9                              # number of points used 
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (1,)
+if size(ARGS) != (2,)
   print("\nUsage: jjj $(basename(@__FILE__)) cfsr z.listah\n\n")
   exit(1)
 end
 
 inner = div(EXTRA - 1, 2)
 outer = div(EXTRA + 1, 2)
-dats = Array(Float64,             TIMS)
+dats = Array(ASCIIString,         TIMS)
 data = Array(Float64, PARS, SRCS, TIMS)
 
 fpa = My.ouvre("$(ARGS[1])/$(ARGS[2])", "r")                                  # loop through the list of locations
@@ -38,7 +38,7 @@ for fila in files
   fpa = My.ouvre("$(ARGS[1])/$fila", "r", false)
   lines = readlines(fpa) ; close(fpa)
   for (a, line) in enumerate(lines)
-    vals = float(split(line))
+    vals = split(line)
     data[SHFX,NOW,a] = float(vals[1])
     data[LHFX,NOW,a] = float(vals[2])
     dats[a]          =       vals[4]
@@ -92,3 +92,10 @@ for fila in files
   close(fpc)
 end
 exit(0)
+
+
+#=
+if 0 <= val[:W] < 50 && 880 < val[:SLP] < 1080 && -40 <= val[:AT] < 40 && -40 <= val[:DPT] < 40 && -2 <= val[:SST] < 40
+  boundlo = [-333.0 -555.0  0.0 -40.0 -4.0]
+  boundhi = [3333.0 5555.0 50.0  40.0 40.0]
+=#
