@@ -1,4 +1,4 @@
-```html```
+```shell```
 
 # get a copy
 git clone git@github.com:rickedanielson/diag.heat.flux.git
