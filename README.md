@@ -1,6 +1,5 @@
-```shell `
 
-# get a copy
+# ```shell get a copy
 git clone git@github.com:rickedanielson/diag.heat.flux.git
 
 # requirements on ubuntu 14.04 (local) and at Ifremer (12.04)
@@ -88,11 +87,12 @@ wrks ; wc *./z.list
 # split the daily average calibration observations by location and store files in an insitu dir
 wrks ; mkdir insitu
        sort -k5,5 -k6,6 -k4,4 all/all.flux.daily > all.flux.daily.sort
-       jjj coads.gts.ncepnrt.heat.flux.collate.split.location.jl all/all.flux.daily_2.0_locate.calib all.flux.daily.sort
+       echo /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.collate.split.location.jl all/all.flux.daily_2.0_locate.calib all.flux.daily.sort > commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        cd insitu ; ls -1 ins* | grep -v OHF > z.list ; cd .. ; wc insitu/z.list
        rm all.flux.daily.sort
 
-# plot temporal coverage of all data (including in situ) at one location (using subdirectory data)
+  # plot temporal coverage of all data (including in situ) at one location (using subdirectory data)
 wrks ; jjj diag.heat.flux.timeseries.available.jl ....45.000...-45.500 ; di plot.avail....45.000...-45.500.png
        jjj diag.heat.flux.timeseries.available.jl ....55.000...-12.500 ; di plot.avail....55.000...-12.500.png
 
