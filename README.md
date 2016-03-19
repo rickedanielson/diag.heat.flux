@@ -1,5 +1,6 @@
-
-# ```shell get a copy
+```shell
+`
+# get a copy
 git clone git@github.com:rickedanielson/diag.heat.flux.git
 
 # requirements on ubuntu 14.04 (local) and at Ifremer (12.04)
