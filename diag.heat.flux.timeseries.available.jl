@@ -23,8 +23,8 @@ for (a, dir) in enumerate(dirs)                                               # 
   close(fpa)
   for (b, linb) in enumerate(lines)
     vals = float(split(linb))
-    shfx[a,b] = -333 < vals[2] < 3333 ? 1.0 : 0.0
-    lhfx[a,b] = -333 < vals[3] < 3333 ? 1.0 : 0.0
+    shfx[a,b] = -333 < vals[1] < 3333 ? 1.0 : 0.0
+    lhfx[a,b] = -333 < vals[2] < 3333 ? 1.0 : 0.0
   end
 end
 
@@ -39,42 +39,6 @@ for a = 1:3745                                                                # 
   shfx[ 301: 400,a] = shfx[2,a] ; shfx[ 201: 300,a] = lhfx[2,a]
   shfx[ 101: 200,a] = shfx[1,a] ; shfx[   1: 100,a] = lhfx[1,a]
 end
-
-#=
-fila = "insitu/insitu$(ARGS[1])"
-fpa = My.ouvre(fila, "r")
-lines = readlines(fpa)
-close(fpa)
-for (b, linb) in enumerate(lines)
-  vals = float(split(linb))
-  if -333 < vals[2] < 3333
-    for c = b-0:b+0
-      if shfx[1501,c] == 1  shfx[1501:1600,c] = -1  end
-      if shfx[1301,c] == 1  shfx[1301:1400,c] = -1  end
-      if shfx[1101,c] == 1  shfx[1101:1200,c] = -1  end
-      if shfx[ 901,c] == 1  shfx[ 901:1000,c] = -1  end
-      if shfx[ 701,c] == 1  shfx[ 701: 800,c] = -1  end
-      if shfx[ 501,c] == 1  shfx[ 501: 600,c] = -1  end
-      if shfx[ 301,c] == 1  shfx[ 301: 400,c] = -1  end
-      if shfx[ 101,c] == 1  shfx[ 101: 200,c] = -1  end
-    end
-  end
-  if -333 < vals[3] < 3333
-    for c = b-0:b+0
-      if shfx[1401,c] == 1  shfx[1401:1500,c] = -1  end
-      if shfx[1201,c] == 1  shfx[1201:1300,c] = -1  end
-      if shfx[1001,c] == 1  shfx[1001:1100,c] = -1  end
-      if shfx[ 801,c] == 1  shfx[ 801: 900,c] = -1  end
-      if shfx[ 601,c] == 1  shfx[ 601: 700,c] = -1  end
-      if shfx[ 401,c] == 1  shfx[ 401: 500,c] = -1  end
-      if shfx[ 201,c] == 1  shfx[ 201: 300,c] = -1  end
-      if shfx[   1,c] == 1  shfx[   1: 100,c] = -1  end
-    end
-  end
-end
-=#
-
-# shfx = lhfx = int(rand(1800, 3745) .> 0.5)
 
 xlab = Array(ASCIIString, 0)                                                  # initialize the date label strings
 xpos = Array(      Int64, 0)                                                  # (first date and then first day of
@@ -105,11 +69,9 @@ ppp = Winston.add(tmp)
 exit(0)
 
 
-
-
-
-
 #=
+shfx = lhfx = int(rand(1800, 3745) .> 0.5)
+
 for (a, label) in enumerate(xlab)
   tmp = Winston.DataLabel(xpos[a], 0, xlab[a], "textangle", 90.0, "texthalign", "left", "size", 1.1)
         Winston.add(ppp, tmp)
