@@ -42,15 +42,19 @@ wrks ; mkdir all ; cat coads/ICOADS*dat.flux.daily > all/all.flux.daily ; cd all
 
 # make an initial split of the daily average observations into calibration and validation groups (based only on insitu, and not analysis, availability)
 wrks ; cd all
-       jjj coads.gts.ncepnrt.heat.flux.collate.split.jl all.flux.daily
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily_2.0_locate.calib"
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily_2.0_locate.valid"
+       jjj coads.gts.ncepnrt.heat.flux.collate.split.jl all.flux.daily.locate
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib"
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid"
        di plot.ocean.heat.flux.dots.all.flux.daily*png
+       jjj coads.gts.ncepnrt.heat.flux.collate.split.jl all.flux.daily.locate_2.0_valid
+       mv all.flux.daily.locate_2.0_valid           all.flux.daily.locate_2.0_calib.remainder
+       mv all.flux.daily.locate_2.0_valid_2.0_calib all.flux.daily.locate_2.0_valid
+       mv all.flux.daily.locate_2.0_valid_2.0_valid all.flux.daily.locate_2.0_valid.remainder
 
 # split the calibration observations by location and store files in an insitu dir
 wrks ; mkdir insitu
        sort -k5,5 -k6,6 -k4,4 all/all.flux.daily > all.flux.daily.sort
-       echo /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.collate.split.location.jl all/all.flux.daily_2.0_locate.calib all.flux.daily.sort > commands
+       echo /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.collate.split.location.jl all/all.flux.daily.locate_2.0_calib all.flux.daily.sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        cd insitu ; ls -1 ins* | grep -v OHF > z.list ; cd .. ; wc insitu/z.list
        rm all.flux.daily.sort
@@ -76,21 +80,21 @@ wrks ; mkdir ncdump
        ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
 
 # get analysis timeseries for all calibration locations (some timeseries will contain missing data)
-wrks ; sort    all/all.flux.daily_2.0_locate.calib    > all.flux.daily_2.0_locate.calib.sort
-       split -n 10 all.flux.daily_2.0_locate.calib.sort all.flux.daily_2.0_locate.calib.sort
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.daily_2.0_locate.calib.sort?? ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
+wrks ; sort    all/all.flux.daily.locate_2.0_calib    > all.flux.daily.locate_2.0_calib.sort
+       split -l 10 all.flux.daily.locate_2.0_calib.sort all.flux.daily.locate_2.0_calib.sort
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.daily.locate_2.0_calib.sort?? ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-       rm commands all.flux.daily_2.0_locate.calib.sor*
+       rm commands all.flux.daily.locate_2.0_calib.sor*
 
 # verify that each subdir contains the expected number of files (e.g., 4010 files with 3745 dates)
-wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF > z.list ; split -n 10 z.list z.list
-wrks ; cd erainterim  ; ls -1 era* | grep -v OHF > z.list ; split -n 10 z.list z.list
-wrks ; cd hoaps       ; ls -1 hoa* | grep -v OHF > z.list ; split -n 10 z.list z.list
-wrks ; cd ifremerflux ; ls -1 ifr* | grep -v OHF > z.list ; split -n 10 z.list z.list
-wrks ; cd merra       ; ls -1 mer* | grep -v OHF > z.list ; split -n 10 z.list z.list
-wrks ; cd oaflux      ; ls -1 oaf* | grep -v OHF > z.list ; split -n 10 z.list z.list
-wrks ; cd seaflux     ; ls -1 sea* | grep -v OHF > z.list ; split -n 10 z.list z.list
-wrks ; cd jofuro      ; ls -1 jof* | grep -v OHF > z.list ; split -n 10 z.list z.list
+wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF > z.list ; split -l 10 z.list z.list
+wrks ; cd erainterim  ; ls -1 era* | grep -v OHF > z.list ; split -l 10 z.list z.list
+wrks ; cd hoaps       ; ls -1 hoa* | grep -v OHF > z.list ; split -l 10 z.list z.list
+wrks ; cd ifremerflux ; ls -1 ifr* | grep -v OHF > z.list ; split -l 10 z.list z.list
+wrks ; cd merra       ; ls -1 mer* | grep -v OHF > z.list ; split -l 10 z.list z.list
+wrks ; cd oaflux      ; ls -1 oaf* | grep -v OHF > z.list ; split -l 10 z.list z.list
+wrks ; cd seaflux     ; ls -1 sea* | grep -v OHF > z.list ; split -l 10 z.list z.list
+wrks ; cd jofuro      ; ls -1 jof* | grep -v OHF > z.list ; split -l 10 z.list z.list
 wrks ; wc *./z.list
 
 # plot temporal coverage of all data (including in situ) at one location (using subdirectory data)
@@ -104,12 +108,26 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.time
        rm commands
 
 # identify the subset of the ICOADS calibration and validation locations for which analysis SHFX is also valid for much of 2001-2007
-wrks ; sort    all/all.flux.daily_2.0_locate.calib    > all.flux.daily_2.0_locate.calib.sort
-       split -n 10 all.flux.daily_2.0_locate.calib.sort all.flux.daily_2.0_locate.calib.sort
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.split.jl ::: all.flux.daily_2.0_locate.calib.sort?? | grep all.flux | sort > commands
+wrks ; sort      all/all.flux.daily.locate_2.0_calib    > all.flux.daily.locate_2.0_calib.sort
+       split -l   50 all.flux.daily.locate_2.0_calib.sort all.flux.daily.locate_2.0_calib.sort
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.split.jl ::: all.flux.daily.locate_2.0_calib.sort?? | grep all.flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-       rm commands all.flux.daily_2.0_locate.calib.sort??
+       cat all.flux.daily.locate_2.0_calib*got2000 > all/all.flux.daily.locate_2.0_calib.got2000
+       cat all.flux.daily.locate_2.0_calib*not2000 > all/all.flux.daily.locate_2.0_calib.not2000
+       cat all/all.flux.daily.locate_2.0_calib.got2000 all/all.flux.daily.locate_2.0_calib.not2000 | sort > all.calib.2000
+       diff all.calib.2000 all.flux.daily.locate_2.0_calib.sort
+       rm commands all.calib.2000 all.flux.daily_2.0_locate.?ali?.sor*
 
+# identify the subset of the ICOADS validation locations for which analysis SHFX is also valid for much of 2001-2007
+#      sort      all/all.flux.daily.locate_2.0_valid    > all.flux.daily.locate_2.0_valid.sort
+#      split -l 3000 all.flux.daily.locate_2.0_valid.sort all.flux.daily.locate_2.0_valid.sort
+#      parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.split.jl ::: all.flux.daily.locate_2.0_valid.sort?? | grep all.flux | sort > commands
+#      cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+#      cat all.flux.daily.locate_2.0_valid*got2000 > all/all.flux.daily.locate_2.0_valid.got2000
+#      cat all.flux.daily.locate_2.0_valid*not2000 > all/all.flux.daily.locate_2.0_valid.not2000
+#      cat all/all.flux.daily.locate_2.0_valid.got2000 all/all.flux.daily.locate_2.0_valid.not2000 | sort > all.valid.2000
+#      diff all.valid.2000 all.flux.daily.locate_2.0_valid.sort
+#      rm commands all.valid.2000 all.flux.daily_2.0_locate.?ali?.sor*
 
        cat all.flux.locate.min2000.pos | parallel -j 8 "/home/ricani/soft/julia-now/julia /home/ricani/bin/diag.heat.flux.timeseries.nfft.jl"
        jjj diag.heat.flux.timeseries.nfft.avg.jl  all.flux.locate.min2000

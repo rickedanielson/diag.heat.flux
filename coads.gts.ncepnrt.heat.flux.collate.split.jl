@@ -13,7 +13,7 @@ const NUM              = 3
 const PARAMS           = 3
 
 if size(ARGS) == (0,)
-  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate\n\n")
   exit(1)
 end
 
@@ -26,7 +26,7 @@ maxlats = minlats + RESOL
 numlons = length(minlons)
 numlats = length(minlats)
 
-fpa = My.ouvre(ARGS[1]*".locate", "r")                                        # read the available obs counts
+fpa = My.ouvre(ARGS[1], "r")                                                  # read the available obs counts
 lines = readlines(fpa) ; close(fpa)                                           # and convert to float
 valn = length(lines)
 vals = Array(Float64, valn, PARAMS)
@@ -56,8 +56,8 @@ for a = 1:numlons                                                             # 
   end
 end
 
-tmp = @sprintf("%s_%.1f_locate.calib", ARGS[1], RESOL) ; fpb = My.ouvre(tmp, "w")
-tmp = @sprintf("%s_%.1f_locate.valid", ARGS[1], RESOL) ; fpc = My.ouvre(tmp, "w")
+tmp = @sprintf("%s_%.1f_calib", ARGS[1], RESOL) ; fpb = My.ouvre(tmp, "w")
+tmp = @sprintf("%s_%.1f_valid", ARGS[1], RESOL) ; fpc = My.ouvre(tmp, "w")
 for line in lines
   vals = split(line)
   vlat = float(vals[1])
