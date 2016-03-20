@@ -8,7 +8,7 @@ using My #, NFFT
 const MISS             = -9999.0                        # generic missing value
 const DAYS             = 3745                           # number of days in full timeseries
 const TIMES            = 2556                           # number of days in during 2001-2007 (and number of spectral coefficients)
-const CALIB            = 1                              # flag determining whether to calibrate (1 = yes)
+const CALIB            = 0                              # flag determining whether to calibrate (1 = yes)
 
 if size(ARGS) != (1,)
   print("\nUsage: jjj $(basename(@__FILE__)) ....41.750...148.250\n\n")

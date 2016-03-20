@@ -7,11 +7,10 @@
 using My
 const SHFX             = 1                              # indecies of all data variables
 const LHFX             = 2
-const WSPD             = 3
-const AIRT             = 4
-const SSTT             = 5
-const SHUM             = 6
-const PARS             = 6
+const WSPD             = 9
+const AIRT             = 12
+const SSTT             = 14
+const SHUM             = 15
 
 const VARN             = 22                             # number of output variables (besides date/lat/lon)
 const TIMS             = 3745                           # number in timeseries
@@ -23,12 +22,12 @@ if size(ARGS) != (1,)
 end
 
 varind = 0
-ARGS[1] == "shfx" && (varind = 1)
-ARGS[1] == "lhfx" && (varind = 2)
-ARGS[1] == "wspd" && (varind = 9)
-ARGS[1] == "airt" && (varind = 12)
-ARGS[1] == "sst"  && (varind = 14)
-ARGS[1] == "shum" && (varind = 15)
+ARGS[1] == "shfx" && (varind = SHFX)
+ARGS[1] == "lhfx" && (varind = LHFX)
+ARGS[1] == "wspd" && (varind = WSPD)
+ARGS[1] == "airt" && (varind = AIRT)
+ARGS[1] == "sst"  && (varind = SSTT)
+ARGS[1] == "shum" && (varind = SHUM)
 
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
 (dirn,) = size(dirs)
@@ -62,6 +61,30 @@ for fila in files                                                             # 
       line = readline(fpn[b])
       vals = split(line)
       data[b+6] = float(strip(vals[varind]))
+    end
+
+    if     varind == LHFX                                                     # accommodate CFSR units for AIRT, all SSTT,
+      data[ 7] = data[ 8] = -332.9                                            # missing JOFURO AIRT/SSTT, and CFSR LHFX
+    elseif varind == AIRT
+      data[ 7] != MISS && (data[ 7] -= 273.15)
+      data[ 8] != MISS && (data[ 8] -= 273.15)
+      data[15] = data[16] = -332.9
+    elseif varind == SSTT
+      data[ 7] != MISS && (data[ 7] -= 273.15)
+      data[ 8] != MISS && (data[ 8] -= 273.15)
+      data[ 9] != MISS && (data[ 9] -= 273.15)
+      data[10] != MISS && (data[10] -= 273.15)
+      data[11] != MISS && (data[11] -= 273.15)
+      data[12] != MISS && (data[12] -= 273.15)
+      data[13] != MISS && (data[13] -= 273.15)
+      data[14] != MISS && (data[14] -= 273.15)
+      data[17] != MISS && (data[17] -= 273.15)
+      data[18] != MISS && (data[18] -= 273.15)
+      data[19] != MISS && (data[19] -= 273.15)
+      data[20] != MISS && (data[20] -= 273.15)
+      data[21] != MISS && (data[21] -= 273.15)
+      data[22] != MISS && (data[22] -= 273.15)
+      data[15] = data[16] = -332.9
     end
 
     flag = true                                                               # ensure that all values are valid
