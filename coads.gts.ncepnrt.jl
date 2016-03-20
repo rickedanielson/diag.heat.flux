@@ -7,7 +7,7 @@
  = with a Gaussian transition and no seasonality) - RD March 2016.
  =#
 
-using My, ICOADS, COARE
+using My, COARE, ICOADSDict
 const MISS             = -9999.0                        # generic missing value
 const D2R              = 3.141592654 / 180.0            # degrees to radians conversion
 

@@ -1,21 +1,38 @@
 #=
- = Loop through all 4793 locations and assemble the valid collocations
- = from the various in situ and analysis subdirs - RD February 2016.
+ = Loop through all locations of interest and assemble valid collocations
+ = from the various in situ and analysis subdirs.  Include a conversion of
+ = units, as required - RD February, March 2016.
  =#
 
 using My
-const VARN             = 21                             # number of output variables (besides date/lat/lon)
+const SHFX             = 1                              # indecies of all data variables
+const LHFX             = 2
+const WSPD             = 3
+const AIRT             = 4
+const SSTT             = 5
+const SHUM             = 6
+const PARS             = 6
+
+const VARN             = 22                             # number of output variables (besides date/lat/lon)
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (0,)
-  print("\nUsage: jjj $(basename(@__FILE__))\n\n")
+if size(ARGS) != (1,)
+  print("\nUsage: jjj $(basename(@__FILE__)) shfx/lhfx/wspd/airt/sst/shum\n\n")
   exit(1)
 end
 
+varind = 0
+ARGS[1] == "shfx" && (varind = 1)
+ARGS[1] == "lhfx" && (varind = 2)
+ARGS[1] == "wspd" && (varind = 9)
+ARGS[1] == "airt" && (varind = 12)
+ARGS[1] == "sst"  && (varind = 14)
+ARGS[1] == "shum" && (varind = 15)
+
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
 (dirn,) = size(dirs)
-fpa = My.ouvre("all.flux.combined", "w")
+fpa = My.ouvre("all.flux.combined." * ARGS[1], "w")
 
 files = filter(x -> ismatch(r"^in", x), readdir("insitu"))                    # loop through all locations (e.g., as
 for fila in files                                                             # given by insitu...-10.000..-105.000)
@@ -33,17 +50,18 @@ for fila in files                                                             # 
   for a = 1:TIMS                                                              # loop through the 3745 times of all nine
     line = readline(fpb)                                                      # files in step, starting with insitu
     vals = split(line)
-    date =                vals[1]                                             # 2004101112 18.420 128.960 16.373 5.659 25.000 28.000
-    data[1] = float(strip(vals[2]))                                           # date       shfx   lhfx    shum   wspd  airt   sstt
-    data[2] = float(strip(vals[4]))
-    data[3] = float(strip(vals[5]))
-    data[4] = float(strip(vals[6]))
-    data[5] = float(strip(vals[7]))
+    date    =             vals[4]
+    data[1] = float(strip(vals[SHFX]))
+    data[2] = float(strip(vals[LHFX]))
+    data[3] = float(strip(vals[WSPD]))
+    data[4] = float(strip(vals[AIRT]))
+    data[5] = float(strip(vals[SSTT]))
+    data[6] = float(strip(vals[SHUM]))
 
     for b = 1:2*dirn                                                          # then eight before and after extrapolations
       line = readline(fpn[b])
       vals = split(line)
-      data[b+5] = float(strip(vals[2]))
+      data[b+6] = float(strip(vals[varind]))
     end
 
     flag = true                                                               # ensure that all values are valid
