@@ -1,7 +1,7 @@
 #=
  = Discretize one month of ICOADS observations into averages at daily, 0.25-degree resolution
  = (corresponding to a set of gridded OHF reference analyses) including all flux input variables
- = (e.g., wspd, sst, airt, and shum) - RD March 2016.
+ = (e.g., wspd, sstt, airt, and shum) - RD March 2016.
  =#
 
 using My
@@ -16,7 +16,7 @@ inds = [1 2 7 8 9 10 11 12 13 14 15 16 17 18]                                 # 
 lats = collect( -90.0:0.25:89.75)                                             # the output grid, the days in the month, and
 lons = collect(-180.0:0.25:179.75)                                            # then initialize the (large) averaging arrays
 
-dats = Array(ASCIIString, 0)
+dats = Array(UTF8String, 0)
 date = ARGS[1][17:22]*"01" ; push!(dats, date) ; date = My.dateadd(date, 1, "dy")
    while date[7:8] != "01"   push!(dats, date) ; date = My.dateadd(date, 1, "dy")  end
 sums = zeros(length(lons), length(lats), length(dats), length(inds))

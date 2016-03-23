@@ -18,7 +18,7 @@ if size(ARGS) != (2,)
 end
 
 locs = Set(Array(Tuple{Float64, Float64}, 0))
-lins = Array(ASCIIString, 1)
+lins = Array(UTF8String, 1)
 
 fpa = My.ouvre(ARGS[1], "r")                                                  # read the locations of interest
 for line in eachline(fpa)
@@ -62,7 +62,7 @@ for line in eachline(fpb)                                                     # 
       close(fpc)
       n += 1
     end
-    lins = Array(ASCIIString, 1) ; push!(lins, line)                          # then reset arrays with the new starting line
+    lins = Array(UTF8String, 1) ; push!(lins, line)                           # then reset arrays with the new starting line
     i = START
   end
   i += 1

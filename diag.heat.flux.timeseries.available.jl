@@ -40,8 +40,8 @@ for a = 1:3745                                                                # 
   shfx[ 101: 200,a] = shfx[1,a] ; shfx[   1: 100,a] = lhfx[1,a]
 end
 
-xlab = Array(ASCIIString, 0)                                                  # initialize the date label strings
-xpos = Array(      Int64, 0)                                                  # (first date and then first day of
+xlab = Array(UTF8String, 0)                                                   # initialize the date label strings
+xpos = Array(     Int64, 0)                                                   # (first date and then first day of
 date = "1999-10-01"                                                           #  each subsequent year)
 push!(xlab, "1 Oct\n$(date[1:4])") ; push!(xpos, 1)
 for a = 2:3745

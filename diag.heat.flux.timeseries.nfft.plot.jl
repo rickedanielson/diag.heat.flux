@@ -18,7 +18,7 @@ dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux
 specval = Array(Float64, length(dirs), div(TIMES, 2) + 1)
 spectra = Array(Float64, length(dirs), div(TIMES, 2) + 1)
 specvar = zeros(Float64, length(dirs))
-specstr = Array(ASCIIString, length(dirs))
+specstr = Array(UTF8String, length(dirs))
 
 for (a, dir) in enumerate(dirs)
   fila = "spectruo.$(ARGS[1]).$dir"

@@ -16,7 +16,7 @@ if size(ARGS) != (1,)
 end
 
  fpn = Array(IOStream, COORD)
-file = Array(ASCIIString, COORD)
+file = Array(UTF8String, COORD)
 lims = Array(Float64, COORD)
 diss = Array(Float64, LINES)
 dist = Array(Float64, LINES, COORD)                                           # allocate for distance to the reference

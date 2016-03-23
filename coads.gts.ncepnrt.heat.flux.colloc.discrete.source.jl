@@ -17,7 +17,7 @@ const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) != (1,)
-  print("\nUsage: jjj $(basename(@__FILE__)) shfx/lhfx/wspd/airt/sst/shum\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) shfx/lhfx/wspd/airt/sstt/shum\n\n")
   exit(1)
 end
 
@@ -26,7 +26,7 @@ ARGS[1] == "shfx" && (varind = SHFX)
 ARGS[1] == "lhfx" && (varind = LHFX)
 ARGS[1] == "wspd" && (varind = WSPD)
 ARGS[1] == "airt" && (varind = AIRT)
-ARGS[1] == "sst"  && (varind = SSTT)
+ARGS[1] == "sstt" && (varind = SSTT)
 ARGS[1] == "shum" && (varind = SHUM)
 
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]

@@ -28,7 +28,7 @@ end
 
 inner = div(EXTRA - 1, 2)
 outer = div(EXTRA + 1, 2)
-dats = Array(ASCIIString,         TIMS)
+dats = Array(UTF8String,          TIMS)
 data = Array(Float64, PARS, SRCS, TIMS)
 
 fpa = My.ouvre("$(ARGS[1])/$(ARGS[2])", "r")                                  # loop through the list of locations

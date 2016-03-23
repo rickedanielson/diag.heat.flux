@@ -83,7 +83,7 @@ close(fpb)
 close(fpc)
 exit(0)
 
-dats = Array(ASCIIString, 0)
+dats = Array(UTF8String, 0)
 date = ARGS[1][17:22]*"01" ; push!(dats, date) ; date = My.dateadd(date, 1, "dy")
    while date[7:8] != "01"   push!(dats, date) ; date = My.dateadd(date, 1, "dy")  end
 sums = zeros(length(lons), length(lats), length(dats), length(inds))

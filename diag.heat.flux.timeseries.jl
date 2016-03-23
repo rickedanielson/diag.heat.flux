@@ -1,9 +1,10 @@
 #=
  = Loop through all analyses and extract variables of interest at the position
- = of a set of buoy observations - RD September 2015, February, March 2016.
+ = of a set of buoy observations.  Include a conversion of units, as required
+ = - RD September 2015, February, March 2016.
  =#
 
-using My, NetCDF, Grid
+using My, NetCDF
 const MISS             = -9999.0                        # generic missing value
 const SHFX             = 1                              # identify indecies of all data variables
 const LHFX             = 2
@@ -92,6 +93,8 @@ while parse(Int, date) < 20100101000000                                       # 
       else return x
       end
     end, stor[a,:])
+    if ARGS[2] == "cfsr" && 200.0 < stor[a,AIRT] < 350.0  stor[a,AIRT] -= 273.15  end
+    if                      200.0 < stor[a,SSTT] < 350.0  stor[a,SSTT] -= 273.15  end
     form = @sprintf("%8.2f %8.2f %9s %14s %7.3f %8.3f %8.2f %8.3f %8.3f %8.3f %8.3f %8.2f %8.2f %8.2f %8.3f %8.2f %8.2f %8.2f\n",
       stor[a,SHFX], stor[a,LHFX], "0000", date[1:10], lat, lon, stor[a,SLPP], stor[a,WDIR], stor[a,WSPD], stor[a,UWND], stor[a,VWND],
       stor[a,AIRT], stor[a,DPTT], stor[a,SSTT], stor[a,SHUM], stor[a,BLAY], stor[a,HGTU], stor[a,HGTT])
