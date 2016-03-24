@@ -105,14 +105,14 @@ wrks ; jjj diag.heat.flux.timeseries.available.jl ....45.000...-48.500 ; di plot
        jjj diag.heat.flux.timeseries.available.jl ....48.750...-12.500 ; di plot.avail....48.750...-12.500.png
 
 # create the forward and backward extrapolated timeseries
-wrks ; cd cfsr ; ls z.list??
+wrks ; cd cfsr ; ls z.list?? ; cd ..
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.listaa z.listab z.listac z.listad z.listae z.listaf z.listag z.listah | grep timeseries | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        rm commands
 
 # identify the subset of the ICOADS cal/val locations for which analyses are also valid for much of 2001-2007 (call these the collocations)
-wrks ; split -l 50 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.0_calib
-       split -l 50 all/all.flux.daily.locate_2.0_valid all.flux.daily.locate_2.0_valid
+wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.0_calib
+       split -l 400 all/all.flux.daily.locate_2.0_valid all.flux.daily.locate_2.0_valid
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.jl ::: all.flux.daily.locate_2.0_?ali??? ::: shfx lhfx wspd airt sstt shum | grep timeseries | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        cat all.flux.daily.locate_2.0_calib??.shfx.got2000 > all/all.flux.daily.locate_2.0_calib.shfx.got2000

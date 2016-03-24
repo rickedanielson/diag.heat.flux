@@ -50,66 +50,71 @@ fpa = My.ouvre(ARGS[1],                           "r")
 fpb = My.ouvre(ARGS[1]*"."*ARGS[2]*".got$CUTOFF", "w")
 fpc = My.ouvre(ARGS[1]*"."*ARGS[2]*".not$CUTOFF", "w")
 
-for line in eachline(fpa)                                                     # read the available obs counts and
-  (lat, lon, num) = float(split(line))                                        # allocate timeseries data for all dir
+for line in eachline(fpa)                                                     # for each location, read all analysis data
+  data = Array(Float64, TIMLEN, dirn) ; (lat, lon, num) = float(split(line))
   tmp = @sprintf("%9.3f.%9.3f", lat, lon) ; tail = replace(tmp, " ", ".")
-  data = Array(Float64, TIMLEN, dirn)
-
-  max = TIMTOT                                                                # among all analyses, track the minimum
-  for (a, dir) in enumerate(dirs)                                             # number of valid values in the subperiod
-    count = 0
-    file = "$dir/$dir.$tail"
-    fpd = My.ouvre(file, "r", false)
-    lines = readlines(fpd) ; close(fpd)
-    for b = TIMSTA:TIMSTA + TIMLEN - 1
-      vals = float(split(lines[b]))
-      data[b,a] = vals[vind]
-      if -333.0 < vals[vind] < 3333.0  count += 1  end
-    end
-    if count < max   max = count  end
-    if max < CUTOFF  break        end
+  for (a, dir) in enumerate(dirs)
+    fpd = My.ouvre("$dir/$dir.$tail", "r", false) ; lines = readlines(fpd) ; close(fpd)
+    for b = TIMSTA:TIMSTA + TIMLEN - 1  data[b,a] = float(split(lines[b])[vind])  end
   end
 
-  if max < CUTOFF                                                             # augment one of the subset list files
-    write(fpc, line)
-  else
+  mask = ones(TIMLEN)                                                         # identify valid days, neglecting missing
+  for a = 1:dirn, b = 1:TIMLEN                                                # CFSR lhfx and JOFURO airt/sstt
+    if (data[b,a] <= -333.0 || data[b,a] >= 3333.0) &&
+      !(a == 5 && (vind == AIRT || vind == SSTT)) &&
+      !(a == 1 &&  vind == LHFX)
+      mask[b] = 0.0
+    end
+  end
+#=
+  for a = 1:TIMLEN                                                            # map gaps in any one analysis to the others
+    if mask[a] == 0.0
+      for b = 1:dirn
+        data[a,b] = MISS
+      end
+    end
+  end  =#
+
+  if sum(mask) < CUTOFF                                                       # augment one of the subset list files
+    write(fpc, line)                                                          # but only create a spectra file if all
+  else                                                                        # analyses have good temporal coverage
     write(fpb, line)
-    for (a, dir) in enumerate(dirs)                                           # and for each dir
-      datb = Array(Float64, 0)
-      datc = Array(Float64, 0)
 
-      push!(datb, torus(TIMSTA))                                              # define the NFFT sampled data with
-      push!(datc, bartl(TIMSTA) * 0.0)                                        # valid (zero-amplitude) endpoints
-      for b = TIMSTA + 1:3013                                                 # at 2001-01-01 and 2007-12-31
-        if data[dlen,b] > 0
-          push!(datb, torus(b))
-          push!(datc, bartl(b) * data[a,b])
+    half = div(TIMLEN, 2)
+    spec = Array(Float64, half + 1, dirn)
+    datb = Array(Float64, 0)
+    datc = Array(Float64, 0)
+    for (a, dir) in enumerate(dirs)
+      if (a == 5 && (vind == AIRT || vind == SSTT)) || (a == 1 &&  vind == LHFX)
+        for b = 1:half + 1  spec[b,a] = MISS  end
+      else
+        datb = Array(Float64, 0)                                              # define the NFFT sampled data with
+        datc = Array(Float64, 0)                                              # valid endpoints at 2001-01-01 and
+        for b = TIMSTA:TIMSTA + TIMLEN - 1                                    # 2007-12-31
+          if -333.0 < data[b,a] < 3333.0
+            push!(datb, torus(b))
+            push!(datc, data[b,a])
+          end
         end
-      end
-      push!(datb, torus(3014))
-      push!(datc, bartl(3014) * 0.0)
-      nums = length(datb)
 
-      p = NFFTPlan(datb, nums)
-      f = nfft_adjoint(p, datc)
-      absf = abs2(f)
-      datd = Array(Float64, 0)
-      push!(datd, absf[div(TIMES,2)+1])
-      for a = 1:TIMES/2-1
-        push!(datd, absf[TIMES/2+1+a] + absf[TIMES/2+1-a])
-      end
-      push!(datd, absf[1])
-      datd /= TIMES * nums
-      for a = 1:TIMES/2+1
-        @printf("%15.8f %15.8f\n", (float)a / (float)TIMES, datd[a])
+        nums = length(datb)                                                   # get the spectral coefficients and compute the
+        plan = NFFTPlan(datb, nums)                                           # one-sided spectra for each analysis, where FFT
+        flan = nfft_adjoint(plan, datc)                                       # requires normalization by TIMES^2; NFFT employs
+        absf = abs2(flan)                                                     # TIMES*obsnum to satisfy Parseval's equation
+        for b = 1:half - 1
+          spec[b+1,a] = (absf[half+1+b] + absf[half+1-b]) / float(TIMLEN * nums)
+        end
+        spec[     1,a] = absf[half+1]                     / float(TIMLEN * nums)
+        spec[half+1,a] = absf[     1]                     / float(TIMLEN * nums)
       end
     end
 
-    if CALIB == 0  tmp = "fft/$(ARGS[2]).$tail.fft"
+    if CALIB == 0  tmp = "fft/$(ARGS[2]).$tail.fft"                           # and store the spectra in an fft dir
     else           tmp = "fft/$(ARGS[2]).$tail.fftcal"  end
     fpd = My.ouvre(tmp, "w", false)
-    for b = 1:nums
-      tmp = @sprintf("%15.8f %15.8f\n", datb[b], datc[b])
+    for a = 1:half + 1
+      tmp = @sprintf("%15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",
+        (a - 1.0) / float(TIMLEN), spec[a,1], spec[a,2], spec[a,3], spec[a,4], spec[a,5], spec[a,6], spec[a,7], spec[a,8])
       write(fpd, tmp)
     end
     close(fpd)

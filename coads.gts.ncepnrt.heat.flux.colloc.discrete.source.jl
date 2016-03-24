@@ -1,7 +1,6 @@
 #=
  = Loop through all locations of interest and assemble valid collocations
- = from the various in situ and analysis subdirs.  Include a conversion of
- = units, as required - RD February, March 2016.
+ = from the various in situ and analysis subdirs - RD February, March 2016.
  =#
 
 using My
@@ -63,27 +62,11 @@ for fila in files                                                             # 
       data[b+6] = float(strip(vals[varind]))
     end
 
-    if     varind == LHFX                                                     # accommodate CFSR units for AIRT, all SSTT,
-      data[ 7] = data[ 8] = -332.9                                            # missing JOFURO AIRT/SSTT, and CFSR LHFX
+    if     varind == LHFX                                                     # accommodate missing JOFURO AIRT/SSTT and
+      data[ 7] = data[ 8] = -332.9                                            # CFSR LHFX
     elseif varind == AIRT
-      data[ 7] != MISS && (data[ 7] -= 273.15)
-      data[ 8] != MISS && (data[ 8] -= 273.15)
       data[15] = data[16] = -332.9
     elseif varind == SSTT
-      data[ 7] != MISS && (data[ 7] -= 273.15)
-      data[ 8] != MISS && (data[ 8] -= 273.15)
-      data[ 9] != MISS && (data[ 9] -= 273.15)
-      data[10] != MISS && (data[10] -= 273.15)
-      data[11] != MISS && (data[11] -= 273.15)
-      data[12] != MISS && (data[12] -= 273.15)
-      data[13] != MISS && (data[13] -= 273.15)
-      data[14] != MISS && (data[14] -= 273.15)
-      data[17] != MISS && (data[17] -= 273.15)
-      data[18] != MISS && (data[18] -= 273.15)
-      data[19] != MISS && (data[19] -= 273.15)
-      data[20] != MISS && (data[20] -= 273.15)
-      data[21] != MISS && (data[21] -= 273.15)
-      data[22] != MISS && (data[22] -= 273.15)
       data[15] = data[16] = -332.9
     end
 
