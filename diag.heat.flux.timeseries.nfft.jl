@@ -89,7 +89,8 @@ for line in eachline(fpa)                                                     # 
         for b = 1:half + 1  spec[b,a] = MISS  end
       else
         datb = Array(Float64, 0)                                              # define the NFFT sampled data with
-        datc = Array(Complex{Float64}, 0)                                     # endpoints at 2001-01-01 and 2007-12-31
+#       datc = Array(Complex{Float64}, 0)                                     # endpoints at 2001-01-01 and 2007-12-31
+        datc = Array(Float64, 0)
         for b = TIMSTA:TIMSTA + TIMLEN - 1
           if -333.0 < data[b-TIMSTA+1,a] < 3333.0
             push!(datb, torus(b))
@@ -113,7 +114,7 @@ for line in eachline(fpa)                                                     # 
         for (z, linz) in enumerate(linez)
           spec[z,a] = float(split(linz))[2]
         end
-#       rm(tmpy) ; rm(tmpz)
+        rm(tmpy) ; rm(tmpz)
 
 #       plan = NFFTPlan(datb, nums)                                           # one-sided spectra for each analysis, where FFT
 #       flan = nfft_adjoint(plan, datc)                                       # requires normalization by TIMES^2; NFFT employs
