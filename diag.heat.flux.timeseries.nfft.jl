@@ -55,7 +55,7 @@ for line in eachline(fpa)                                                     # 
   tmp = @sprintf("%9.3f.%9.3f", lat, lon) ; tail = replace(tmp, " ", ".")
   for (a, dir) in enumerate(dirs)
     fpd = My.ouvre("$dir/$dir.$tail", "r", false) ; lines = readlines(fpd) ; close(fpd)
-    for b = TIMSTA:TIMSTA + TIMLEN - 1  data[b,a] = float(split(lines[b])[vind])  end
+    for b = TIMSTA:TIMSTA + TIMLEN - 1  data[b-TIMSTA+1,a] = float(split(lines[b])[vind])  end
   end
 
   mask = ones(TIMLEN)                                                         # identify valid days, neglecting missing
@@ -83,29 +83,46 @@ for line in eachline(fpa)                                                     # 
     half = div(TIMLEN, 2)
     spec = Array(Float64, half + 1, dirn)
     datb = Array(Float64, 0)
-    datc = Array(Float64, 0)
+    datc = Array(Complex{Float64}, 0)
     for (a, dir) in enumerate(dirs)
       if (a == 5 && (vind == AIRT || vind == SSTT)) || (a == 1 &&  vind == LHFX)
         for b = 1:half + 1  spec[b,a] = MISS  end
       else
         datb = Array(Float64, 0)                                              # define the NFFT sampled data with
-        datc = Array(Float64, 0)                                              # valid endpoints at 2001-01-01 and
-        for b = TIMSTA:TIMSTA + TIMLEN - 1                                    # 2007-12-31
-          if -333.0 < data[b,a] < 3333.0
+        datc = Array(Complex{Float64}, 0)                                     # endpoints at 2001-01-01 and 2007-12-31
+        for b = TIMSTA:TIMSTA + TIMLEN - 1
+          if -333.0 < data[b-TIMSTA+1,a] < 3333.0
             push!(datb, torus(b))
-            push!(datc, data[b,a])
+            push!(datc, data[b-TIMSTA+1,a])
           end
         end
+#       nums = length(datb)                                                   # get the spectral coefficients and compute the
 
-        nums = length(datb)                                                   # get the spectral coefficients and compute the
-        plan = NFFTPlan(datb, nums)                                           # one-sided spectra for each analysis, where FFT
-        flan = nfft_adjoint(plan, datc)                                       # requires normalization by TIMES^2; NFFT employs
-        absf = abs2(flan)                                                     # TIMES*obsnum to satisfy Parseval's equation
-        for b = 1:half - 1
-          spec[b+1,a] = (absf[half+1+b] + absf[half+1-b]) / float(TIMLEN * nums)
+        nums = length(datb)                                                   # estimate each FFT spectrum
+        tmpy = "fft/$(ARGS[2]).$tail.$dir.fftt"
+        tmpz = "fft/$(ARGS[2]).$tail.$dir.ffttest"
+        fpz = My.ouvre(tmpy, "w", false)
+        for z = 1:nums
+          linz = @sprintf("%15.8f %15.8f\n", datb[z], datc[z])
+          write(fpz, linz)
         end
-        spec[     1,a] = absf[half+1]                     / float(TIMLEN * nums)
-        spec[half+1,a] = absf[     1]                     / float(TIMLEN * nums)
+        close(fpz)
+
+        run(`diag.heat.flux.timeseries.nfft $tmpy`)
+        fpz = My.ouvre(tmpz, "r", false) ; linez = readlines(fpz) ; close(fpz)
+        for (z, linz) in enumerate(linez)
+          spec[z,a] = float(split(linz))[2]
+        end
+#       rm(tmpy) ; rm(tmpz)
+
+#       plan = NFFTPlan(datb, nums)                                           # one-sided spectra for each analysis, where FFT
+#       flan = nfft_adjoint(plan, datc)                                       # requires normalization by TIMES^2; NFFT employs
+#       absf = abs2(flan)                                                     # TIMES*obsnum to satisfy Parseval's equation
+#       for b = 1:half - 1
+#         spec[b+1,a] = (absf[half+1+b] + absf[half+1-b]) / float(TIMLEN * nums)
+#       end
+#       spec[     1,a] = absf[half+1]                     / float(TIMLEN * nums)
+#       spec[half+1,a] = absf[     1]                     / float(TIMLEN * nums)
       end
     end
 
