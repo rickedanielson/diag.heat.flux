@@ -72,6 +72,7 @@ for line in eachline(fpa)                                                     # 
       end
       for b = 1:latn, c = 1:lonn
         if 200.0 < stor[c,b,SSTT] < 350.0  stor[c,b,SSTT] -= 273.15  end
+      end
     end
 
     for a = START:i - 1                                                       # echo the ICOADS lines, but with analysis
@@ -80,7 +81,7 @@ for line in eachline(fpa)                                                     # 
       lon = float(vals[6]) ; lon < -180 && (lon += 360) ; lon > 180 && (lon -= 360)
       dellat, indlat = findmin(abs(lats - lat))
       dellon, indlon = findmin(abs(lons - lon))
-      form = @sprintf("%8.2f %8.2f %s %8.3f %8.2f %8.2f %8.3f %s\n",
+      form = @sprintf("%8.2f %8.2f %s %8.3f %s %8.2f %s %8.2f %8.3f %s\n",
         stor[indlon,indlat,SHFX], stor[indlon,indlat,LHFX], lins[a][ 19: 77], stor[indlon,indlat,WSPD], lins[a][ 88:104],
         stor[indlon,indlat,AIRT], lins[a][115:122], stor[indlon,indlat,SSTT], stor[indlon,indlat,SHUM], lins[a][142:167])
       write(fpb, form)
@@ -117,6 +118,7 @@ if isfile(file)
   end
   for b = 1:latn, c = 1:lonn
     if 200.0 < stor[c,b,SSTT] < 350.0  stor[c,b,SSTT] -= 273.15  end
+  end
 end
 
 for a = START:i - 1                                                       # echo the ICOADS lines, but with analysis
@@ -125,7 +127,7 @@ for a = START:i - 1                                                       # echo
   lon = float(vals[6]) ; lon < -180 && (lon += 360) ; lon > 180 && (lon -= 360)
   dellat, indlat = findmin(abs(lats - lat))
   dellon, indlon = findmin(abs(lons - lon))
-  form = @sprintf("%8.2f %8.2f %s %8.3f %8.2f %8.2f %8.3f %s\n",
+  form = @sprintf("%8.2f %8.2f %s %8.3f %s %8.2f %s %8.2f %8.3f %s\n",
     stor[indlon,indlat,SHFX], stor[indlon,indlat,LHFX], lins[a][ 19: 77], stor[indlon,indlat,WSPD], lins[a][ 88:104],
     stor[indlon,indlat,AIRT], lins[a][115:122], stor[indlon,indlat,SSTT], stor[indlon,indlat,SHUM], lins[a][142:167])
   write(fpb, form)
