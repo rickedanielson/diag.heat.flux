@@ -43,15 +43,18 @@ wrks ; mkdir all ; cat coads/ICOADS*dat.flux.daily > all/all.flux.daily ; cd all
 # make an initial split of the daily-average observations into cal/val groups (based only on insitu, and not analysis, availability)
 wrks ; cd all
        jjj coads.gts.ncepnrt.heat.flux.collate.split.jl all.flux.daily.locate
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib"
        jjj coads.gts.ncepnrt.heat.flux.collate.split.jl all.flux.daily.locate_2.0_valid
        mv all.flux.daily.locate_2.0_valid           all.flux.daily.locate_2.0_calib_remainder
        mv all.flux.daily.locate_2.0_valid_2.0_calib all.flux.daily.locate_2.0_valid
        mv all.flux.daily.locate_2.0_valid_2.0_valid all.flux.daily.locate_2.0_valid_remainder
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate"
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib"
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib_remainder"
        grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid"
+       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid_remainder"
        di plot.ocean.heat.flux.dots.all.flux.daily*png
 
-# split the cal/val observations by location and store files in an insitu dir
+# split the in situ cal/val observations by location and store files in an insitu dir
 wrks ; mkdir insitu
        sort -k5,5 -k6,6 -k4,4 all/all.flux.daily > all.flux.daily.sort
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.collate.split.location.jl ::: all/all.flux.daily.locate_2.0_?ali? ::: all.flux.daily.sort > commands
@@ -78,6 +81,16 @@ wrks ; mkdir ncdump
        ncdump             merra/merra-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/merra
        ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/oaflux
        ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
+
+# perform an initial analysis evaulation (without calibration) versus remainder in situ obs
+wrks ; jjj analysis.evaluation.assemble.insitu.jl all.flux.daily all.flux.daily.locate_2.0_valid_remainder
+       sort -k4,4 -k5,5 -k6,6 all.flux.dailyall.flux.daily.locate_2.0_valid_remainder > all.flux.daily_2.0_valid_remainder
+       split -l 321644 all.flux.daily_2.0_valid_remainder all.flux.daily_2.0_valid_remainder
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.assemble.analyses.jl ::: all.flux.daily_2.0_valid_remainder?? ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.versus.insitu.jl all.flux.daily _2.0_valid_remainder ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+       rm commands ; rm all.flux.dailyall.flux.daily.locate_2.0_valid_remainder
 
 # create analysis timeseries for the cal/val locations (some timeseries will contain missing data)
 wrks ; sort     all/all.flux.daily.locate_2.0_calib    > all.flux.daily.locate_2.0_calib.sort
@@ -163,25 +176,36 @@ wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_calib.airt.got2000
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_calib.sstt.got2000
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_calib.shum.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.shfx.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.lhfx.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.wspd.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.airt.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.sstt.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.shum.got2000
-
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.shfx.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.lhfx.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.wspd.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.airt.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.sstt.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_calib.shum.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_calib.shfx.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_calib.lhfx.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_calib.wspd.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_calib.airt.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_calib.sstt.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_calib.shum.got2000.spec
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_valid.shfx.got2000
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_valid.lhfx.got2000
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_valid.wspd.got2000
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_valid.airt.got2000
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_valid.sstt.got2000
        jjj diag.heat.flux.timeseries.nfft.avg.jl all/all.flux.daily.locate_2.0_valid.shum.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.shfx.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.lhfx.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.wspd.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.airt.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.sstt.got2000
-       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.shum.got2000
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.shfx.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.lhfx.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.wspd.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.airt.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.sstt.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl all/all.flux.daily.locate_2.0_valid.shum.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_valid.shfx.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_valid.lhfx.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_valid.wspd.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_valid.airt.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_valid.sstt.got2000.spec
+       jjj diag.heat.flux.timeseries.nfft.plot.jl     all.flux.daily.locate_2.0_valid.shum.got2000.spec
 
 # create all.flux.combined including buoy (shfx lhfx shum wspd airt sstt) and eight analysis extrapolations before and after
 # then perform the partitioned triple collocations and create a cal/val hypercube

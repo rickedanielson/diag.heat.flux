@@ -44,9 +44,13 @@ const SEAA             = 24
 const FRAC             = 0.7757 #2.0 /  3.0                     # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
 
-const DIRS = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "insitu"]
-const SHFR = [   717,          620,     474,           660,      617,     423,      606,       458,      000]
-const LHFR = [   717,          620,     474,           660,      617,     423,      606,       458,      000]
+const DIRS = [ "cfsr",  "erainterim",       "hoaps", "ifremerflux",      "jofuro",       "merra",      "oaflux",     "seaflux", "insitu"]
+const SHFR = [696.126,       585.781,      1086.737,       701.679,       444.455,       391.638,       584.668,       517.197,      0.0]
+const LHFR = [  0.000,       908.839,      1889.443,       595.732,      1142.690,       634.272,       713.449,       655.332,      0.0]
+const WSPR = [  3.643,         7.249,         6.028,         9.796,         6.903,        10.995,         6.562,         6.826,      0.0]
+const AIRR = [  1.940,         1.904,         2.625,         2.920,         0.000,         2.204,         1.760,         1.751,      0.0]
+const SSTR = [  0.035,         0.059,         0.045,         0.578,         0.000,         0.016,         0.039,         0.211,      0.0]
+const SHUR = [  0.398,         0.374,         0.669,         0.487,         0.680,         0.523,         0.287,         0.297,      0.0]
 const ANALYS           = 8                              # number of flux analyses
 
 if size(ARGS) != (1,)

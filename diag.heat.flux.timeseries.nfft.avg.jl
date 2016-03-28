@@ -18,7 +18,7 @@ dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux
 dirn = length(dirs)
 stot = zeros(SPECS, dirn + 1)
 ntot = zeros(SPECS, dirn + 1)
-vari = ARGS[1][end-12:end-8]
+vari = ARGS[1][end-11:end-8]
 
 fpa = My.ouvre(ARGS[1], "r")                                                  # for each location, read all spectra
 for line in eachline(fpa)
@@ -28,7 +28,7 @@ for line in eachline(fpa)
   tmpz = "fft/$vari.$tail.fft"
   fpz  = My.ouvre(tmpz, "r", false) ; linez = readlines(fpz) ; close(fpz)
   for (z, linz) in enumerate(linez)
-    vals = float(split(line))
+    vals = float(split(linz))
     for y = 1:dirn + 1
       if vals[y] != MISS
         stot[z,y] = num * vals[y]
