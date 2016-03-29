@@ -109,7 +109,7 @@ for line in eachline(fpa)                                                     # 
         end
         close(fpz)
 
-        run(`diag.heat.flux.timeseries.nfft $tmpy`)
+        run(`/home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft $tmpy`)
         fpz = My.ouvre(tmpz, "r", false) ; linez = readlines(fpz) ; close(fpz)
         for (z, linz) in enumerate(linez)
           spec[z,a] = float(split(linz))[2]

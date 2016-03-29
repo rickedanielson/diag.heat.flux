@@ -82,16 +82,28 @@ wrks ; mkdir ncdump
        ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/oaflux
        ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
 
-# perform an initial analysis evaulation (without calibration) versus remainder in situ obs
+# assemble data for an analysis evaulation with respect to the 2.0_valid_remainder in situ obs
 wrks ; cd all ; jjj analysis.evaluation.assemble.insitu.jl all.flux.daily all.flux.daily.locate_2.0_valid_remainder
        cd .. ; mv all/all.flux.dailyall.flux.daily.locate_2.0_valid_remainder all/all.flux.daily_2.0_valid_remainder
        sort -k4,4 -k5,5 -k6,6 all/all.flux.daily_2.0_valid_remainder > all.flux.daily_2.0_valid_remainder.sort
        split -l 321644 all.flux.daily_2.0_valid_remainder.sort all.flux.daily_2.0_valid_remainder
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.assemble.analyses.jl ::: all.flux.daily_2.0_valid_remainder?? ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.versus.insitu.jl all.flux.daily _2.0_valid_remainder ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep all.flux | sort > commands
+       cat all.flux.daily_2.0_valid_remainder??.cfsr        | sort > all/all.flux.daily_2.0_valid_remainder.cfsr
+       cat all.flux.daily_2.0_valid_remainder??.erainterim  | sort > all/all.flux.daily_2.0_valid_remainder.erainterim
+       cat all.flux.daily_2.0_valid_remainder??.hoaps       | sort > all/all.flux.daily_2.0_valid_remainder.hoaps
+       cat all.flux.daily_2.0_valid_remainder??.ifremerflux | sort > all/all.flux.daily_2.0_valid_remainder.ifremerflux
+       cat all.flux.daily_2.0_valid_remainder??.jofuro      | sort > all/all.flux.daily_2.0_valid_remainder.jofuro
+       cat all.flux.daily_2.0_valid_remainder??.merra       | sort > all/all.flux.daily_2.0_valid_remainder.merra
+       cat all.flux.daily_2.0_valid_remainder??.oaflux      | sort > all/all.flux.daily_2.0_valid_remainder.oaflux
+       cat all.flux.daily_2.0_valid_remainder??.seaflux     | sort > all/all.flux.daily_2.0_valid_remainder.seaflux
+       wc all/all.flux.daily_2.0_valid_remainder all/all.flux.daily_2.0_valid_remainder.*
+       rm commands all.flux.daily_2.0_valid_remaind*
+
+# perform an initial analysis evaulation (without calibration) versus 2.0_valid_remainder
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.versus.insitu.jl all/all.flux.daily_2.0_valid_remainder ::: shfx lhfx wspd airt sstt shum | grep all.flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-       rm commands ; rm all.flux.dailyall.flux.daily.locate_2.0_valid_remainder
+       rm commands all.flux.daily_2.0_valid_remainder?*
 
 # create analysis timeseries for the cal/val locations (some timeseries will contain missing data)
 wrks ; sort     all/all.flux.daily.locate_2.0_calib    > all.flux.daily.locate_2.0_calib.sort
