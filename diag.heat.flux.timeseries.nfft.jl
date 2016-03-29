@@ -59,21 +59,13 @@ for line in eachline(fpa)                                                     # 
   end
 
   mask = ones(TIMLEN)                                                         # identify valid days, neglecting missing
-  for a = 1:dirn, b = 1:TIMLEN                                                # CFSR lhfx and JOFURO airt/sstt
-    if (data[b,a] <= -333.0 || data[b,a] >= 3333.0) &&
+  for a = 1:dirn, b = 1:TIMLEN                                                # CFSR lhfx and JOFURO airt/sstt (otherwise
+    if (data[b,a] <= -333.0 || data[b,a] >= 3333.0) &&                        # mapping gaps in any one analysis to all)
       !(a == 5 && (vind == AIRT || vind == SSTT)) &&
       !(a == 1 &&  vind == LHFX)
       mask[b] = 0.0
     end
   end
-#=
-  for a = 1:TIMLEN                                                            # map gaps in any one analysis to the others
-    if mask[a] == 0.0
-      for b = 1:dirn
-        data[a,b] = MISS
-      end
-    end
-  end  =#
 
   if sum(mask) < CUTOFF                                                       # augment one of the subset list files
     write(fpc, line)                                                          # but only create a spectra file if all
@@ -83,7 +75,8 @@ for line in eachline(fpa)                                                     # 
     half = div(TIMLEN, 2)
     spec = Array(Float64, half + 1, dirn)
     datb = Array(Float64, 0)
-    datc = Array(Complex{Float64}, 0)
+#   datc = Array(Complex{Float64}, 0)
+    datc = Array(Float64, 0)
     for (a, dir) in enumerate(dirs)
       if (a == 5 && (vind == AIRT || vind == SSTT)) || (a == 1 &&  vind == LHFX)
         for b = 1:half + 1  spec[b,a] = MISS  end
@@ -92,7 +85,8 @@ for line in eachline(fpa)                                                     # 
 #       datc = Array(Complex{Float64}, 0)                                     # endpoints at 2001-01-01 and 2007-12-31
         datc = Array(Float64, 0)
         for b = TIMSTA:TIMSTA + TIMLEN - 1
-          if -333.0 < data[b-TIMSTA+1,a] < 3333.0
+#         if -333.0 < data[b-TIMSTA+1,a] < 3333.0
+          if mask[b-TIMSTA+1] == 1.0
             push!(datb, torus(b))
             push!(datc, data[b-TIMSTA+1,a])
           end
@@ -146,6 +140,14 @@ exit(0)
 
 
 #=
+  for a = 1:TIMLEN
+    if mask[a] == 0.0
+      for b = 1:dirn
+        data[a,b] = MISS
+      end
+    end
+  end
+
 bartl(x) = x < 1736.5 ? (x - TIMSTA) / 1277.5 : (3014 - x) / 1277.5           # map daily index to Bartlett triangular weights
 bartl(x) = 1.0
 

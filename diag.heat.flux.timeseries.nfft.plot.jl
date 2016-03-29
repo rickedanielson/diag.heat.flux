@@ -48,8 +48,18 @@ for a in order
   print("variance $(specstr[a]) in $(dirs[a])\n")
 end
 
-@printf("\n%13.3lf, %13.3lf, %13.3lf, %13.3lf, %13.3lf, %13.3lf, %13.3lf, %13.3lf\n\n",
-  specvar[1], specvar[2], specvar[3], specvar[4], specvar[5], specvar[6], specvar[7], specvar[8])
+ARGS[1][end-16:end-13] == "shfx" && (varname = "SHFR")
+ARGS[1][end-16:end-13] == "lhfx" && (varname = "LHFR")
+ARGS[1][end-16:end-13] == "wspd" && (varname = "WSPR")
+ARGS[1][end-16:end-13] == "airt" && (varname = "AIRR")
+ARGS[1][end-16:end-13] == "sstt" && (varname = "SSTR")
+ARGS[1][end-16:end-13] == "shum" && (varname = "SHUR")
+fpb = My.ouvre(ARGS[1] * ".stat", "w")
+form = @sprintf("const %s = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
+  varname, specvar[1], specvar[2], specvar[3], specvar[4], specvar[5], specvar[6], specvar[7], specvar[8])
+write(fpb, form)
+print(form)
+close(fpb)
 
 #xlaba = ["121", "60", "30", "14", "5", "3", "2"]
 xlaba = ["1000", "365", "182", "121", "60", "30", "14", "5", "3", "2"]
