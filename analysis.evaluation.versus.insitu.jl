@@ -24,22 +24,22 @@ if size(ARGS) != (2,)
 end
 
 vind = 0
-if     ARGS[1] == "shfx"  vind = SHFX
+if     ARGS[2] == "shfx"  vind = SHFX
   cala = [ 2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
   calb = [0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
-elseif ARGS[1] == "lhfx"  vind = LHFX
+elseif ARGS[2] == "lhfx"  vind = LHFX
   cala = [ 2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
   calb = [0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
-elseif ARGS[1] == "wspd"  vind = WSPD
+elseif ARGS[2] == "wspd"  vind = WSPD
   cala = [ 2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
   calb = [0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
-elseif ARGS[1] == "airt"  vind = AIRT
+elseif ARGS[2] == "airt"  vind = AIRT
   cala = [ 2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
   calb = [0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
-elseif ARGS[1] == "sstt"  vind = SSTT
+elseif ARGS[2] == "sstt"  vind = SSTT
   cala = [ 2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
   calb = [0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
-elseif ARGS[1] == "shum"  vind = SHUM
+elseif ARGS[2] == "shum"  vind = SHUM
   cala = [ 2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
   calb = [0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
 end
@@ -88,4 +88,12 @@ close(fpa)
 for a = 1:dirn                                                                # then close this set of files
   close(fpn[a])
 end
+
+if CALIB == 0  tail = ".summ"  end
+if CALIB == 1  tail = ".sumc"  end
+fpb = My.ouvre(ARGS[1] * "." * dira * tail, "w")
+form = @sprintf("%15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n", resa[1], resa[2], resa[3], resa[4], resa[5], resa[6], resa[7], resa[8]) ; write(fpb, form)
+form = @sprintf("%15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n", resb[1], resb[2], resb[3], resb[4], resb[5], resb[6], resb[7], resb[8]) ; write(fpb, form)
+form = @sprintf("%d values valid across analyses\n",numb)
+close(fpb)
 exit(0)
