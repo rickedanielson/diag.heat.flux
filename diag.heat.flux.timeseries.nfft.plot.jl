@@ -39,21 +39,21 @@ end
 order = sortperm(specvar, rev=true)
 
 for a in order
-  ARGS[1][end-16:end-13] == "shfx" && (specstr[a] = @sprintf("%.0lf", specvar[a]))
-  ARGS[1][end-16:end-13] == "lhfx" && (specstr[a] = @sprintf("%.0lf", specvar[a]))
-  ARGS[1][end-16:end-13] == "wspd" && (specstr[a] = @sprintf("%.1lf", specvar[a]))
-  ARGS[1][end-16:end-13] == "airt" && (specstr[a] = @sprintf("%.2lf", specvar[a]))
-  ARGS[1][end-16:end-13] == "sstt" && (specstr[a] = @sprintf("%.3lf", specvar[a]))
-  ARGS[1][end-16:end-13] == "shum" && (specstr[a] = @sprintf("%.2lf", specvar[a]))
+  if contains(ARGS[1], "shfx") && (specstr[a] = @sprintf("%.0lf", specvar[a]))
+  if contains(ARGS[1], "lhfx") && (specstr[a] = @sprintf("%.0lf", specvar[a]))
+  if contains(ARGS[1], "wspd") && (specstr[a] = @sprintf("%.1lf", specvar[a]))
+  if contains(ARGS[1], "airt") && (specstr[a] = @sprintf("%.2lf", specvar[a]))
+  if contains(ARGS[1], "sstt") && (specstr[a] = @sprintf("%.3lf", specvar[a]))
+  if contains(ARGS[1], "shum") && (specstr[a] = @sprintf("%.2lf", specvar[a]))
   print("variance $(specstr[a]) in $(dirs[a])\n")
 end
 
-ARGS[1][end-16:end-13] == "shfx" && (varname = "SHFR")
-ARGS[1][end-16:end-13] == "lhfx" && (varname = "LHFR")
-ARGS[1][end-16:end-13] == "wspd" && (varname = "WSPR")
-ARGS[1][end-16:end-13] == "airt" && (varname = "AIRR")
-ARGS[1][end-16:end-13] == "sstt" && (varname = "SSTR")
-ARGS[1][end-16:end-13] == "shum" && (varname = "SHUR")
+if contains(ARGS[1], "shfx") && (varname = "SHFR")
+if contains(ARGS[1], "lhfx") && (varname = "LHFR")
+if contains(ARGS[1], "wspd") && (varname = "WSPR")
+if contains(ARGS[1], "airt") && (varname = "AIRR")
+if contains(ARGS[1], "sstt") && (varname = "SSTR")
+if contains(ARGS[1], "shum") && (varname = "SHUR")
 fpb = My.ouvre(ARGS[1] * ".stat", "w")
 form = @sprintf("const %s = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
   varname, specvar[1], specvar[2], specvar[3], specvar[4], specvar[5], specvar[6], specvar[7], specvar[8])
@@ -69,12 +69,12 @@ xposb = float(xlabb)
 
 xyzzy = ARGS[1]*".png"
 print("writing $xyzzy\n")
-ARGS[1][end-16:end-13] == "shfx" && (varname = "Sensible Heat Flux" ; ymin = -40 ; ymax = 40)
-ARGS[1][end-16:end-13] == "lhfx" && (varname = "Latent Heat Flux"   ; ymin = -40 ; ymax = 40)
-ARGS[1][end-16:end-13] == "wspd" && (varname = "Wind Speed"         ; ymin = -50 ; ymax = 10)
-ARGS[1][end-16:end-13] == "airt" && (varname = "Air Temperature"    ; ymin = -50 ; ymax = 10)
-ARGS[1][end-16:end-13] == "sstt" && (varname = "Sea Surface Temp"   ; ymin = -70 ; ymax = 10)
-ARGS[1][end-16:end-13] == "shum" && (varname = "Specific Humidity"  ; ymin = -60 ; ymax =  0)
+if contains(ARGS[1], "shfx") && (varname = "Sensible Heat Flux" ; ymin = -40 ; ymax = 40)
+if contains(ARGS[1], "lhfx") && (varname = "Latent Heat Flux"   ; ymin = -40 ; ymax = 40)
+if contains(ARGS[1], "wspd") && (varname = "Wind Speed"         ; ymin = -50 ; ymax = 10)
+if contains(ARGS[1], "airt") && (varname = "Air Temperature"    ; ymin = -50 ; ymax = 10)
+if contains(ARGS[1], "sstt") && (varname = "Sea Surface Temp"   ; ymin = -70 ; ymax = 10)
+if contains(ARGS[1], "shum") && (varname = "Specific Humidity"  ; ymin = -60 ; ymax =  0)
 tmp = Winston.FramedPlot(
         title="2001-2007 $varname Spectra (dB)", xlog = true,
         xlabel="Timescale (days)", xrange = (1/1000,1/2),

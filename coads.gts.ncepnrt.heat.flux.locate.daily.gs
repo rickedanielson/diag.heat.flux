@@ -10,7 +10,7 @@ dotfile = subwrd(args,1)
 dotsiz = 0.05
 
 fpz = "xyzzy.forgetit" ; "!echo $HOME > "fpz ; line = read(fpz) ; home = sublin(line,2) ; ret = close(fpz) ; "!rm "fpz
-"sdfopen /home/ricani/data/mdt/MDT_CNES-CLS13_REF20_CF_extended.nc"
+"sdfopen "home"/data/mdt/MDT_CNES-CLS13_REF20_CF_extended.nc"
 "set mproj scaled"
 "set grads off"
 "set grid off"

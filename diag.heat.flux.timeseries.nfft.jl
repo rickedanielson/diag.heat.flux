@@ -68,7 +68,7 @@ for line in eachline(fpa)                                                     # 
   end
 
   if sum(mask) < CUTOFF                                                       # augment one of the subset list files
-    write(fpc, line)                                                          # but only create a spectra file if all
+    write(fpc, line)                                                          # and only create a spectra file if all
   else                                                                        # analyses have good temporal coverage
     write(fpb, line)
 
@@ -93,7 +93,7 @@ for line in eachline(fpa)                                                     # 
         end
 #       nums = length(datb)                                                   # get the spectral coefficients and compute the
 
-        nums = length(datb)                                                   # estimate each FFT spectrum
+        nums = length(datb)                                                   # (call out an estimate of each FFT spectrum)
         tmpy = "fft/$(ARGS[2]).$tail.$dir.fftt"
         tmpz = "fft/$(ARGS[2]).$tail.$dir.ffttest"
         fpz = My.ouvre(tmpy, "w", false)

@@ -1,18 +1,17 @@
 #=
- = Perform a series of analysis calibration and performance estimates
- = across a parameter space defined in terms of surface air temperature,
- = wind speed, and SST (mainly because these are available from buoy obs,
- = although air tempertaure and SST covary globally and a more diverse set of
- = parameters could be taken).  Fixed-size subsets of available collocations
+ = Perform a single or a series of analysis calibration and performance estimates,
+ = with the series performed across a parameter space defined in terms of surface
+ = air temperature, wind speed, and SST (mainly because these are available from
+ = buoy obs, although air tempertaure and SST covary globally and a more diverse
+ = set of parameters could be taken).  Fixed-size subsets of available collocations
  = are selected based on geometrical closeness to the target parameters (after
  = equating metric units and ignoring pdf shape, for example) and employed to
- = obtain each calibration and performance estimate.  Target parameters are
- = then varied with each subset yielding the actual mean parameters by a simple
- = average (and where two averages are close these are combined).  The ungridded
- = variations in analysis quality are then gridded in order to permit a lookup
- = table for maps of analysis quality that depend on these parameters.  Simple
- = polynomials (whose coefficients are found by least squares) are employed to
- = regrid - RD February 2016.
+ = obtain each calibration and performance estimate.  Target parameters are then
+ = varied with each subset yielding the actual mean parameters by a simple average
+ = (and where two averages are close these are combined).  The ungridded variations
+ = in analysis quality are then gridded in order to permit a lookup table for maps
+ = of analysis quality that depend on these parameters.  Simple polynomials (whose
+ = coefficients are found by least squares) are employed to regrid - RD February 2016.
  =#
 
 using My, Optim
@@ -46,20 +45,21 @@ const DELTA            = 0.001                          # generic convergence cr
 const ANALYS           = 8                              # number of flux analyses
 
 const DIRS = [         "cfsr",    "erainterim",         "hoaps",   "ifremerflux",        "jofuro",         "merra",        "oaflux",       "seaflux", "insitu"]
-const SHFR = [   696.12605328,    585.78051385,   1086.73700607,    701.67897796,    444.45494849,    391.63751651,    584.66786977,    517.19733353,      0.0] # calib
-const LHFR = [     0.00000000,    908.83931667,   1889.44297245,    595.73235788,   1142.69043337,    634.27207633,    713.44857159,    655.33237141,      0.0]
-const WSPR = [     3.64304993,      7.24863802,      6.02812613,      9.79599184,      6.90330277,     10.99504325,      6.56158327,      6.82556676,      0.0]
-const AIRR = [     1.94038667,      1.90424361,      2.62517326,      2.91976963,      0.00000000,      2.20387251,      1.75971708,      1.75081369,      0.0]
-const SSTR = [     0.03468674,      0.05867710,      0.04485646,      0.57836960,      0.00000000,      0.01574442,      0.03861961,      0.21115767,      0.0]
-const SHUR = [     0.39793107,      0.37427633,      0.66851717,      0.48689399,      0.67972228,      0.52315412,      0.28716091,      0.29722441,      0.0]
-#=
-const SHFR = [   755.78394848,    615.55338379,    965.91845338,    592.09456595,    365.22980984,    351.12610404,    493.07227239,    445.93657336,      0.0] # valid
-const LHFR = [     0.00000000,    624.81426109,   1058.23558058,    324.64821962,   1219.08397045,    401.54647993,    413.23142202,    397.47350466,      0.0]
-const WSPR = [     3.94589771,      7.38449252,      6.50787300,      9.36856825,      7.15111205,     11.65697733,      6.74582380,      7.17639461,      0.0]
-const AIRR = [     1.82613847,      1.63468166,      2.29017567,      2.25770527,      0.00000000,      1.60863841,      1.37894484,      1.57754032,      0.0]
-const SSTR = [     0.02387010,      0.04381256,      0.04870639,      0.24888892,      0.00000000,      0.00589912,      0.03975117,      0.54950286,      0.0]
-const SHUR = [     0.29769725,      0.26898164,      0.38916258,      0.43334857,      0.93356232,      0.34437823,      0.19235738,      0.21468285,      0.0]
-=#
+  #  calib
+const SHFR = [   708.55098101,    595.77144567,   1108.24038539,    703.23803088,    451.90719577,    399.09046317,    596.55842423,    533.12308412,      0.0]
+const LHFR = [     0.00000000,    939.26444528,   1940.69317734,    598.47180506,   1171.96285346,    657.15215973,    739.75363651,    688.74436394,      0.0]
+const WSPR = [     3.99047103,      8.30717638,      7.21921812,      9.83158144,      8.02162527,     12.55110279,      7.66590873,      7.89347476,      0.0]
+const AIRR = [     2.41160376,      2.29794447,      3.00058473,      2.91987912,      0.00000000,      2.52612319,      2.18328357,      2.04552821,      0.0]
+const SSTR = [     0.51306792,      0.48642438,      0.50213171,      0.58773761,      0.00000000,      0.45972265,      0.47069804,      0.68557436,      0.0]
+const SHUR = [     0.68096260,      0.65661282,      0.92436088,      0.49144375,      0.93625169,      0.79425787,      0.57211174,      0.52246301,      0.0]
+  #= valid
+const SHFR = [   765.81414160,    617.40228900,    984.40900278,    593.25606846,    368.58462110,    353.65188680,    496.72921752,    453.99184496,      0.0]
+const LHFR = [     0.00000000,    644.32974623,   1122.35559176,    324.21256420,   1207.96913160,    411.71656867,    420.93462706,    424.49330399,      0.0]
+const WSPR = [     4.36521526,      8.65051973,      7.77326840,      9.61661208,      8.47689650,     13.43151299,      8.01678122,      8.39466175,      0.0]
+const AIRR = [     2.00135573,      1.77459071,      2.39957056,      2.26767424,      0.00000000,      1.69701343,      1.53333205,      1.68911773,      0.0]
+const SSTR = [     0.12817024,      0.14322332,      0.14265391,      0.25561751,      0.00000000,      0.10534970,      0.14446259,      0.65150639,      0.0]
+const SHUR = [     0.53810947,      0.49945746,      0.56079079,      0.46399754,      1.13793457,      0.56241798,      0.43014188,      0.40297092,      0.0]
+ =#
 
 if size(ARGS) != (1,)
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.combined\n\n")
