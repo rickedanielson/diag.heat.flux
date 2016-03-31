@@ -62,7 +62,7 @@ const SHUR = [     0.53810947,      0.49945746,      0.56079079,      0.46399754
  =#
 
 if size(ARGS) != (1,)
-  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.combined\n\n")
+  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.airt.got2000_obs.comb\n\n")
   exit(1)
 end
 
