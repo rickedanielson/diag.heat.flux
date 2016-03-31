@@ -18,12 +18,12 @@ if size(ARGS) != (1,)
 end
 
 vind = 0                                                                      # allow the number of output variables
-if contains(ARGS[1], "shfx") && (vind = SHFX)                                 # to be a function of the variable (i.e.,
-if contains(ARGS[1], "lhfx") && (vind = LHFX)                                 # omit cfsr LHFX and jofuro AIRT/SSTT)
-if contains(ARGS[1], "wspd") && (vind = WSPD)
-if contains(ARGS[1], "airt") && (vind = AIRT)
-if contains(ARGS[1], "sstt") && (vind = SSTT)
-if contains(ARGS[1], "shum") && (vind = SHUM)
+contains(ARGS[1], "shfx") && (vind = SHFX)                                    # to be a function of the variable (i.e.,
+contains(ARGS[1], "lhfx") && (vind = LHFX)                                    # omit cfsr LHFX and jofuro AIRT/SSTT)
+contains(ARGS[1], "wspd") && (vind = WSPD)
+contains(ARGS[1], "airt") && (vind = AIRT)
+contains(ARGS[1], "sstt") && (vind = SSTT)
+contains(ARGS[1], "shum") && (vind = SHUM)
 if contains(ARGS[1], "lhfx")
   dirs = [        "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"] ; fend = ".coml"
 elseif contains(ARGS[1], "airt") || contains(ARGS[1], "sstt")
@@ -36,7 +36,7 @@ end
 fpa = My.ouvre(ARGS[1],        "r")
 fpb = My.ouvre(ARGS[1] * fend, "w")
 
-for line in eachline(fpa)                                                      # loop through the insitu locations
+for line in eachline(fpa)                                                     # loop through the insitu locations
   vals = split(line)
   dat =       vals[ 4][1:8] ; datind = round(Int, My.datesous("19990930", dat, "dy"))
   lat = float(vals[ 5])
@@ -49,17 +49,18 @@ for line in eachline(fpa)                                                      #
   out = @sprintf("%s %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f", dat, lat, lon, flx, hum, spd, air, sst)
   tmp = @sprintf("%9.3f.%9.3f", lat, lon) ; tail = replace(tmp, " ", ".")
 
-  bef = fill(MISS, dirn)
+  bef = fill(MISS, dirn)                                                      # add analysis bef/aft to insitu data
   aft = fill(MISS, dirn)
   flag = true
   for (a, dira) in enumerate(dirs)
-    fpc = My.ouvre("$dira/$dira$tail.bef", "r", false) ; linb = readlines(fpc) ; close(fpc)
-    fpd = My.ouvre("$dira/$dira$tail.aft", "r", false) ; lina = readlines(fpd) ; close(fpd)
+    fpc = My.ouvre("$dira/$dira.$tail.bef", "r", false) ; linb = readlines(fpc) ; close(fpc)
+    fpd = My.ouvre("$dira/$dira.$tail.aft", "r", false) ; lina = readlines(fpd) ; close(fpd)
+
     tmp = split(linb[datind]) ; bef[a] = float(tmp[vind])
     tmp = split(lina[datind]) ; aft[a] = float(tmp[vind])
     if bef[a] < -333.0 || bef[a] > 3333.0 || aft[a] < -333.0 || aft[a] > 3333.0  flag = false  end
-    tmp = split(linb[datind]) ; newdat = tmp[4][1:8] ; if dat != newdat  println("$dat != newdat")  end
-    tmp = split(lina[datind]) ; newdat = tmp[4][1:8] ; if dat != newdat  println("$dat != newdat")  end
+    tmp = split(linb[datind]) ; newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != newdat")  end
+    tmp = split(lina[datind]) ; newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != newdat")  end
   end
 
   if flag                                                                     # and store the line if all values exist
@@ -67,7 +68,6 @@ for line in eachline(fpa)                                                      #
       tmp = @sprintf(" %9.3f %9.3f", bef[a], aft[a]) ; out *= tmp
     end
     out *= "\n" ; write(fpb, out)
-break
   end
 end
 
