@@ -44,22 +44,19 @@ const FRAC             = 0.7757 #2.0 /  3.0                     # fractional upd
 const DELTA            = 0.001                          # generic convergence criterion
 const ANALYS           = 8                              # number of flux analyses
 
-const DIRS = [         "cfsr",    "erainterim",         "hoaps",   "ifremerflux",        "jofuro",         "merra",        "oaflux",       "seaflux", "insitu"]
-  #  calib
-const SHFR = [   708.55098101,    595.77144567,   1108.24038539,    703.23803088,    451.90719577,    399.09046317,    596.55842423,    533.12308412,      0.0]
-const LHFR = [     0.00000000,    939.26444528,   1940.69317734,    598.47180506,   1171.96285346,    657.15215973,    739.75363651,    688.74436394,      0.0]
-const WSPR = [     3.99047103,      8.30717638,      7.21921812,      9.83158144,      8.02162527,     12.55110279,      7.66590873,      7.89347476,      0.0]
-const AIRR = [     2.41160376,      2.29794447,      3.00058473,      2.91987912,      0.00000000,      2.52612319,      2.18328357,      2.04552821,      0.0]
-const SSTR = [     0.51306792,      0.48642438,      0.50213171,      0.58773761,      0.00000000,      0.45972265,      0.47069804,      0.68557436,      0.0]
-const SHUR = [     0.68096260,      0.65661282,      0.92436088,      0.49144375,      0.93625169,      0.79425787,      0.57211174,      0.52246301,      0.0]
-  #= valid
-const SHFR = [   765.81414160,    617.40228900,    984.40900278,    593.25606846,    368.58462110,    353.65188680,    496.72921752,    453.99184496,      0.0]
-const LHFR = [     0.00000000,    644.32974623,   1122.35559176,    324.21256420,   1207.96913160,    411.71656867,    420.93462706,    424.49330399,      0.0]
-const WSPR = [     4.36521526,      8.65051973,      7.77326840,      9.61661208,      8.47689650,     13.43151299,      8.01678122,      8.39466175,      0.0]
-const AIRR = [     2.00135573,      1.77459071,      2.39957056,      2.26767424,      0.00000000,      1.69701343,      1.53333205,      1.68911773,      0.0]
-const SSTR = [     0.12817024,      0.14322332,      0.14265391,      0.25561751,      0.00000000,      0.10534970,      0.14446259,      0.65150639,      0.0]
-const SHUR = [     0.53810947,      0.49945746,      0.56079079,      0.46399754,      1.13793457,      0.56241798,      0.43014188,      0.40297092,      0.0]
- =#
+const DIRS  = [         "cfsr",    "erainterim",         "hoaps",   "ifremerflux",        "jofuro",         "merra",        "oaflux",       "seaflux", "insitu"]
+const SHFRC = [   708.55098101,    595.77144567,   1108.24038539,    703.23803088,    451.90719577,    399.09046317,    596.55842423,    533.12308412,      0.0]
+const LHFRC = [     0.00000000,    939.26444528,   1940.69317734,    598.47180506,   1171.96285346,    657.15215973,    739.75363651,    688.74436394,      0.0]
+const WSPRC = [     3.99047103,      8.30717638,      7.21921812,      9.83158144,      8.02162527,     12.55110279,      7.66590873,      7.89347476,      0.0]
+const AIRRC = [     2.41160376,      2.29794447,      3.00058473,      2.91987912,      0.00000000,      2.52612319,      2.18328357,      2.04552821,      0.0]
+const SSTRC = [     0.51306792,      0.48642438,      0.50213171,      0.58773761,      0.00000000,      0.45972265,      0.47069804,      0.68557436,      0.0]
+const SHURC = [     0.68096260,      0.65661282,      0.92436088,      0.49144375,      0.93625169,      0.79425787,      0.57211174,      0.52246301,      0.0]
+const SHFRV = [   765.81414160,    617.40228900,    984.40900278,    593.25606846,    368.58462110,    353.65188680,    496.72921752,    453.99184496,      0.0]
+const LHFRV = [     0.00000000,    644.32974623,   1122.35559176,    324.21256420,   1207.96913160,    411.71656867,    420.93462706,    424.49330399,      0.0]
+const WSPRV = [     4.36521526,      8.65051973,      7.77326840,      9.61661208,      8.47689650,     13.43151299,      8.01678122,      8.39466175,      0.0]
+const AIRRV = [     2.00135573,      1.77459071,      2.39957056,      2.26767424,      0.00000000,      1.69701343,      1.53333205,      1.68911773,      0.0]
+const SSTRV = [     0.12817024,      0.14322332,      0.14265391,      0.25561751,      0.00000000,      0.10534970,      0.14446259,      0.65150639,      0.0]
+const SHURV = [     0.53810947,      0.49945746,      0.56079079,      0.46399754,      1.13793457,      0.56241798,      0.43014188,      0.40297092,      0.0]
 
 if size(ARGS) != (1,)
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.airt.got2000_obs.comb\n\n")
@@ -84,7 +81,7 @@ end
  = is required (Vogelzang and Stoffelen 2012 Eq. 2.25)] - RD September, October 2015, February 2016.
  =#
 
-function triple(flux::Array{Float64,3})
+function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
   allalpa = Array(Float64, ANALYS, ANALYS)                                    # use in situ and (a) any one analysis
   allbeta = Array(Float64, ANALYS, ANALYS)                                    # in turn as references and store the
   allsiga = Array(Float64, ANALYS, ANALYS)                                    # third (b) error and correlation values
@@ -100,8 +97,6 @@ function triple(flux::Array{Float64,3})
   allsigc = Array(Float64, ANALYS)
   allcorc = Array(Float64, ANALYS)
   allmass = Array(Float64, ANALYS, 3)
-
-  rsqr = SHFR
 
   for a = 1:ANALYS
     for b = 1:ANALYS                                                          # in addition to the "now" in situ obs,
@@ -305,6 +300,19 @@ const MSPD             = 6                              # center-of-mass paramet
 const MSST             = 7                              # center-of-mass parameter
 const PARAMS           = 7                              # number of triple coll statistics
 
+contains(ARGS[1], "shfx") && contains(ARGS[1], "calib") && (rsqr = SHFRC)     # first define the measures of short
+contains(ARGS[1], "lhfx") && contains(ARGS[1], "calib") && (rsqr = LHFRC)     # timescale variability for this var
+contains(ARGS[1], "wspd") && contains(ARGS[1], "calib") && (rsqr = WSPRC)
+contains(ARGS[1], "airt") && contains(ARGS[1], "calib") && (rsqr = AIRRC)
+contains(ARGS[1], "sstt") && contains(ARGS[1], "calib") && (rsqr = SSTRC)
+contains(ARGS[1], "shum") && contains(ARGS[1], "calib") && (rsqr = SHURC)
+contains(ARGS[1], "shfx") && contains(ARGS[1], "valid") && (rsqr = SHFRV)
+contains(ARGS[1], "lhfx") && contains(ARGS[1], "valid") && (rsqr = LHFRV)
+contains(ARGS[1], "wspd") && contains(ARGS[1], "valid") && (rsqr = WSPRV)
+contains(ARGS[1], "airt") && contains(ARGS[1], "valid") && (rsqr = AIRRV)
+contains(ARGS[1], "sstt") && contains(ARGS[1], "valid") && (rsqr = SSTRV)
+contains(ARGS[1], "shum") && contains(ARGS[1], "valid") && (rsqr = SHURV)
+
 fpa = My.ouvre(ARGS[1], "r") ; lines = readlines(fpa) ; close(fpa)            # read and count all triple collocations
 (linum,) = size(lines)                                                        # and allocate for the target parameters and
 dist = zeros(linum)                                                           # distance to them, the resulting mean params,
@@ -332,7 +340,7 @@ for (a, rana) in enumerate(RANGA)                                             # 
           e += 1
         end
       end
-      (allmas, allalp, allbet, allsig, allcor) = triple(flux)
+      (allmas, allalp, allbet, allsig, allcor) = triple(flux, rsqr)
 
       target[a,b,c,:] = [rana ranb ranc]
       calval[a,b,c,:,ALPH] = allalp
