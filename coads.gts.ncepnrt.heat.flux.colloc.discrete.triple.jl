@@ -120,12 +120,12 @@ function triple(flux::Array{Float64,3})
       allmasa[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
-  deltasqr = 0.0
+# deltasqr = 0.0
       bet2 = bet3 = 1.0
       alp2 = alp3 = 0.0
 
       flag = true
-  flag = false
+# flag = false
       while flag == true
         avg1 = mean(sampbuoy)
         avg2 = mean(sampsate)
@@ -201,12 +201,12 @@ function triple(flux::Array{Float64,3})
       allmasb[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
-  deltasqr = 0.0
+# deltasqr = 0.0
       bet2 = bet3 = 1.0
       alp2 = alp3 = 0.0
 
       flag = true
-  flag = false
+# flag = false
       while flag == true
         avg1 = mean(sampbuoy)
         avg2 = mean(sampsate)
@@ -285,10 +285,16 @@ end
  =#
 
 const MISS             = -9999.0                        # generic missing value
+#=
 const RANGA            = -40.0:10.0:30.0                # target sampling range for AIRT dimension
 const RANGB            =   0.0:10.0:30.0                # target sampling range for WSPD dimension
 const RANGC            =   0.0:10.0:30.0                # target sampling range for SSTT dimension
 const CUTOFF           = 5000                           # number of collocations in a subset
+=#
+const RANGA            =   0.0:10.0: 0.0                # target sampling range for AIRT dimension
+const RANGB            =   0.0:10.0: 0.0                # target sampling range for WSPD dimension
+const RANGC            =   0.0:10.0: 0.0                # target sampling range for SSTT dimension
+const CUTOFF           = 500000000000000                # number of collocations in a subset
 
 const ALPH             = 1                              # error model x = ALPH + BETA * truth + error
 const BETA             = 2                              # error model x = ALPH + BETA * truth + error
@@ -346,6 +352,8 @@ for (a, rana) in enumerate(RANGA)                                             # 
     end
   end
 end
+
+exit(0)
 
 varair = Array(Float64, 0)                                                    # the sqerror closure requires data
 varspd = Array(Float64, 0)                                                    # arrays in global scope

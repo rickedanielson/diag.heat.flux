@@ -53,15 +53,16 @@ for line in eachline(fpa)                                                     # 
   aft = fill(MISS, dirn)
   flag = true
   for (a, dira) in enumerate(dirs)
-    fpc = My.ouvre("$dira/$dira.$tail.bef", "r", false) ; linb = readlines(fpc) ; close(fpc)
-    fpd = My.ouvre("$dira/$dira.$tail.aft", "r", false) ; lina = readlines(fpd) ; close(fpd)
+    fpc = My.ouvre("$dira/$dira.$tail.bef", "r", false) ; linb = readlines(fpc) ; close(fpc) ; fpc = 0
+    fpd = My.ouvre("$dira/$dira.$tail.aft", "r", false) ; lina = readlines(fpd) ; close(fpd) ; fpd = 0
 
     tmp = split(linb[datind]) ; bef[a] = float(tmp[vind])
+                                newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != newdat")  end
     tmp = split(lina[datind]) ; aft[a] = float(tmp[vind])
+                                newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != newdat")  end
     if bef[a] < -333.0 || bef[a] > 3333.0 || aft[a] < -333.0 || aft[a] > 3333.0  flag = false  end
-    tmp = split(linb[datind]) ; newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != newdat")  end
-    tmp = split(lina[datind]) ; newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != newdat")  end
   end
+  gc()
 
   if flag                                                                     # and store the line if all values exist
     for (a, dira) in enumerate(dirs)
