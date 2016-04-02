@@ -42,6 +42,7 @@ const SEAA             = 24
 
 const FRAC             = 0.7757 #2.0 /  3.0                     # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
+const MEXT             = 3.0                            # standard deviation trimming limit
 const ANALYS           = 8                              # number of flux analyses
 
 const DIRS  = [         "cfsr",    "erainterim",         "hoaps",   "ifremerflux",        "jofuro",         "merra",        "oaflux",       "seaflux", "insitu"]
@@ -100,12 +101,10 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
 
   for a = 1:ANALYS
     for b = 1:ANALYS                                                          # in addition to the "now" in situ obs,
-      mask = masquextreme(flux[1,:,9], 4.0) &                                 # use bef analysis "a" and aft analysis "b"
-             masquextreme(flux[1,:,a], 4.0) &                                 # (having removed collocations that are beyond
-             masquextreme(flux[2,:,b], 4.0)                                   # four standard deviations from their mean)
-#     mask = masquextreme(flux[1,:,9], 4e8) &
-#            masquextreme(flux[1,:,a], 4e8) &
-#            masquextreme(flux[2,:,b], 4e8)
+# @show a, b
+      mask = masquextreme(flux[1,:,9], MEXT) &                                # use bef analysis "a" and aft analysis "b"
+             masquextreme(flux[1,:,a], MEXT) &                                # (having removed collocations that are beyond
+             masquextreme(flux[2,:,b], MEXT)                                  # MEXT standard deviations from their mean)
       sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
       sampsate = flux[1,mask,a]                                               # then get the parametric center of mass of
       sampfore = flux[2,mask,b]                                               # the resulting subset using its buoy values
@@ -115,12 +114,12 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allmasa[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
-# deltasqr = 0.0
+  deltasqr = 0.0
       bet2 = bet3 = 1.0
       alp2 = alp3 = 0.0
 
       flag = true
-# flag = false
+  flag = false
       while flag == true
         avg1 = mean(sampbuoy)
         avg2 = mean(sampsate)
@@ -181,12 +180,9 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allsiga[a,b] = sig3
       allcora[a,b] = cor3
 
-      mask = masquextreme(flux[1,:,9], 4.0) &                                 # use aft analysis "a" and bef analysis "b"
-             masquextreme(flux[2,:,a], 4.0) &                                 # (having removed collocations that are beyond
-             masquextreme(flux[1,:,b], 4.0)                                   # four standard deviations from their mean)
-#     mask = masquextreme(flux[1,:,9], 4e8) &
-#            masquextreme(flux[2,:,a], 4e8) &
-#            masquextreme(flux[1,:,b], 4e8)
+      mask = masquextreme(flux[1,:,9], MEXT) &                                # use aft analysis "a" and bef analysis "b"
+             masquextreme(flux[2,:,a], MEXT) &                                # (having removed collocations that are beyond
+             masquextreme(flux[1,:,b], MEXT)                                  # MEXT standard deviations from their mean)
       sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
       sampsate = flux[2,mask,a]                                               # then get the parametric center of mass of
       sampfore = flux[1,mask,b]                                               # the resulting subset using its buoy values
@@ -196,12 +192,12 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allmasb[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
-# deltasqr = 0.0
+  deltasqr = 0.0
       bet2 = bet3 = 1.0
       alp2 = alp3 = 0.0
 
       flag = true
-# flag = false
+  flag = false
       while flag == true
         avg1 = mean(sampbuoy)
         avg2 = mean(sampsate)
@@ -289,7 +285,7 @@ const CUTOFF           = 5000                           # number of collocations
 const RANGA            =   0.0:10.0: 0.0                # target sampling range for AIRT dimension
 const RANGB            =   0.0:10.0: 0.0                # target sampling range for WSPD dimension
 const RANGC            =   0.0:10.0: 0.0                # target sampling range for SSTT dimension
-const CUTOFF           = 500000000000000                # number of collocations in a subset
+const CUTOFF           = 1000                           # number of collocations in a subset
 
 const ALPH             = 1                              # error model x = ALPH + BETA * truth + error
 const BETA             = 2                              # error model x = ALPH + BETA * truth + error
@@ -329,7 +325,7 @@ for (a, rana) in enumerate(RANGA)                                             # 
                   (ranb - vals[WSPD])^2.0 +
                   (ranc - vals[SSTT])^2.0
       end
-      lims = sort(dist)[CUTOFF]
+      lims = CUTOFF < linum ? sort(dist)[CUTOFF] : sort(dist)[linum]
 
       e = 1                                                                   # get cal/val parameters for this subset
       for (d, line) in enumerate(lines)
