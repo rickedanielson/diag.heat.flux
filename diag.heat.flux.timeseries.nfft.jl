@@ -40,7 +40,7 @@ if vind == 0
   exit(-1)
 end
 
-torus(x) = (x - TIMSTA) / TIMLEN - 0.5                                        # map daily index to the NFFT torus [-0.5,0.5)
+torus(x) = (x - TIMSTA) / TIMLEN - 0.5                                        # map of daily index to NFFT torus [-0.5,0.5)
 dirs     = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
 calalp   = [   2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
 calbet   = [  0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]

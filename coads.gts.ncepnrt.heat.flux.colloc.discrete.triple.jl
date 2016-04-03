@@ -40,9 +40,9 @@ const OAFA             = 22
 const SEAB             = 23
 const SEAA             = 24
 
-const FRAC             = 0.7757 #2.0 /  3.0                     # fractional update during iterations
+const FRAC             = 2.0 / 3.0                      # fractional update during iterations (e.g., 2.0 /  3.0)
 const DELTA            = 0.001                          # generic convergence criterion
-const MEXT             = 3.0                            # standard deviation trimming limit
+const MEXT             = 30000000.                      # standard deviation trimming limit
 const ANALYS           = 8                              # number of flux analyses
 
 const DIRS  = [         "cfsr",    "erainterim",         "hoaps",   "ifremerflux",        "jofuro",         "merra",        "oaflux",       "seaflux", "insitu"]
@@ -58,6 +58,8 @@ const WSPRV = [     4.36521526,      8.65051973,      7.77326840,      9.6166120
 const AIRRV = [     2.00135573,      1.77459071,      2.39957056,      2.26767424,      0.00000000,      1.69701343,      1.53333205,      1.68911773,      0.0]
 const SSTRV = [     0.12817024,      0.14322332,      0.14265391,      0.25561751,      0.00000000,      0.10534970,      0.14446259,      0.65150639,      0.0]
 const SHURV = [     0.53810947,      0.49945746,      0.56079079,      0.46399754,      1.13793457,      0.56241798,      0.43014188,      0.40297092,      0.0]
+
+const SHFOO = [          717.0,           620.0,           474.0,           660.0,           617.0,           423.0,           606.0,           458.0,      0.0]
 
 if size(ARGS) != (1,)
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.airt.got2000_obs.comb\n\n")
@@ -101,7 +103,7 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
 
   for a = 1:ANALYS
     for b = 1:ANALYS                                                          # in addition to the "now" in situ obs,
-# @show a, b
+ @show a, b
       mask = masquextreme(flux[1,:,9], MEXT) &                                # use bef analysis "a" and aft analysis "b"
              masquextreme(flux[1,:,a], MEXT) &                                # (having removed collocations that are beyond
              masquextreme(flux[2,:,b], MEXT)                                  # MEXT standard deviations from their mean)
@@ -114,12 +116,12 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allmasa[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
-  deltasqr = 0.0
+# deltasqr = 0.0
       bet2 = bet3 = 1.0
       alp2 = alp3 = 0.0
 
       flag = true
-  flag = false
+# flag = false
       while flag == true
         avg1 = mean(sampbuoy)
         avg2 = mean(sampsate)
@@ -144,8 +146,9 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
         sampfore = (flux[2,mask,b] - alp3) / bet3
         rsqrsate =      rsqr[a]         / bet2 / bet2
         rsqrfore =      rsqr[b]         / bet3 / bet3
-# print("cv23 $cv23 cv13 $cv13 cv23 / cv13 $(cv23 / cv13)\n")
-# print("loop-1 $a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
+#       print("cv23 $cv23 cv13 $cv13 cv23 / cv13 $(cv23 / cv13)\n")
+#       print("loop-1 $a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
+#       print("$a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
 
         deltaold = deltasqr
         deltasqr = rsqrfore > rsqrsate ? rsqrfore - rsqrsate : 0.0
@@ -163,10 +166,10 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       cv23 = mean(sampsate.*sampfore) - avg2 * avg3
       cv33 = mean(sampfore.*sampfore) - avg3^2
 
-      bet2 = cv23 / cv13
-      bet3 = cv23 / cv12
-      alp2 = avg2 - bet2 * avg1
-      alp3 = avg3 - bet3 * avg1
+#     bet2 = cv23 / cv13
+#     bet3 = cv23 / cv12
+#     alp2 = avg2 - bet2 * avg1
+#     alp3 = avg3 - bet3 * avg1
 
       tmpval = cv11 - cv12 * cv13 / cv23 ; sig1 = tmpval > 0 ? sqrt(tmpval) : 0.0
       tmpval = cv22 - cv12 * cv23 / cv13 ; sig2 = tmpval > 0 ? sqrt(tmpval) : 0.0
@@ -192,12 +195,12 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allmasb[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
-  deltasqr = 0.0
+# deltasqr = 0.0
       bet2 = bet3 = 1.0
       alp2 = alp3 = 0.0
 
       flag = true
-  flag = false
+# flag = false
       while flag == true
         avg1 = mean(sampbuoy)
         avg2 = mean(sampsate)
@@ -224,6 +227,7 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
         rsqrfore =      rsqr[b]         / bet3 / bet3
 #       print("cv23 $cv23 cv13 $cv13 cv23 / cv13 $(cv23 / cv13)\n")
 #       print("loop-2 $a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
+#       print("$a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
 
         deltaold = deltasqr
         deltasqr = rsqrfore > rsqrsate ? rsqrfore - rsqrsate : 0.0
@@ -241,10 +245,10 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       cv23 = mean(sampsate.*sampfore) - avg2 * avg3
       cv33 = mean(sampfore.*sampfore) - avg3^2
 
-      bet2 = cv23 / cv13
-      bet3 = cv23 / cv12
-      alp2 = avg2 - bet2 * avg1
-      alp3 = avg3 - bet3 * avg1
+#     bet2 = cv23 / cv13
+#     bet3 = cv23 / cv12
+#     alp2 = avg2 - bet2 * avg1
+#     alp3 = avg3 - bet3 * avg1
 
       tmpval = cv11 - cv12 * cv13 / cv23 ; sig1 = tmpval > 0 ? sqrt(tmpval) : 0.0
       tmpval = cv22 - cv12 * cv23 / cv13 ; sig2 = tmpval > 0 ? sqrt(tmpval) : 0.0
@@ -285,7 +289,7 @@ const CUTOFF           = 5000                           # number of collocations
 const RANGA            =   0.0:10.0: 0.0                # target sampling range for AIRT dimension
 const RANGB            =   0.0:10.0: 0.0                # target sampling range for WSPD dimension
 const RANGC            =   0.0:10.0: 0.0                # target sampling range for SSTT dimension
-const CUTOFF           = 1000                           # number of collocations in a subset
+const CUTOFF           = 45000                          # number of collocations in a subset
 
 const ALPH             = 1                              # error model x = ALPH + BETA * truth + error
 const BETA             = 2                              # error model x = ALPH + BETA * truth + error
@@ -308,6 +312,8 @@ contains(ARGS[1], "wspd") && contains(ARGS[1], "valid") && (rsqr = WSPRV)
 contains(ARGS[1], "airt") && contains(ARGS[1], "valid") && (rsqr = AIRRV)
 contains(ARGS[1], "sstt") && contains(ARGS[1], "valid") && (rsqr = SSTRV)
 contains(ARGS[1], "shum") && contains(ARGS[1], "valid") && (rsqr = SHURV)
+
+# contains(ARGS[1], "shfx") && contains(ARGS[1],   "nrt") && (rsqr = SHFOO) ; rsqr = SHFOO
 
 fpa = My.ouvre(ARGS[1], "r") ; lines = readlines(fpa) ; close(fpa)            # read and count all triple collocations
 (linum,) = size(lines)                                                        # and allocate for the target parameters and
