@@ -204,7 +204,7 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.time
                 cat *valid.shfx.got2000.spec.stat *valid.lhfx.got2000.spec.stat *valid.wspd.got2000.spec.stat *valid.airt.got2000.spec.stat *valid.sstt.got2000.spec.stat *valid.shum.got2000.spec.stat
        cd .. ; rm commands ; vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl
 
-# asemble the insitu and analysis data for a triple collocation cal/val (need to profile such a slow analysis assembly!)
+# assemble the insitu and analysis data for a triple collocation cal/val (such a slow analysis assembly needs profiling!)
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.assemble.insitu.jl all/all.flux.daily    ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000          | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs      | grep flux | sort > commands
@@ -212,11 +212,17 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation
        rm commands
 
 # perform a triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commands
+wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commands
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort >> commands
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
-       rm commands
+       cd .. ; rm commands ; vi analysis.evaluation.versus.insitu.jl
+
+# perform another eight-analysis evaulation, but this time with calibration (versus the 2.0_valid_remainder obs)
+jjj analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_remainder_obs shfx
+wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_remainder_obs ::: shfx lhfx wspd airt sstt shum | grep flux | sort > commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+       rm commands ; cd all ; cat *shfx.summ *lhfx.summ *wspd.summ *airt.summ *sstt.summ *shum.summ
 
 
 
