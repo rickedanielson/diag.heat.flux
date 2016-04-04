@@ -109,9 +109,9 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
       sampsate = flux[1,mask,a]                                               # then get the parametric center of mass of
       sampfore = flux[2,mask,b]                                               # the resulting subset using its buoy values
-      sampairt = mean(flux[1,mask,10])
-      sampwspd = mean(flux[2,mask, 9])
-      sampsstt = mean(flux[2,mask,10])
+      sampairt = mean(flux[1,mask,ANALYS+2])
+      sampwspd = mean(flux[2,mask,ANALYS+1])
+      sampsstt = mean(flux[2,mask,ANALYS+2])
       allmasa[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
@@ -190,9 +190,9 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
       sampsate = flux[2,mask,a]                                               # then get the parametric center of mass of
       sampfore = flux[1,mask,b]                                               # the resulting subset using its buoy values
-      sampairt = mean(flux[1,mask,10])
-      sampwspd = mean(flux[2,mask, 9])
-      sampsstt = mean(flux[2,mask,10])
+      sampairt = mean(flux[1,mask,ANALYS+2])
+      sampwspd = mean(flux[2,mask,ANALYS+1])
+      sampsstt = mean(flux[2,mask,ANALYS+2])
       allmasb[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
@@ -321,7 +321,7 @@ fpa = My.ouvre(ARGS[1], "r") ; lines = readlines(fpa) ; close(fpa)            # 
 (linum,) = size(lines)                                                        # and allocate for the target parameters and
 dist = zeros(linum)                                                           # distance to them, the resulting mean params,
 chnk = linum < CUTOFF ? linum : CUTOFF                                        # and the triple collocation cal/val estimates
-flux = zeros(2, chnk, 10)
+flux = zeros(2, chnk, ANALYS + 2)
 target = [MISS for a = RANGA, b = RANGB, c = RANGC, d = 1:3]
 calval = [MISS for a = RANGA, b = RANGB, c = RANGC, d = 1:ANALYS, e = 1:PARAMS]
 

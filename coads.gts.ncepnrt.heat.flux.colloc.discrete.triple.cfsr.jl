@@ -23,22 +23,20 @@ const SHUM             = 5
 const WSPD             = 6
 const AIRT             = 7
 const SSTT             = 8
-const CFSB             = 9                              # and for each of eight analyses, two
-const CFSA             = 10                             # extrapolations from before and after
-const ERAB             = 11
-const ERAA             = 12
-const HOAB             = 13
-const HOAA             = 14
-const IFRB             = 15
-const IFRA             = 16
-const JOFB             = 17
-const JOFA             = 18
-const MERB             = 19
-const MERA             = 20
-const OAFB             = 21
-const OAFA             = 22
-const SEAB             = 23
-const SEAA             = 24
+const ERAB             = 9                              # and for each of eight analyses, two
+const ERAA             = 10                             # extrapolations from before and after
+const HOAB             = 11
+const HOAA             = 12
+const IFRB             = 13
+const IFRA             = 14
+const JOFB             = 15
+const JOFA             = 16
+const MERB             = 17
+const MERA             = 18
+const OAFB             = 19
+const OAFA             = 20
+const SEAB             = 21
+const SEAA             = 22
 
 const FRAC             = 0.9                            # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
@@ -109,9 +107,9 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
       sampsate = flux[1,mask,a]                                               # then get the parametric center of mass of
       sampfore = flux[2,mask,b]                                               # the resulting subset using its buoy values
-      sampairt = mean(flux[1,mask,10])
-      sampwspd = mean(flux[2,mask, 9])
-      sampsstt = mean(flux[2,mask,10])
+      sampairt = mean(flux[1,mask,ANALYS+2])
+      sampwspd = mean(flux[2,mask,ANALYS+1])
+      sampsstt = mean(flux[2,mask,ANALYS+2])
       allmasa[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
@@ -190,9 +188,9 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
       sampsate = flux[2,mask,a]                                               # then get the parametric center of mass of
       sampfore = flux[1,mask,b]                                               # the resulting subset using its buoy values
-      sampairt = mean(flux[1,mask,10])
-      sampwspd = mean(flux[2,mask, 9])
-      sampsstt = mean(flux[2,mask,10])
+      sampairt = mean(flux[1,mask,ANALYS+2])
+      sampwspd = mean(flux[2,mask,ANALYS+1])
+      sampsstt = mean(flux[2,mask,ANALYS+2])
       allmasb[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
@@ -321,7 +319,7 @@ fpa = My.ouvre(ARGS[1], "r") ; lines = readlines(fpa) ; close(fpa)            # 
 (linum,) = size(lines)                                                        # and allocate for the target parameters and
 dist = zeros(linum)                                                           # distance to them, the resulting mean params,
 chnk = linum < CUTOFF ? linum : CUTOFF                                        # and the triple collocation cal/val estimates
-flux = zeros(2, chnk, 10)
+flux = zeros(2, chnk, ANALYS + 2)
 target = [MISS for a = RANGA, b = RANGB, c = RANGC, d = 1:3]
 calval = [MISS for a = RANGA, b = RANGB, c = RANGC, d = 1:ANALYS, e = 1:PARAMS]
 
@@ -340,8 +338,8 @@ for (a, rana) in enumerate(RANGA)                                             # 
       for (d, line) in enumerate(lines)
         if dist[d] <= lims && e <= chnk
           vals = float(split(line))
-          flux[1,e,:] = [vals[CFSB] vals[ERAB] vals[HOAB] vals[IFRB] vals[JOFB] vals[MERB] vals[OAFB] vals[SEAB] vals[OFLX] vals[AIRT]]
-          flux[2,e,:] = [vals[CFSA] vals[ERAA] vals[HOAA] vals[IFRA] vals[JOFA] vals[MERA] vals[OAFA] vals[SEAA] vals[WSPD] vals[SSTT]]
+          flux[1,e,:] = [vals[ERAB] vals[HOAB] vals[IFRB] vals[JOFB] vals[MERB] vals[OAFB] vals[SEAB] vals[OFLX] vals[AIRT]]
+          flux[2,e,:] = [vals[ERAA] vals[HOAA] vals[IFRA] vals[JOFA] vals[MERA] vals[OAFA] vals[SEAA] vals[WSPD] vals[SSTT]]
           e += 1
         end
       end
