@@ -40,9 +40,9 @@ const OAFA             = 22
 const SEAB             = 23
 const SEAA             = 24
 
-const FRAC             = 2.0 / 3.0                      # fractional update during iterations (e.g., 2.0 /  3.0)
+const FRAC             = 0.9                            # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
-const SDTRIM           = 4.0                            # standard deviation trimming limit
+const SDTRIM           = 6.0                            # standard deviation trimming limit
 const ANALYS           = 8                              # number of flux analyses
 
 const DIRS  = [         "cfsr",    "erainterim",         "hoaps",   "ifremerflux",        "jofuro",         "merra",        "oaflux",       "seaflux", "insitu"]
@@ -136,7 +136,7 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
         alp3old = alp3
         bet2old = bet2
         bet3old = bet3
-        subfrac = FRAC - 0.2 * rand()
+        subfrac = FRAC
         bet2 = subfrac * bet2old + (1.0 - subfrac) * (cv23 / cv13)            # write("bet2 = $bet2\n")
         bet3 = subfrac * bet3old + (1.0 - subfrac) * (cv23 / cv12)            # write("bet3 = $bet3\n")
         alp2 = subfrac * alp2old + (1.0 - subfrac) * (avg2 - bet2 * avg1)     # write("alp2 = $alp2\n")
@@ -148,6 +148,8 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
 #       print("cv23 $cv23 cv13 $cv13 cv23 / cv13 $(cv23 / cv13)\n")
 #       print("loop-1 $a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
 #       print("$a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
+#       @printf("%d %d rsqr[a] %9.3f / bet2 %9.3f = rsqrsate %9.3f   rsqr[b] %9.3f / bet3 %9.3f = rsqrfore %9.3f\n",
+#         a, b, rsqr[a], bet2, rsqrsate, rsqr[b], bet3, rsqrfore)
 
         deltaold = deltasqr
         deltasqr = rsqrfore > rsqrsate ? rsqrfore - rsqrsate : 0.0
@@ -215,7 +217,7 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
         alp3old = alp3
         bet2old = bet2
         bet3old = bet3
-        subfrac = FRAC - 0.2 * rand()
+        subfrac = FRAC
         bet2 = subfrac * bet2old + (1.0 - subfrac) * (cv23 / cv13)            # write("bet2 = $bet2\n")
         bet3 = subfrac * bet3old + (1.0 - subfrac) * (cv23 / cv12)            # write("bet3 = $bet3\n")
         alp2 = subfrac * alp2old + (1.0 - subfrac) * (avg2 - bet2 * avg1)     # write("alp2 = $alp2\n")
@@ -227,6 +229,8 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
 #       print("cv23 $cv23 cv13 $cv13 cv23 / cv13 $(cv23 / cv13)\n")
 #       print("loop-2 $a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
 #       print("$a $b rsqr[a] $(rsqr[a]) / bet2 $bet2 = rsqrsate $rsqrsate   rsqr[b] $(rsqr[b]) / bet3 $bet3 = rsqrfore $rsqrfore\n")
+#       @printf("%d %d rsqr[a] %9.3f / bet2 %9.3f = rsqrsate %9.3f   rsqr[b] %9.3f / bet3 %9.3f = rsqrfore %9.3f\n",
+#         a, b, rsqr[a], bet2, rsqrsate, rsqr[b], bet3, rsqrfore)
 
         deltaold = deltasqr
         deltasqr = rsqrfore > rsqrsate ? rsqrfore - rsqrsate : 0.0
@@ -351,6 +355,19 @@ for (a, rana) in enumerate(RANGA)                                             # 
       calval[a,b,c,:,MAIR] = allmas[:,1]
       calval[a,b,c,:,MSPD] = allmas[:,2]
       calval[a,b,c,:,MSST] = allmas[:,3]
+
+#     cala = [ 2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
+#     calb = [0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
+#     fpb = My.ouvre(ARGS[1] * ".stat", "w")
+#     form = @sprintf("const %s = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
+#       varname, specvar[1], specvar[2], specvar[3], specvar[4], specvar[5], specvar[6], specvar[7], specvar[8])
+#     write(fpb, form)
+#     print(form)
+#     close(fpb)
+      @printf("cala = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf]\n",
+        allalp[1], allalp[2], allalp[3], allalp[4], allalp[5], allalp[6], allalp[7], allalp[8])
+      @printf("calb = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf]\n",
+        allbet[1], allbet[2], allbet[3], allbet[4], allbet[5], allbet[6], allbet[7], allbet[8])
 
       @printf("\ntarget params   AIRT,WSPD,SSTT are %6.2f %6.2f %6.2f\n",   rana, ranb, ranc)
       @printf("  mean params   AIRT,WSPD,SSTT are %6.2f %6.2f %6.2f\n\n", mean(allmas[:,1]), mean(allmas[:,2]), mean(allmas[:,3]))

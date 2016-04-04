@@ -40,9 +40,9 @@ const OAFA             = 22
 const SEAB             = 23
 const SEAA             = 24
 
-const FRAC             = 2.0 / 3.0                      # fractional update during iterations (e.g., 2.0 /  3.0)
+const FRAC             = 0.9                            # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
-const SDTRIM           = 4.0                            # standard deviation trimming limit
+const SDTRIM           = 6.0                            # standard deviation trimming limit
 const ANALYS           = 7                              # number of flux analyses
 
 const DIRS  = [ "erainterim",         "hoaps",   "ifremerflux",        "jofuro",         "merra",        "oaflux",       "seaflux", "insitu"]
