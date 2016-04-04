@@ -197,21 +197,24 @@ wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.
 
 # plot the all-collocation-averaged (weighted by daily obs number) one-sided NFFT spectra for each variable and identify submonthly variance
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.avg.jl  ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000      | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia    --mem=2000mb
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e              julia  --mem=2000mb
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.plot.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000.spec | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e xvfb-run --mem=2000mb
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "xvfb-run -a julia" --mem=2000mb
        cd all ; cat *calib.shfx.got2000.spec.stat *calib.lhfx.got2000.spec.stat *calib.wspd.got2000.spec.stat *calib.airt.got2000.spec.stat *calib.sstt.got2000.spec.stat *calib.shum.got2000.spec.stat
                 cat *valid.shfx.got2000.spec.stat *valid.lhfx.got2000.spec.stat *valid.wspd.got2000.spec.stat *valid.airt.got2000.spec.stat *valid.sstt.got2000.spec.stat *valid.shum.got2000.spec.stat
        cd .. ; rm commands ; vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl
 
-# perform a triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
+# asemble the insitu and analysis data for a triple collocation cal/val (need to profile such a slow analysis assembly!)
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.assemble.insitu.jl all/all.flux.daily    ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000          | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs      | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commandz
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort >> commandz
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commandz
+       rm commands
+
+# perform a triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commands
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort >> commands
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
        rm commands
 

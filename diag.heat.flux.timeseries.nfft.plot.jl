@@ -39,21 +39,21 @@ end
 order = sortperm(specvar, rev=true)
 
 for a in order
-  if contains(ARGS[1], "shfx") && (specstr[a] = @sprintf("%.0lf", specvar[a]))
-  if contains(ARGS[1], "lhfx") && (specstr[a] = @sprintf("%.0lf", specvar[a]))
-  if contains(ARGS[1], "wspd") && (specstr[a] = @sprintf("%.1lf", specvar[a]))
-  if contains(ARGS[1], "airt") && (specstr[a] = @sprintf("%.2lf", specvar[a]))
-  if contains(ARGS[1], "sstt") && (specstr[a] = @sprintf("%.3lf", specvar[a]))
-  if contains(ARGS[1], "shum") && (specstr[a] = @sprintf("%.2lf", specvar[a]))
+  contains(ARGS[1], "shfx") && (specstr[a] = @sprintf("%.0lf", specvar[a]))
+  contains(ARGS[1], "lhfx") && (specstr[a] = @sprintf("%.0lf", specvar[a]))
+  contains(ARGS[1], "wspd") && (specstr[a] = @sprintf("%.1lf", specvar[a]))
+  contains(ARGS[1], "airt") && (specstr[a] = @sprintf("%.2lf", specvar[a]))
+  contains(ARGS[1], "sstt") && (specstr[a] = @sprintf("%.3lf", specvar[a]))
+  contains(ARGS[1], "shum") && (specstr[a] = @sprintf("%.2lf", specvar[a]))
   print("variance $(specstr[a]) in $(dirs[a])\n")
 end
 
-if contains(ARGS[1], "shfx") && (varname = "SHFR")
-if contains(ARGS[1], "lhfx") && (varname = "LHFR")
-if contains(ARGS[1], "wspd") && (varname = "WSPR")
-if contains(ARGS[1], "airt") && (varname = "AIRR")
-if contains(ARGS[1], "sstt") && (varname = "SSTR")
-if contains(ARGS[1], "shum") && (varname = "SHUR")
+contains(ARGS[1], "shfx") && (varname = "SHFR")
+contains(ARGS[1], "lhfx") && (varname = "LHFR")
+contains(ARGS[1], "wspd") && (varname = "WSPR")
+contains(ARGS[1], "airt") && (varname = "AIRR")
+contains(ARGS[1], "sstt") && (varname = "SSTR")
+contains(ARGS[1], "shum") && (varname = "SHUR")
 fpb = My.ouvre(ARGS[1] * ".stat", "w")
 form = @sprintf("const %s = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
   varname, specvar[1], specvar[2], specvar[3], specvar[4], specvar[5], specvar[6], specvar[7], specvar[8])
@@ -69,12 +69,12 @@ xposb = float(xlabb)
 
 xyzzy = ARGS[1]*".png"
 print("writing $xyzzy\n")
-if contains(ARGS[1], "shfx") && (varname = "Sensible Heat Flux" ; ymin = -40 ; ymax = 40)
-if contains(ARGS[1], "lhfx") && (varname = "Latent Heat Flux"   ; ymin = -40 ; ymax = 40)
-if contains(ARGS[1], "wspd") && (varname = "Wind Speed"         ; ymin = -50 ; ymax = 10)
-if contains(ARGS[1], "airt") && (varname = "Air Temperature"    ; ymin = -50 ; ymax = 10)
-if contains(ARGS[1], "sstt") && (varname = "Sea Surface Temp"   ; ymin = -70 ; ymax = 10)
-if contains(ARGS[1], "shum") && (varname = "Specific Humidity"  ; ymin = -60 ; ymax =  0)
+contains(ARGS[1], "shfx") && (varname = "Sensible Heat Flux" ; ymin = -40 ; ymax = 40)
+contains(ARGS[1], "lhfx") && (varname = "Latent Heat Flux"   ; ymin = -40 ; ymax = 40)
+contains(ARGS[1], "wspd") && (varname = "Wind Speed"         ; ymin = -50 ; ymax = 10)
+contains(ARGS[1], "airt") && (varname = "Air Temperature"    ; ymin = -50 ; ymax = 10)
+contains(ARGS[1], "sstt") && (varname = "Sea Surface Temp"   ; ymin = -70 ; ymax = 10)
+contains(ARGS[1], "shum") && (varname = "Specific Humidity"  ; ymin = -60 ; ymax =  0)
 tmp = Winston.FramedPlot(
         title="2001-2007 $varname Spectra (dB)", xlog = true,
         xlabel="Timescale (days)", xrange = (1/1000,1/2),

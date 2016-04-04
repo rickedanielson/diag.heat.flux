@@ -23,7 +23,6 @@ vari = ARGS[1][end-11:end-8]
 fpa = My.ouvre(ARGS[1], "r")                                                  # for each location, read all spectra
 for line in eachline(fpa)
   (lat, lon, num) = float(split(line))
-if lat > 15
   tmp = @sprintf("%9.3f.%9.3f", lat, lon)
   tail = replace(tmp, " ", ".")
   tmpz = "fft/$vari.$tail.fft"
@@ -32,12 +31,11 @@ if lat > 15
     vals = float(split(linz))
     for y = 1:dirn + 1
       if vals[y] != MISS
-        stot[z,y] = num * vals[y]
-        ntot[z,y] = num
+        stot[z,y] += num * vals[y]
+        ntot[z,y] += num
       end
     end
   end
-end
 end
 close(fpa)
 
