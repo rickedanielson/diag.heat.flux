@@ -1,124 +1,138 @@
 #=
- = Loop through all spectra and visualize - RD October 2015, March 2016.
+ = Loop through all spectra and visualize - RD October 2015, March, April 2016.
  =#
 
 using My, Winston
+const SHFX             = 3                              # identify indecies of all data variables
+const LHFX             = 2
+const WSPD             = 6
+const AIRT             = 1
+const SSTT             = 5
+const SHUM             = 4
+const PARAMS           = 6
+
 const SPECS            = 1279                           # length of the one-sided spectra
 const TIMES            = 2556                           # number of days in during 2001-2007 (and number of spectral coefficients)
 const VARSUM           = 30                             # cutoff timescale for variance summation (days)
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (1,)
-  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.airt.got2000.spec\n\n")
+if size(ARGS) != (6,)
+  print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.????.got2000.spec\n\n")
   exit(1)
 end
 
+pars = ["AIRT", "LHFX", "SHFX", "SHUM", "SSTT", "WSPD"]
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
 dirn = length(dirs)
 
-specval = Array(Float64, SPECS)
-spectra = Array(Float64, dirn, SPECS)
-specvar = zeros(Float64, dirn)
-specstr = Array(UTF8String, dirn)
+ppp     = Winston.Table(3,2) ; setattr(ppp, "cellpadding", -0.5)
+specval = Array(Float64,          SPECS, PARAMS)
+spectra = Array(Float64,    dirn, SPECS, PARAMS)
+specvar = zeros(Float64,    dirn,        PARAMS)
+specstr = Array(UTF8String, dirn,        PARAMS)
 
-fpa = My.ouvre(ARGS[1], "r") ; lines = readlines(fpa) ; close(fpa)
-for (a, line) in enumerate(lines)
-  vals = float(split(line))
-  specval[a] = vals[1]
-  for b = 1:dirn
-    if vals[b+1] == MISS
-      spectra[b,a] = MISS
-    else
-      spectra[b,a] = 10.0 * log10(vals[b+1])
-      if vals[1] > 1 / VARSUM
-        specvar[b] += vals[b+1]
+for z = 1:PARAMS
+  fpa = My.ouvre(ARGS[z], "r") ; lines = readlines(fpa) ; close(fpa)
+  for (a, line) in enumerate(lines)
+    vals = float(split(line))
+    specval[a,z] = vals[1]
+    for b = 1:dirn
+      if vals[b+1] == MISS
+        spectra[b,a,z] = MISS
+      else
+        spectra[b,a,z] = 10.0 * log10(vals[b+1])
+        if vals[1] > 1 / VARSUM
+          specvar[b,z] += vals[b+1]
+        end
       end
     end
   end
+  order = sortperm(specvar[:,z], rev=true)
+
+  for a in order
+    contains(ARGS[z], "shfx") && (specstr[a,z] = @sprintf("%.0lf", specvar[a,z]))
+    contains(ARGS[z], "lhfx") && (specstr[a,z] = @sprintf("%.0lf", specvar[a,z]))
+    contains(ARGS[z], "wspd") && (specstr[a,z] = @sprintf("%.1lf", specvar[a,z]))
+    contains(ARGS[z], "airt") && (specstr[a,z] = @sprintf("%.1lf", specvar[a,z]))
+    contains(ARGS[z], "sstt") && (specstr[a,z] = @sprintf("%.1lf", specvar[a,z]))
+    contains(ARGS[z], "shum") && (specstr[a,z] = @sprintf("%.1lf", specvar[a,z]))
+    print("$(pars[z]) variance $(specstr[a,z]) in $(dirs[a])\n")
+  end
+
+  contains(ARGS[z], "shfx") && (varname = "SHFR")
+  contains(ARGS[z], "lhfx") && (varname = "LHFR")
+  contains(ARGS[z], "wspd") && (varname = "WSPR")
+  contains(ARGS[z], "airt") && (varname = "AIRR")
+  contains(ARGS[z], "sstt") && (varname = "SSTR")
+  contains(ARGS[z], "shum") && (varname = "SHUR")
+  fpb = My.ouvre(ARGS[z] * ".stat", "w")
+  form = @sprintf("const %s = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
+    varname, specvar[1,z], specvar[2,z], specvar[3,z], specvar[4,z], specvar[5,z], specvar[6,z], specvar[7,z], specvar[8,z])
+  write(fpb, form)
+  print(form)
+  close(fpb)
+
+  xlaba = ["1000", "365", "182", "100", "60", "30", "14", "7", "3.5", "2"]
+  xlabb = ["0.002", "0.3"]
+  xposa = float(xlaba).^-1
+  xposb = float(xlabb)
+
+  contains(ARGS[z], "shfx") && (varname = "a) Sensible Heat Flux" ; ymin = -15 ; ymax = 40 ; tpos = (1,1))
+  contains(ARGS[z], "lhfx") && (varname = "b) Latent Heat Flux"   ; ymin = -15 ; ymax = 40 ; tpos = (1,2))
+  contains(ARGS[z], "wspd") && (varname = "c) Wind Speed"         ; ymin = -30 ; ymax = 15 ; tpos = (2,1))
+  contains(ARGS[z], "shum") && (varname = "d) Specific Humidity"  ; ymin = -30 ; ymax = 15 ; tpos = (2,2))
+  contains(ARGS[z], "sstt") && (varname = "e) Sea Surface Temp"   ; ymin = -30 ; ymax = 15 ; tpos = (3,1))
+  contains(ARGS[z], "airt") && (varname = "f) Air Temperature"    ; ymin = -30 ; ymax = 15 ; tpos = (3,2))
+  tpos[1] == 1 && (ylaba = ["-10", "0", "10", "20", "30", "40"])
+  tpos[1] != 1 && (ylaba = ["-30", "-20", "-10", "0", "10"])
+  yposa = float(ylaba)
+
+  tmp = Winston.FramedPlot(
+#         title="$varname Spectra (dB)", xlog = true,
+#         xlabel="Timescale (days)", xrange = (1/1000,1/2), yrange = (ymin,ymax))
+          xlog = true, xrange = (1/1000,1/2), yrange = (ymin,ymax))
+  setattr(tmp.x1, "ticks",          xposa) ; setattr(tmp.x2, "ticks",          xposb) ; setattr(tmp.y1, "ticks",          yposa)
+  setattr(tmp.x1, "tickdir",            1) ; setattr(tmp.x2, "tickdir",           -1) ; setattr(tmp.y1, "tickdir",            1)
+  setattr(tmp.x1, "ticklabels_offset",  0) ; setattr(tmp.x2, "ticklabels_offset", -7) ; setattr(tmp.y1, "ticklabels_offset",  0)
+  setattr(tmp.x1, "ticklabels",     xlaba) ; setattr(tmp.x2, "ticklabels",     xlabb) ; setattr(tmp.y1, "ticklabels",     ylaba)
+  setattr(tmp.x1, "draw_subticks",  false) ; setattr(tmp.x2, "draw_subticks",   true) ; setattr(tmp.y1, "draw_subticks",   true)
+  tpos[1] <= 2 && setattr(tmp.x1, :ticklabels_style, Dict{Symbol, Any}(:color => "transparent"))
+  tpos[1] >= 2 && setattr(tmp.x2, :ticklabels_style, Dict{Symbol, Any}(:color => "transparent"))
+  tpos[2] == 1 && setattr(tmp.y1, :ticklabels_style, Dict{Symbol, Any}(:color => "black"))
+  tpos[2] == 2 && setattr(tmp.y1, :ticklabels_style, Dict{Symbol, Any}(:color => "transparent"))
+  ppp[tpos...] = Winston.add(tmp)
+
+  ump = Array(Any, 8)
+  cols = [  "red",  "blue", "green", "orange",    "red",   "blue",  "green", "orange"]
+  kynd = ["solid", "solid", "solid",  "solid", "dashed", "dashed", "dashed", "dashed"]
+
+  b = 1
+  for a in order
+    ump[a] = Winston.Curve(specval[1:end,z], spectra[a,1:end,z], "color", parse(Winston.Colorant, cols[b]))
+             style(ump[a], kind = kynd[b])
+             setattr(ump[a], label = "($(specstr[a,z])) $(dirs[a])")
+             Winston.add(ppp[tpos...], ump[a])
+    b += 1
+  end
+  tmp = Winston.Legend(.23, .92, Any[ump[order[1]], ump[order[2]], ump[order[3]], ump[order[4]]])
+        Winston.add(ppp[tpos...], tmp)
+  tmp = Winston.Legend(.58, .92, Any[ump[order[5]], ump[order[6]], ump[order[7]], ump[order[8]]])
+        Winston.add(ppp[tpos...], tmp)
+  tmp = Winston.DataLabel(0.0012, ymin + 0.12 * (ymax - ymin), varname, "texthalign", "left", "size", 1.4)
+        Winston.add(ppp[tpos...], tmp)
 end
-order = sortperm(specvar, rev=true)
-
-for a in order
-  contains(ARGS[1], "shfx") && (specstr[a] = @sprintf("%.0lf", specvar[a]))
-  contains(ARGS[1], "lhfx") && (specstr[a] = @sprintf("%.0lf", specvar[a]))
-  contains(ARGS[1], "wspd") && (specstr[a] = @sprintf("%.1lf", specvar[a]))
-  contains(ARGS[1], "airt") && (specstr[a] = @sprintf("%.2lf", specvar[a]))
-  contains(ARGS[1], "sstt") && (specstr[a] = @sprintf("%.3lf", specvar[a]))
-  contains(ARGS[1], "shum") && (specstr[a] = @sprintf("%.2lf", specvar[a]))
-  print("variance $(specstr[a]) in $(dirs[a])\n")
-end
-
-contains(ARGS[1], "shfx") && (varname = "SHFR")
-contains(ARGS[1], "lhfx") && (varname = "LHFR")
-contains(ARGS[1], "wspd") && (varname = "WSPR")
-contains(ARGS[1], "airt") && (varname = "AIRR")
-contains(ARGS[1], "sstt") && (varname = "SSTR")
-contains(ARGS[1], "shum") && (varname = "SHUR")
-fpb = My.ouvre(ARGS[1] * ".stat", "w")
-form = @sprintf("const %s = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
-  varname, specvar[1], specvar[2], specvar[3], specvar[4], specvar[5], specvar[6], specvar[7], specvar[8])
-write(fpb, form)
-print(form)
-close(fpb)
-
-#xlaba = ["121", "60", "30", "14", "5", "3", "2"]
-xlaba = ["1000", "365", "182", "121", "60", "30", "14", "5", "3", "2"]
-xlabb = ["0.002", "0.3"]
-xposa = float(xlaba).^-1
-xposb = float(xlabb)
 
 xyzzy = ARGS[1]*".png"
 print("writing $xyzzy\n")
-contains(ARGS[1], "shfx") && (varname = "Sensible Heat Flux" ; ymin = -40 ; ymax = 40)
-contains(ARGS[1], "lhfx") && (varname = "Latent Heat Flux"   ; ymin = -40 ; ymax = 40)
-contains(ARGS[1], "wspd") && (varname = "Wind Speed"         ; ymin = -50 ; ymax = 10)
-contains(ARGS[1], "airt") && (varname = "Air Temperature"    ; ymin = -50 ; ymax = 10)
-contains(ARGS[1], "sstt") && (varname = "Sea Surface Temp"   ; ymin = -70 ; ymax = 10)
-contains(ARGS[1], "shum") && (varname = "Specific Humidity"  ; ymin = -60 ; ymax =  0)
-tmp = Winston.FramedPlot(
-        title="2001-2007 $varname Spectra (dB)", xlog = true,
-        xlabel="Timescale (days)", xrange = (1/1000,1/2),
-                                   yrange = (ymin,ymax))
-setattr(tmp.x1, "ticks",          xposa) ; setattr(tmp.x2, "ticks",          xposb)
-setattr(tmp.x1, "tickdir",            1) ; setattr(tmp.x2, "tickdir",           -1)
-                                           setattr(tmp.x2, "ticklabels_offset", -6)
-setattr(tmp.x1, "ticklabels",     xlaba) ; setattr(tmp.x2, "ticklabels",     xlabb)
-setattr(tmp.x1, "draw_subticks",  false) ; setattr(tmp.x2, "draw_subticks",   true)
-ppp = Winston.add(tmp)
-
-ump = Array(Any, 8)
-cols = [  "red",  "blue", "green", "orange",    "red",   "blue",  "green", "orange"]
-kynd = ["solid", "solid", "solid",  "solid", "dashed", "dashed", "dashed", "dashed"]
-
-b = 1
-for a in order
-  ump[a] = Winston.Curve(specval[1:end], spectra[a,1:end], "color", parse(Winston.Colorant, cols[b]))
-           style(ump[a], kind = kynd[b])
-           setattr(ump[a], label = "($(specstr[a])) $(dirs[a])")
-           Winston.add(ppp, ump[a])
-  b += 1
-end
-tmp = Winston.Legend(.30, .94, Any[ump[order[1]], ump[order[2]], ump[order[3]], ump[order[4]]])
-      Winston.add(ppp, tmp)
-tmp = Winston.Legend(.60, .94, Any[ump[order[5]], ump[order[6]], ump[order[7]], ump[order[8]]])
-      Winston.add(ppp, tmp)
-      Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
+Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
 exit(0)
 
 
 #=
-for (a, dir) in enumerate(dirs)
-  fila = "spectruo.$(ARGS[1]).$dir"
-  fpa = My.ouvre(fila, "r") ; lines = readlines(fpa) ; close(fpa)
-  for (b, linb) in enumerate(lines)
-    vals = float(split(linb))
-    specval[a,b] = vals[1]
-#   specval[a,b] = (b - 1) / TIMES
-    spectra[a,b] = 10.0 * log10(vals[2])
-    if vals[1] > 1 / VARSUM
-      specvar[a] += vals[2]
-    end
-  end
-end
-order = sortperm(specvar, rev=true)
+  setattr(tmp.x1, :ticklabels_style, Dict{Symbol, Any}(:fontsize => 30))
+  tpos[2] == 2 && setattr(tmp.y1, "draw_ticklabels", false)
+  setattr(tmp, "aspect_ratio", 0.2)
+  tpos[1] <= 2 && setattr(tmp.x1, "draw_ticklabels", false)
+  @show getattr(tmp.x1, "label_style")
+  setattr(tmp.x1, "label_style", Dict{Symbol,Any}(:fontsize => 8.0, :color => "white"))
 =#

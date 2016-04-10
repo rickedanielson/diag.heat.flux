@@ -2,7 +2,7 @@
  = Perform a single or a series of analysis calibration and performance estimates,
  = with the series performed across a parameter space defined in terms of surface
  = air temperature, wind speed, and SST (mainly because these are available from
- = buoy obs, although air tempertaure and SST covary globally and a more diverse
+ = buoy obs, although air temperature and SST covary globally and a more diverse
  = set of parameters could be taken).  Fixed-size subsets of available collocations
  = are selected based on geometrical closeness to the target parameters (after
  = equating metric units and ignoring pdf shape, for example) and employed to
