@@ -93,7 +93,7 @@ for z = 1:PARAMS
   setattr(tmp.y1, "draw_subticks",         false) ; setattr(tmp.y2, "draw_subticks",         false)
   ppp[tpos...] = Winston.add(tmp)
 
-  @show getattr(tmp, :aspect_ratio)
+# @show getattr(tmp, :aspect_ratio)
   tpos[1] <= 2 && setattr(tmp.x1, :ticklabels_style, Dict{Symbol, Any}(:fontsize => 3, :color => "transparent"))
   tpos[2] == 1 && setattr(tmp.y1, :ticklabels_style, Dict{Symbol, Any}(:fontsize => 3, :color => "black"))
   tpos[2] == 2 && setattr(tmp.y1, :ticklabels_style, Dict{Symbol, Any}(:fontsize => 3, :color => "transparent"))

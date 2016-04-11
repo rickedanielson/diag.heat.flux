@@ -371,7 +371,7 @@ for (a, rana) in enumerate(RANGA)                                             # 
       @printf("  mean params   AIRT,WSPD,SSTT are %6.2f %6.2f %6.2f\n\n", mean(allmas[:,1]), mean(allmas[:,2]), mean(allmas[:,3]))
       @printf("%22s %8s %8s %8s %8s\n", " ", "allalp", "allbet", "allsig", "allcor")
       for d = 1:ANALYS
-        @printf("%22s %8.1f %8.2f %8.0f %8.2f\n", DIRS[d], allalp[d], allbet[d], allsig[d], allcor[d])
+        @printf("%22s %8.2f %8.2f %8.2f %8.2f\n", DIRS[d], allalp[d], allbet[d], allsig[d], allcor[d])
       end
     end
   end
