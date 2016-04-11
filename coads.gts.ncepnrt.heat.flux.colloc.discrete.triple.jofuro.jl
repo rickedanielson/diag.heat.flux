@@ -41,9 +41,36 @@ const SEAA             = 22
 const FRAC             = 0.9                            # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
 const SDTRIM           = 6.0                            # standard deviation trimming limit
+const RECALIB          = true                           # perform an affine recalibration
 const ANALYS           = 7                              # number of flux analyses
 
 const DIRS  = [       "cfsr",    "erainterim",         "hoaps",   "ifremerflux",         "merra",        "oaflux",       "seaflux", "insitu"]
+const SHFAC = [ 378.50557917,    346.27919089,    316.31494744,    428.77415608,    236.30473270,    336.74619578,    288.70277851,      0.0]
+const LHFAC = [   0.00000000,   3103.72241154,   3368.31026468,   1891.16116883,   2153.94680805,   2519.93924922,   2787.15394381,      0.0]
+const WSPAC = [   5.33871542,      6.21164760,      7.18682919,      7.23156993,      8.88686058,      6.83639998,      6.55919942,      0.0]
+const AIRAC = [  19.86096471,     19.30935915,     19.30673917,     19.95408684,     18.55438331,     19.64124990,     19.35620347,      0.0]
+const SSTAC = [  20.40017651,     20.45962118,     20.23188641,     20.38476145,     20.47267436,     20.39713228,     29.66222972,      0.0]
+const SHUAC = [   9.01688152,      9.10224303,      9.02518428,      8.77924409,      8.56340810,      9.05679297,      9.09048330,      0.0]
+const SHFAV = [ 386.33298139,    354.91304710,    331.19891935,    434.92706721,    242.36182333,    346.32495274,    303.01755116,      0.0]
+const LHFAV = [   0.00000000,   3207.92045001,   3470.97483130,   1886.43099649,   2220.01346222,   2611.93842196,   2940.93386985,      0.0]
+const WSPAV = [   5.71232406,      6.48326765,      7.46829421,      7.46881947,      9.29325042,      7.11064283,      6.86794025,      0.0]
+const AIRAV = [  19.44867235,     18.94796499,     18.90174979,     19.61569800,     18.13136937,     19.23381427,     18.88374999,      0.0]
+const SSTAV = [  19.88061586,     19.93423838,     19.73101768,     19.84960148,     19.95023923,     19.87054833,     27.06254198,      0.0]
+const SHUAV = [   8.78056859,      8.84251258,      8.80114875,      8.43621610,      8.34412240,      8.74748265,      8.75826454,      0.0]
+
+const SHFBC = [ 378.50557917,    346.27919089,    316.31494744,    428.77415608,    236.30473270,    336.74619578,    288.70277851,      0.0]
+const LHFBC = [   0.00000000,   3103.72241154,   3368.31026468,   1891.16116883,   2153.94680805,   2519.93924922,   2787.15394381,      0.0]
+const WSPBC = [   5.33871542,      6.21164760,      7.18682919,      7.23156993,      8.88686058,      6.83639998,      6.55919942,      0.0]
+const AIRBC = [  19.86096471,     19.30935915,     19.30673917,     19.95408684,     18.55438331,     19.64124990,     19.35620347,      0.0]
+const SSTBC = [  20.40017651,     20.45962118,     20.23188641,     20.38476145,     20.47267436,     20.39713228,     29.66222972,      0.0]
+const SHUBC = [   9.01688152,      9.10224303,      9.02518428,      8.77924409,      8.56340810,      9.05679297,      9.09048330,      0.0]
+const SHFBV = [ 386.33298139,    354.91304710,    331.19891935,    434.92706721,    242.36182333,    346.32495274,    303.01755116,      0.0]
+const LHFBV = [   0.00000000,   3207.92045001,   3470.97483130,   1886.43099649,   2220.01346222,   2611.93842196,   2940.93386985,      0.0]
+const WSPBV = [   5.71232406,      6.48326765,      7.46829421,      7.46881947,      9.29325042,      7.11064283,      6.86794025,      0.0]
+const AIRBV = [  19.44867235,     18.94796499,     18.90174979,     19.61569800,     18.13136937,     19.23381427,     18.88374999,      0.0]
+const SSTBV = [  19.88061586,     19.93423838,     19.73101768,     19.84960148,     19.95023923,     19.87054833,     27.06254198,      0.0]
+const SHUBV = [   8.78056859,      8.84251258,      8.80114875,      8.43621610,      8.34412240,      8.74748265,      8.75826454,      0.0]
+
 const SHFRC = [ 378.50557917,    346.27919089,    316.31494744,    428.77415608,    236.30473270,    336.74619578,    288.70277851,      0.0]
 const LHFRC = [   0.00000000,   3103.72241154,   3368.31026468,   1891.16116883,   2153.94680805,   2519.93924922,   2787.15394381,      0.0]
 const WSPRC = [   5.33871542,      6.21164760,      7.18682919,      7.23156993,      8.88686058,      6.83639998,      6.55919942,      0.0]
@@ -56,7 +83,6 @@ const WSPRV = [   5.71232406,      6.48326765,      7.46829421,      7.46881947,
 const AIRRV = [  19.44867235,     18.94796499,     18.90174979,     19.61569800,     18.13136937,     19.23381427,     18.88374999,      0.0]
 const SSTRV = [  19.88061586,     19.93423838,     19.73101768,     19.84960148,     19.95023923,     19.87054833,     27.06254198,      0.0]
 const SHURV = [   8.78056859,      8.84251258,      8.80114875,      8.43621610,      8.34412240,      8.74748265,      8.75826454,      0.0]
-const SHFOO = [        717.0,           620.0,           474.0,           660.0,           423.0,           606.0,           458.0,      0.0]
 
 if size(ARGS) != (1,)
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.airt.got2000_obs.comb\n\n")
@@ -301,19 +327,18 @@ const MSPD             = 6                              # center-of-mass paramet
 const MSST             = 7                              # center-of-mass parameter
 const PARAMS           = 7                              # number of triple coll statistics
 
-contains(ARGS[1], "shfx") && contains(ARGS[1],   "nrt") && (rsqr = SHFOO) 
-contains(ARGS[1], "shfx") && contains(ARGS[1], "calib") && (rsqr = SHFRC)     # first define the measures of short
-contains(ARGS[1], "lhfx") && contains(ARGS[1], "calib") && (rsqr = LHFRC)     # timescale variability for this var
-contains(ARGS[1], "wspd") && contains(ARGS[1], "calib") && (rsqr = WSPRC)
-contains(ARGS[1], "airt") && contains(ARGS[1], "calib") && (rsqr = AIRRC)
-contains(ARGS[1], "sstt") && contains(ARGS[1], "calib") && (rsqr = SSTRC)
-contains(ARGS[1], "shum") && contains(ARGS[1], "calib") && (rsqr = SHURC)
-contains(ARGS[1], "shfx") && contains(ARGS[1], "valid") && (rsqr = SHFRV)
-contains(ARGS[1], "lhfx") && contains(ARGS[1], "valid") && (rsqr = LHFRV)
-contains(ARGS[1], "wspd") && contains(ARGS[1], "valid") && (rsqr = WSPRV)
-contains(ARGS[1], "airt") && contains(ARGS[1], "valid") && (rsqr = AIRRV)
-contains(ARGS[1], "sstt") && contains(ARGS[1], "valid") && (rsqr = SSTRV)
-contains(ARGS[1], "shum") && contains(ARGS[1], "valid") && (rsqr = SHURV)
+contains(ARGS[1], "calib.shfx") && (alph = SHFAC ; beta = SHFBC ; rsqr = SHFRC ; varname = "SHF.C")
+contains(ARGS[1], "calib.lhfx") && (alph = LHFAC ; beta = LHFBC ; rsqr = LHFRC ; varname = "LHF.C")
+contains(ARGS[1], "calib.wspd") && (alph = WSPAC ; beta = WSPBC ; rsqr = WSPRC ; varname = "WSP.C")
+contains(ARGS[1], "calib.airt") && (alph = AIRAC ; beta = AIRBC ; rsqr = AIRRC ; varname = "AIR.C")
+contains(ARGS[1], "calib.sstt") && (alph = SSTAC ; beta = SSTBC ; rsqr = SSTRC ; varname = "SST.C")
+contains(ARGS[1], "calib.shum") && (alph = SHUAC ; beta = SHUBC ; rsqr = SHURC ; varname = "SHU.C")
+contains(ARGS[1], "valid.shfx") && (alph = SHFAV ; beta = SHFBV ; rsqr = SHFRV ; varname = "SHF.V")
+contains(ARGS[1], "valid.lhfx") && (alph = LHFAV ; beta = LHFBV ; rsqr = LHFRV ; varname = "LHF.V")
+contains(ARGS[1], "valid.wspd") && (alph = WSPAV ; beta = WSPBV ; rsqr = WSPRV ; varname = "WSP.V")
+contains(ARGS[1], "valid.airt") && (alph = AIRAV ; beta = AIRBV ; rsqr = AIRRV ; varname = "AIR.V")
+contains(ARGS[1], "valid.sstt") && (alph = SSTAV ; beta = SSTBV ; rsqr = SSTRV ; varname = "SST.V")
+contains(ARGS[1], "valid.shum") && (alph = SHUAV ; beta = SHUBV ; rsqr = SHURV ; varname = "SHU.V")
 
 fpa = My.ouvre(ARGS[1], "r") ; lines = readlines(fpa) ; close(fpa)            # read and count all triple collocations
 (linum,) = size(lines)                                                        # and allocate for the target parameters and
@@ -335,11 +360,17 @@ for (a, rana) in enumerate(RANGA)                                             # 
       lims = sort(dist)[chnk]
 
       e = 1                                                                   # get cal/val parameters for this subset
-      for (d, line) in enumerate(lines)
+      for (d, line) in enumerate(lines)                                       # (possibly after recalibrating)
         if dist[d] <= lims && e <= chnk
           vals = float(split(line))
           flux[1,e,:] = [vals[CFSB] vals[ERAB] vals[HOAB] vals[IFRB] vals[MERB] vals[OAFB] vals[SEAB] vals[OFLX] vals[AIRT]]
           flux[2,e,:] = [vals[CFSA] vals[ERAA] vals[HOAA] vals[IFRA] vals[MERA] vals[OAFA] vals[SEAA] vals[WSPD] vals[SSTT]]
+if RECALIB && !RECALIB
+            for f = 1:ANALYS
+              flux[1,e,f] = (flux[1,e,f] - alph[f]) / beta[f]
+              flux[1,e,f] = (flux[1,e,f] - alph[f]) / beta[f]
+            end
+          end
           e += 1
         end
       end
@@ -354,19 +385,31 @@ for (a, rana) in enumerate(RANGA)                                             # 
       calval[a,b,c,:,MSPD] = allmas[:,2]
       calval[a,b,c,:,MSST] = allmas[:,3]
 
-#     cala = [ 2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
-#     calb = [0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
-#     fpb = My.ouvre(ARGS[1] * ".stat", "w")
-#     form = @sprintf("const %s = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
-#       varname, specvar[1], specvar[2], specvar[3], specvar[4], specvar[5], specvar[6], specvar[7], specvar[8])
-#     write(fpb, form)
-#     print(form)
-#     close(fpb)
+      if RECALIB
+        fpb = My.ouvre(ARGS[1] * ".cali", "w")
+        form = @sprintf("const %sA%c = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
+          varname[1:3], varname[5], allalp[1], allalp[2], allalp[3], allalp[4], MISS, allalp[5], allalp[6], allalp[7])
+        write(fpb, form)
+        form = @sprintf("const %sB%c = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      1.0]\n",
+          varname[1:3], varname[5], allbet[1], allbet[2], allbet[3], allbet[4], MISS, allbet[5], allbet[6], allbet[7])
+        write(fpb, form)
+        form = @sprintf("\ntarget params   AIRT,WSPD,SSTT are %6.2f %6.2f %6.2f\n",   rana, ranb, ranc)
+        write(fpb, form)
+        form = @sprintf("  mean params   AIRT,WSPD,SSTT are %6.2f %6.2f %6.2f\n\n", mean(allmas[:,1]), mean(allmas[:,2]), mean(allmas[:,3]))
+        write(fpb, form)
+        form = @sprintf("%22s %8s %8s %8s %8s\n", " ", "allalp", "allbet", "allsig", "allcor")
+        write(fpb, form)
+        for d = 1:ANALYS
+          form = @sprintf("%22s %8.2f %8.2f %8.2f %8.2f\n", DIRS[d], allalp[d], allbet[d], allsig[d], allcor[d])
+          write(fpb, form)
+        end
+        close(fpb)
+      end
+
       @printf("cala = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf]\n",
         allalp[1], allalp[2], allalp[3], allalp[4], MISS, allalp[5], allalp[6], allalp[7])
       @printf("calb = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf]\n",
         allbet[1], allbet[2], allbet[3], allbet[4], MISS, allbet[5], allbet[6], allbet[7])
-
       @printf("\ntarget params   AIRT,WSPD,SSTT are %6.2f %6.2f %6.2f\n",   rana, ranb, ranc)
       @printf("  mean params   AIRT,WSPD,SSTT are %6.2f %6.2f %6.2f\n\n", mean(allmas[:,1]), mean(allmas[:,2]), mean(allmas[:,3]))
       @printf("%22s %8s %8s %8s %8s\n", " ", "allalp", "allbet", "allsig", "allcor")
