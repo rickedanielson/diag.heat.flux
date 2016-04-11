@@ -6,13 +6,13 @@ using My, Winston
 const SHFX             = 3                              # identify indecies of all data variables
 const LHFX             = 2
 const WSPD             = 6
-const AIRT             = 1
-const SSTT             = 5
 const SHUM             = 4
+const SSTT             = 5
+const AIRT             = 1
 const PARAMS           = 6
 
 const SPECS            = 1279                           # length of the one-sided spectra
-const TIMES            = 2556                           # number of days in during 2001-2007 (and number of spectral coefficients)
+const TIMES            = 2556                           # number of days during 2001-2007 (and number of spectral coefficients)
 const VARSUM           = 30                             # cutoff timescale for variance summation (days)
 const MISS             = -9999.0                        # generic missing value
 

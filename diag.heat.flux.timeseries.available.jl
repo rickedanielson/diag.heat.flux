@@ -1,9 +1,27 @@
 #=
- = Loop through all analyses and visualize the availability of heat
- = flux values at the position of interest - RD September 2015
+ = Loop through all analyses and visualize the availability of all
+ = variables at the position of interest - RD September 2015, April
+ = 2016.
  =#
 
 using My, Winston
+const SHFX             = 3                              # identify indecies of all data variables
+const LHFX             = 2
+const WSPD             = 6
+const SHUM             = 4
+const SSTT             = 5
+const AIRT             = 1
+const PARAMS           = 6
+
+const SHFP             = 1                              # position of data variables on input data lines
+const LHFP             = 2
+const WSPP             = 9
+const AIRP             = 12
+const SSTP             = 14
+const SHUP             = 15
+
+const LOTS             = 1800                           # width of each analysis timeseries
+const DAYS             = 3745                           # number of days between 1999-10-01 and 2009-12-31
 const MISS             = -9999.0                        # generic missing value
 
 if size(ARGS) != (1,)
@@ -11,33 +29,35 @@ if size(ARGS) != (1,)
   exit(1)
 end
 
-shfx = Array(Float64, 1800, 3745)                                             # allocate for all days between
-lhfx = Array(Float64, 1800, 3745)                                             # 1999-10-01 and 2009-12-31
-
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "insitu"]
+data = Array(Float64, LOTS, DAYS, PARAMS)
 
 for (a, dir) in enumerate(dirs)                                               # and read the daily fluxes
-  fila = "$dir/$dir$(ARGS[1])"
+fila = "$dir/$dir$(ARGS[1])"
   fpa = My.ouvre(fila, "r")
   lines = readlines(fpa)
   close(fpa)
   for (b, linb) in enumerate(lines)
     vals = float(split(linb))
-    shfx[a,b] = -333 < vals[1] < 3333 ? 1.0 : 0.0
-    lhfx[a,b] = -333 < vals[2] < 3333 ? 1.0 : 0.0
+    data[a,b,SHFX] = -333 < vals[SHFP] < 3333 ? 1.0 : 0.0
+    data[a,b,LHFX] = -333 < vals[LHFP] < 3333 ? 1.0 : 0.0
+    data[a,b,WSPD] = -333 < vals[WSPP] < 3333 ? 1.0 : 0.0
+    data[a,b,SHUM] = -333 < vals[SHUP] < 3333 ? 1.0 : 0.0
+    data[a,b,SSTT] = -333 < vals[SSTP] < 3333 ? 1.0 : 0.0
+    data[a,b,AIRT] = -333 < vals[AIRP] < 3333 ? 1.0 : 0.0
   end
 end
 
-for a = 1:3745                                                                # map each dir to a thick line
-  shfx[1701:1800,a] = shfx[9,a] ; shfx[1601:1700,a] = lhfx[9,a]
-  shfx[1501:1600,a] = shfx[8,a] ; shfx[1401:1500,a] = lhfx[8,a]
-  shfx[1301:1400,a] = shfx[7,a] ; shfx[1201:1300,a] = lhfx[7,a]
-  shfx[1101:1200,a] = shfx[6,a] ; shfx[1001:1100,a] = lhfx[6,a]
-  shfx[ 901:1000,a] = shfx[5,a] ; shfx[ 801: 900,a] = lhfx[5,a]
-  shfx[ 701: 800,a] = shfx[4,a] ; shfx[ 601: 700,a] = lhfx[4,a]
-  shfx[ 501: 600,a] = shfx[3,a] ; shfx[ 401: 500,a] = lhfx[3,a]
-  shfx[ 301: 400,a] = shfx[2,a] ; shfx[ 201: 300,a] = lhfx[2,a]
-  shfx[ 101: 200,a] = shfx[1,a] ; shfx[   1: 100,a] = lhfx[1,a]
+for a = 1:PARAMS, b = 1:DAYS                                                  # map each dir to a thick line
+  data[1601:1800,b,a] = data[9,b,a]
+  data[1401:1600,b,a] = data[8,b,a]
+  data[1201:1400,b,a] = data[7,b,a]
+  data[1001:1200,b,a] = data[6,b,a]
+  data[ 801:1000,b,a] = data[5,b,a]
+  data[ 601: 800,b,a] = data[4,b,a]
+  data[ 401: 600,b,a] = data[3,b,a]
+  data[ 201: 400,b,a] = data[2,b,a]
+  data[   1: 200,b,a] = data[1,b,a]
 end
 
 xlab = Array(UTF8String, 0)                                                   # initialize the date label strings
@@ -51,77 +71,35 @@ for a = 2:3745
   end
 end
 
+Colors.colormap("Blues", 3)
+ppp  = Winston.Table(3,2) ; setattr(ppp, "cellpadding", -4.0)
+for z = 1:PARAMS
+  z == SHFX && (varname = "a) Sensible Heat Flux" ; tpos = (1,1))
+  z == LHFX && (varname = "b) Latent Heat Flux"   ; tpos = (1,2))
+  z == WSPD && (varname = "c) Wind Speed"         ; tpos = (2,1))
+  z == SHUM && (varname = "d) Specific Humidity"  ; tpos = (2,2))
+  z == SSTT && (varname = "e) Sea Surface Temp"   ; tpos = (3,1))
+  z == AIRT && (varname = "f) Air Temperature"    ; tpos = (3,2))
+
+  tmp = Winston.imagesc(data[:,:,z])
+  setattr(tmp,    "title",               varname) ; setattr(tmp,    "aspect_ratio",           0.35)
+  setattr(tmp.x1, "ticks",                  xpos)#; setattr(tmp.x2, "draw_nothing",           true)
+  setattr(tmp.x1, "tickdir",                   1)#; setattr(tmp.x2, "tickdir",                   1)
+  setattr(tmp.x1, "ticklabels",             xlab) ; setattr(tmp.x2, "draw_ticks",            false)
+  setattr(tmp.x1, "draw_subticks",         false) ; setattr(tmp.x2, "draw_subticks",         false)
+  setattr(tmp.y1, "ticks", collect(100:200:1700))#; setattr(tmp.y2, "draw_nothing",           true)
+  setattr(tmp.y1, "tickdir",                   1)#; setattr(tmp.y2, "tickdir",                   1)
+  setattr(tmp.y1, "ticklabels",             dirs) ; setattr(tmp.y2, "draw_ticks",            false)
+  setattr(tmp.y1, "draw_subticks",         false) ; setattr(tmp.y2, "draw_subticks",         false)
+  ppp[tpos...] = Winston.add(tmp)
+
+  @show getattr(tmp, :aspect_ratio)
+  tpos[1] <= 2 && setattr(tmp.x1, :ticklabels_style, Dict{Symbol, Any}(:fontsize => 3, :color => "transparent"))
+  tpos[2] == 1 && setattr(tmp.y1, :ticklabels_style, Dict{Symbol, Any}(:fontsize => 3, :color => "black"))
+  tpos[2] == 2 && setattr(tmp.y1, :ticklabels_style, Dict{Symbol, Any}(:fontsize => 3, :color => "transparent"))
+end
+
 xyzzy = "plot.avail$(ARGS[1]).png"
 print("writing $xyzzy\n")
-Colors.colormap("Blues", 3)
-tmp = Table(3,1)
-for a = 1:3
-  tmp[a,1] = Winston.imagesc(shfx)
-  setattr(tmp[a,1].x2, "ticks",                  xpos) ; setattr(tmp[a,1].x1, "draw_nothing",           true)
-  setattr(tmp[a,1].x2, "tickdir",                   1) ; setattr(tmp[a,1].x1, "tickdir",                   1)
-  setattr(tmp[a,1].x2, "ticklabels",             xlab) ; setattr(tmp[a,1].x1, "draw_ticks",            false)
-  setattr(tmp[a,1].x2, "draw_subticks",         false) ; setattr(tmp[a,1].x1, "draw_subticks",         false)
-# setattr(tmp[a,1].x1, "ticklabels_style.rotation", "90")
-  setattr(tmp[a,1].y1, "ticks", collect(100:200:1700))#; setattr(tmp[a,1].y2, "ticks", collect(100:200:1700))
-  setattr(tmp[a,1].y1, "tickdir",                   1) ; setattr(tmp[a,1].y2, "tickdir",                   1)
-  setattr(tmp[a,1].y1, "ticklabels",             dirs) ; setattr(tmp[a,1].y2, "draw_ticks",            false)
-  setattr(tmp[a,1].y1, "draw_subticks",         false) ; setattr(tmp[a,1].y2, "draw_subticks",         false)
-end
-Winston.savefig(tmp, xyzzy, "width", 1700, "height", 1000)
+Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
 exit(0)
-
-
-#=
-using Winston ; tmp = Table(3,1)
- tmp[1,1] = Winston.plothist(randn(100), title="Air temperature")
- tmp[2,1] = Winston.plothist( rand(100), title="Wind speed")
- tmp[3,1] = Winston.plothist( rand(100), title="SST")
- tmp ;      Winston.savefig(tmp, "xyzzy.png", "width", 1000, "height", 1700)
-
-shfx = lhfx = int(rand(1800, 3745) .> 0.5)
-
-for (a, label) in enumerate(xlab)
-  tmp = Winston.DataLabel(xpos[a], 0, xlab[a], "textangle", 90.0, "texthalign", "left", "size", 1.1)
-        Winston.add(ppp, tmp)
-end
-
-using Gadfly
-plt = spy(shfx)
-draw(PNG(xyzzy, 170cm, 70cm), plt)
-#plot(dataset("Zelig", "macro"), x="Year", y="Country", color="GDP", Geom.rectbin)
-
-using PyPlot
-PyPlot.matshow(shfx)
-#PyPlot.title("Temporal coverage of TIE-OHF reference data (SHF at 45N,45W)")
-PyPlot.xticks(xpos, xlab, rotation = 90)
-PyPlot.yticks([100:200:1500], dirs)
-#PyPlot.ylabel("Reference data (SHF/LHF)")
-PyPlot.savefig(xyzzy)
-
-PyPlot.xaxis.set_label_coords(0.5, -0.1)
-@pyimport 
-plt.figure(2)
-ax1 = plt.axes([0,0,1,0.5])
-ax2 = plt.axes([0,0.5,1,0.5])
-ax1.set_yticks([0.5])
-ax1.set_yticklabels(["very long label"])
-ax1.set_ylabel("Y label")
-ax2.set_title("Title")
-make_axes_area_auto_adjustable(ax1, pad=0.1, use_axes=[ax1, ax2])
-make_axes_area_auto_adjustable(ax2, pad=0.1, use_axes=[ax1, ax2])
-
-using Winston
-#tmp = Winston.FramedPlot(
-#        title="Availability of SHF data",
-#        xlabel="Days after launch", # xrange = (0,25),
-#        ylabel="Cumulative skill") #,  yrange = (-0.1,1.0))
-#ppp = Winston.add(tmp)
-#for a = 1:4:LEN
-#  tmp = Winston.DataLabel(hours[a], 240, "$(int(disnum[a]))", "textangle", 90.0, "texthalign", "right", "size", 1.1)
-#        Winston.add(ppp, tmp)
-#end
-tmp = Winston.imagesc(shfx)
-ppp = Winston.add(tmp)
-      Winston.savefig(ppp, xyzzy, "width", 1700, "height", 700)
-exit(0)
-=#
