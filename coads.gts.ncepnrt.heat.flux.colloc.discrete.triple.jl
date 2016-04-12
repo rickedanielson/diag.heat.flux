@@ -43,6 +43,7 @@ const SEAA             = 24
 const FRAC             = 0.9                            # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
 const SDTRIM           = 6.0                            # standard deviation trimming limit
+const ITERATE          = false                          # iterate on representativeness and calibration
 const RECALIB          = true                           # perform an affine recalibration
 const ANALYS           = 8                              # number of flux analyses
 
@@ -128,7 +129,7 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
 
   for a = 1:ANALYS
     for b = 1:ANALYS                                                          # in addition to the "now" in situ obs,
- @show a, b
+      @show a, b
       mask = masquextreme(flux[1,:,9], SDTRIM) &                              # use bef analysis "a" and aft analysis "b"
              masquextreme(flux[1,:,a], SDTRIM) &                              # (having removed collocations that are beyond
              masquextreme(flux[2,:,b], SDTRIM)                                # SDTRIM standard deviations from their mean)
@@ -141,12 +142,10 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allmasa[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
-# deltasqr = 0.0
       bet2 = bet3 = 1.0
       alp2 = alp3 = 0.0
 
-      flag = true
-# flag = false
+      flag = ITERATE
       while flag == true
         avg1 = mean(sampbuoy)
         avg2 = mean(sampsate)
@@ -222,12 +221,10 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allmasb[a,b,:] = [sampairt sampwspd sampsstt]
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
-# deltasqr = 0.0
       bet2 = bet3 = 1.0
       alp2 = alp3 = 0.0
 
-      flag = true
-# flag = false
+      flag = ITERATE
       while flag == true
         avg1 = mean(sampbuoy)
         avg2 = mean(sampsate)
@@ -268,7 +265,7 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       avg2 = mean(sampsate)
       avg3 = mean(sampfore)
       cv11 = mean(sampbuoy.*sampbuoy) - avg1^2
-      cv12 = mean(sampbuoy.*sampsate) - avg1 * avg2
+      cv12 = mean(sampbuoy.*sampsate) - avg1 * avg2 - deltasqr
       cv13 = mean(sampbuoy.*sampfore) - avg1 * avg3
       cv22 = mean(sampsate.*sampsate) - avg2^2
       cv23 = mean(sampsate.*sampfore) - avg2 * avg3
