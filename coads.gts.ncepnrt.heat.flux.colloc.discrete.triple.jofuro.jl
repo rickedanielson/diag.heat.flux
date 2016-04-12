@@ -45,31 +45,31 @@ const RECALIB          = true                           # perform an affine reca
 const ANALYS           = 7                              # number of flux analyses
 
 const DIRS  = [       "cfsr",    "erainterim",         "hoaps",   "ifremerflux",         "merra",        "oaflux",       "seaflux", "insitu"]
-const SHFAC = [ 378.50557917,    346.27919089,    316.31494744,    428.77415608,    236.30473270,    336.74619578,    288.70277851,      0.0]
-const LHFAC = [   0.00000000,   3103.72241154,   3368.31026468,   1891.16116883,   2153.94680805,   2519.93924922,   2787.15394381,      0.0]
-const WSPAC = [   5.33871542,      6.21164760,      7.18682919,      7.23156993,      8.88686058,      6.83639998,      6.55919942,      0.0]
-const AIRAC = [  19.86096471,     19.30935915,     19.30673917,     19.95408684,     18.55438331,     19.64124990,     19.35620347,      0.0]
-const SSTAC = [  20.40017651,     20.45962118,     20.23188641,     20.38476145,     20.47267436,     20.39713228,     29.66222972,      0.0]
-const SHUAC = [   9.01688152,      9.10224303,      9.02518428,      8.77924409,      8.56340810,      9.05679297,      9.09048330,      0.0]
-const SHFAV = [ 386.33298139,    354.91304710,    331.19891935,    434.92706721,    242.36182333,    346.32495274,    303.01755116,      0.0]
-const LHFAV = [   0.00000000,   3207.92045001,   3470.97483130,   1886.43099649,   2220.01346222,   2611.93842196,   2940.93386985,      0.0]
-const WSPAV = [   5.71232406,      6.48326765,      7.46829421,      7.46881947,      9.29325042,      7.11064283,      6.86794025,      0.0]
-const AIRAV = [  19.44867235,     18.94796499,     18.90174979,     19.61569800,     18.13136937,     19.23381427,     18.88374999,      0.0]
-const SSTAV = [  19.88061586,     19.93423838,     19.73101768,     19.84960148,     19.95023923,     19.87054833,     27.06254198,      0.0]
-const SHUAV = [   8.78056859,      8.84251258,      8.80114875,      8.43621610,      8.34412240,      8.74748265,      8.75826454,      0.0]
+const SHFAC = [   2.76135691,      6.31441636,      7.17589103,      3.49867477,      6.74647578,      5.08102979,     11.00157920,      0.0]
+const SHFBC = [   0.86790229,      0.80026929,      0.68124198,      0.94179078,      0.62359634,      0.84766274,      0.72668167,      1.0]
+const LHFAC = [-9999.00000000,            NaN,             NaN,   -101.03692236,             NaN,             NaN,             NaN,      0.0]
+const LHFBC = [-9999.00000000,            NaN,             NaN,      6.71700633,             NaN,             NaN,             NaN,      1.0]
+const WSPAC = [   2.56131065,      1.22476559,      1.38981229,      1.48365331,      0.72186691,      1.24598448,      1.17459132,      0.0]
+const WSPBC = [   0.47757773,      0.78995222,      0.85314393,      0.82578129,      0.93908010,      0.83673745,      0.83677699,      1.0]
+const AIRAC = [   0.14211439,      0.08803240,      0.35191900,     -0.05095704,     -0.61169821,      0.11527890,     -0.78900088,      0.0]
+const AIRBC = [   0.99313766,      0.98507760,      0.97331478,      0.99709651,      0.98909908,      0.99364162,      1.01914750,      1.0]
+const SSTAC = [   0.86220944,      0.79066031,      0.87688409,      0.95889165,      0.79243793,      0.94460760,      0.48999073,      0.0]
+const SSTBC = [   0.99334493,      0.99317441,      0.99062691,      0.98900919,      0.99237045,      0.99071446,      0.99801196,      1.0]
+const SHUAC = [   0.32767469,      0.31948539,      0.50073885,      0.54156830,      0.39895843,      0.23572552,     -0.36321696,      0.0]
+const SHUBC = [   0.97128962,      0.98090582,      0.95719337,      0.97012755,      0.91927114,      0.99084996,      1.01749678,      1.0]
 
-const SHFBC = [ 378.50557917,    346.27919089,    316.31494744,    428.77415608,    236.30473270,    336.74619578,    288.70277851,      0.0]
-const LHFBC = [   0.00000000,   3103.72241154,   3368.31026468,   1891.16116883,   2153.94680805,   2519.93924922,   2787.15394381,      0.0]
-const WSPBC = [   5.33871542,      6.21164760,      7.18682919,      7.23156993,      8.88686058,      6.83639998,      6.55919942,      0.0]
-const AIRBC = [  19.86096471,     19.30935915,     19.30673917,     19.95408684,     18.55438331,     19.64124990,     19.35620347,      0.0]
-const SSTBC = [  20.40017651,     20.45962118,     20.23188641,     20.38476145,     20.47267436,     20.39713228,     29.66222972,      0.0]
-const SHUBC = [   9.01688152,      9.10224303,      9.02518428,      8.77924409,      8.56340810,      9.05679297,      9.09048330,      0.0]
-const SHFBV = [ 386.33298139,    354.91304710,    331.19891935,    434.92706721,    242.36182333,    346.32495274,    303.01755116,      0.0]
-const LHFBV = [   0.00000000,   3207.92045001,   3470.97483130,   1886.43099649,   2220.01346222,   2611.93842196,   2940.93386985,      0.0]
-const WSPBV = [   5.71232406,      6.48326765,      7.46829421,      7.46881947,      9.29325042,      7.11064283,      6.86794025,      0.0]
-const AIRBV = [  19.44867235,     18.94796499,     18.90174979,     19.61569800,     18.13136937,     19.23381427,     18.88374999,      0.0]
-const SSTBV = [  19.88061586,     19.93423838,     19.73101768,     19.84960148,     19.95023923,     19.87054833,     27.06254198,      0.0]
-const SHUBV = [   8.78056859,      8.84251258,      8.80114875,      8.43621610,      8.34412240,      8.74748265,      8.75826454,      0.0]
+const SHFAV = [   2.87706414,      6.54915493,      7.24744296,      3.31856598,      6.91166819,      5.12189436,     11.06293411,      0.0]
+const SHFBV = [   0.87832569,      0.80657179,      0.68409855,      0.93620855,      0.63275633,      0.85821249,      0.72387162,      1.0]
+const LHFAV = [-9999.00000000,            NaN,             NaN,   -104.86234163,             NaN,             NaN,             NaN,      0.0]
+const LHFBV = [-9999.00000000,            NaN,             NaN,      6.85810749,             NaN,             NaN,             NaN,      1.0]
+const WSPAV = [   2.45593244,      1.41864074,      1.52851998,      1.51459929,      0.84133482,      1.32763099,      1.23789345,      0.0]
+const WSPBV = [   0.48646734,      0.74397171,      0.81798742,      0.80230728,      0.90885273,      0.80287563,      0.80527460,      1.0]
+const AIRAV = [   0.00956898,     -0.09989312,      0.23163061,     -0.20884799,     -0.82045360,     -0.02902652,     -0.94081740,      0.0]
+const AIRBV = [   0.99667134,      0.99250593,      0.97578899,      1.00276339,      0.99389437,      0.99761292,      1.02184342,      1.0]
+const SSTAV = [   0.68720842,      0.64590036,      0.67053058,      0.75302511,      0.66953190,      0.77177973,      0.39717873,      0.0]
+const SSTBV = [   0.99646632,      0.99633704,      0.99560792,      0.99286786,      0.99531869,      0.99475432,      0.99958051,      1.0]
+const SHUAV = [   0.22202419,      0.30849712,      0.48387998,      0.63071680,      0.31449602,      0.23544281,     -0.32790574,      0.0]
+const SHUBV = [   0.98068638,      0.98230320,      0.95800823,      0.96256471,      0.92572442,      0.98997709,      1.01202488,      1.0]
 
 const SHFRC = [ 378.50557917,    346.27919089,    316.31494744,    428.77415608,    236.30473270,    336.74619578,    288.70277851,      0.0]
 const LHFRC = [   0.00000000,   3103.72241154,   3368.31026468,   1891.16116883,   2153.94680805,   2519.93924922,   2787.15394381,      0.0]
@@ -327,18 +327,18 @@ const MSPD             = 6                              # center-of-mass paramet
 const MSST             = 7                              # center-of-mass parameter
 const PARAMS           = 7                              # number of triple coll statistics
 
-contains(ARGS[1], "calib.shfx") && (alph = SHFAC ; beta = SHFBC ; rsqr = SHFRC ; varname = "SHF.C")
-contains(ARGS[1], "calib.lhfx") && (alph = LHFAC ; beta = LHFBC ; rsqr = LHFRC ; varname = "LHF.C")
-contains(ARGS[1], "calib.wspd") && (alph = WSPAC ; beta = WSPBC ; rsqr = WSPRC ; varname = "WSP.C")
-contains(ARGS[1], "calib.airt") && (alph = AIRAC ; beta = AIRBC ; rsqr = AIRRC ; varname = "AIR.C")
-contains(ARGS[1], "calib.sstt") && (alph = SSTAC ; beta = SSTBC ; rsqr = SSTRC ; varname = "SST.C")
-contains(ARGS[1], "calib.shum") && (alph = SHUAC ; beta = SHUBC ; rsqr = SHURC ; varname = "SHU.C")
-contains(ARGS[1], "valid.shfx") && (alph = SHFAV ; beta = SHFBV ; rsqr = SHFRV ; varname = "SHF.V")
-contains(ARGS[1], "valid.lhfx") && (alph = LHFAV ; beta = LHFBV ; rsqr = LHFRV ; varname = "LHF.V")
-contains(ARGS[1], "valid.wspd") && (alph = WSPAV ; beta = WSPBV ; rsqr = WSPRV ; varname = "WSP.V")
-contains(ARGS[1], "valid.airt") && (alph = AIRAV ; beta = AIRBV ; rsqr = AIRRV ; varname = "AIR.V")
-contains(ARGS[1], "valid.sstt") && (alph = SSTAV ; beta = SSTBV ; rsqr = SSTRV ; varname = "SST.V")
-contains(ARGS[1], "valid.shum") && (alph = SHUAV ; beta = SHUBV ; rsqr = SHURV ; varname = "SHU.V")
+contains(ARGS[1], "calib.shfx") && (alph = SHFAV ; beta = SHFBV ; rsqr = SHFRC ; varname = "SHF.C")
+contains(ARGS[1], "calib.lhfx") && (alph = LHFAV ; beta = LHFBV ; rsqr = LHFRC ; varname = "LHF.C")
+contains(ARGS[1], "calib.wspd") && (alph = WSPAV ; beta = WSPBV ; rsqr = WSPRC ; varname = "WSP.C")
+contains(ARGS[1], "calib.airt") && (alph = AIRAV ; beta = AIRBV ; rsqr = AIRRC ; varname = "AIR.C")
+contains(ARGS[1], "calib.sstt") && (alph = SSTAV ; beta = SSTBV ; rsqr = SSTRC ; varname = "SST.C")
+contains(ARGS[1], "calib.shum") && (alph = SHUAV ; beta = SHUBV ; rsqr = SHURC ; varname = "SHU.C")
+contains(ARGS[1], "valid.shfx") && (alph = SHFAC ; beta = SHFBC ; rsqr = SHFRV ; varname = "SHF.V")
+contains(ARGS[1], "valid.lhfx") && (alph = LHFAC ; beta = LHFBC ; rsqr = LHFRV ; varname = "LHF.V")
+contains(ARGS[1], "valid.wspd") && (alph = WSPAC ; beta = WSPBC ; rsqr = WSPRV ; varname = "WSP.V")
+contains(ARGS[1], "valid.airt") && (alph = AIRAC ; beta = AIRBC ; rsqr = AIRRV ; varname = "AIR.V")
+contains(ARGS[1], "valid.sstt") && (alph = SSTAC ; beta = SSTBC ; rsqr = SSTRV ; varname = "SST.V")
+contains(ARGS[1], "valid.shum") && (alph = SHUAC ; beta = SHUBC ; rsqr = SHURV ; varname = "SHU.V")
 
 fpa = My.ouvre(ARGS[1], "r") ; lines = readlines(fpa) ; close(fpa)            # read and count all triple collocations
 (linum,) = size(lines)                                                        # and allocate for the target parameters and
@@ -365,7 +365,7 @@ for (a, rana) in enumerate(RANGA)                                             # 
           vals = float(split(line))
           flux[1,e,:] = [vals[CFSB] vals[ERAB] vals[HOAB] vals[IFRB] vals[MERB] vals[OAFB] vals[SEAB] vals[OFLX] vals[AIRT]]
           flux[2,e,:] = [vals[CFSA] vals[ERAA] vals[HOAA] vals[IFRA] vals[MERA] vals[OAFA] vals[SEAA] vals[WSPD] vals[SSTT]]
-if RECALIB && !RECALIB
+          if RECALIB
             for f = 1:ANALYS
               flux[1,e,f] = (flux[1,e,f] - alph[f]) / beta[f]
               flux[1,e,f] = (flux[1,e,f] - alph[f]) / beta[f]

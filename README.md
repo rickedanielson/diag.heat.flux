@@ -216,6 +216,8 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.h
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort >> commands
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
+       cd all ; cat *calib.shfx*cali *calib.lhfx*cali *calib.wspd*cali *calib.airt*cali *calib.sstt*cali *calib.shum*cali | grep const
+                cat *valid.shfx*cali *valid.lhfx*cali *valid.wspd*cali *valid.airt*cali *valid.sstt*cali *valid.shum*cali | grep const
        cd .. ; rm commands ; vi analysis.evaluation.versus.insitu.jl
 
 
