@@ -168,7 +168,10 @@ wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.
 #      sort all/all.flux.daily.locate_2.0_calib > aa ; cat all/all.flux.daily.locate_2.0_calib.shfx.got2000 all/all.flux.daily.locate_2.0_calib.shfx.not2000 | sort > bb ; diff aa bb ; rm aa bb
 #      sort all/all.flux.daily.locate_2.0_valid > aa ; cat all/all.flux.daily.locate_2.0_valid.shfx.got2000 all/all.flux.daily.locate_2.0_valid.shfx.not2000 | sort > bb ; diff aa bb ; rm aa bb
        mv commands all.flux.daily.locate_2.0_?ali?* all/limbo
-       echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib.shfx.got2000\"  > commands
+
+# plot the location and distribution of the collocations
+       echo julia /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.distribution.plot.jl all/all.flux.daily.locate_2.0_calib.????.got2000 > commands
+       echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib.shfx.got2000\" >> commands
        echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib.lhfx.got2000\" >> commands
        echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib.wspd.got2000\" >> commands
        echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib.airt.got2000\" >> commands
@@ -212,13 +215,23 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation
        rm commands
 
 # perform a triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
+wrks ; cd all ; mkdir zali.recalib.false.iterate.false zali.recalib.false.iterate.true zali.recalib.true.iterate.false zali.recalib.true.iterate.true
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commands
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort >> commands
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
-       cd all ; cat *calib.shfx*cali *calib.lhfx*cali *calib.wspd*cali *calib.airt*cali *calib.sstt*cali *calib.shum*cali | grep const
-                cat *valid.shfx*cali *valid.lhfx*cali *valid.wspd*cali *valid.airt*cali *valid.sstt*cali *valid.shum*cali | grep const
-       cd .. ; rm commands ; vi analysis.evaluation.versus.insitu.jl
+       mv *cali zali.recalib.false.iterate.false
+       cd       zali.recalib.false.iterate.false ; cat *calib.shfx*cali *calib.lhfx*cali *calib.wspd*cali *calib.airt*cali *calib.sstt*cali *calib.shum*cali | grep const
+                                                   cat *valid.shfx*cali *valid.lhfx*cali *valid.wspd*cali *valid.airt*cali *valid.sstt*cali *valid.shum*cali | grep const
+       vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.j*
+       mv *cali zali.recalib.false.iterate.true
+       cd       zali.recalib.false.iterate.true  ; cat *calib.shfx*cali *calib.lhfx*cali *calib.wspd*cali *calib.airt*cali *calib.sstt*cali *calib.shum*cali | grep const
+                                                   cat *valid.shfx*cali *valid.lhfx*cali *valid.wspd*cali *valid.airt*cali *valid.sstt*cali *valid.shum*cali | grep const
+       vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.j*
+       mv *cali zali.recalib.true.iterate.false
+       cd       zali.recalib.true.iterate.false  ; diff zali.recalib.*.iterate.false/*calib.shfx*cali
+       mv *cali zali.recalib.true.iterate.true
+       cd       zali.recalib.true.iterate.true   ; diff zali.recalib.*.iterate.true/*calib.shfx*cali
+       wrks ; rm commands
 
 
 
@@ -228,3 +241,6 @@ jjj analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_rem
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_remainder_obs ::: shfx lhfx wspd airt sstt shum | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        rm commands ; cd all ; cat *shfx.summ *lhfx.summ *wspd.summ *airt.summ *sstt.summ *shum.summ
+
+# extra commands
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort >> commands

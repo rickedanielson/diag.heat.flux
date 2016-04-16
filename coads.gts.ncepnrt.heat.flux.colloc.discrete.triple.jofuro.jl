@@ -41,12 +41,13 @@ const SEAA             = 22
 const FRAC             = 0.9                            # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
 const SDTRIM           = 6.0                            # standard deviation trimming limit
+const STORAGE          = true                           # retain the triple calibration metrics in a file
 const ITERATE          = false                          # iterate on representativeness and calibration
 const RECALIB          = true                           # perform an affine recalibration
 const ANALYS           = 7                              # number of flux analyses
 
 const DIRS  = [       "cfsr",    "erainterim",         "hoaps",   "ifremerflux",         "merra",        "oaflux",       "seaflux", "insitu"]
-#=
+if ITERATE
 const SHFAC = [   2.76135691,      6.31441636,      7.17589103,      3.49867477,      6.74647578,      5.08102979,     11.00157920,      0.0]
 const SHFBC = [   0.86790229,      0.80026929,      0.68124198,      0.94179078,      0.62359634,      0.84766274,      0.72668167,      1.0]
 const LHFAC = [-9999.00000000,            NaN,             NaN,   -101.03692236,             NaN,             NaN,             NaN,      0.0]
@@ -72,7 +73,7 @@ const SSTAV = [   0.68720842,      0.64590036,      0.67053058,      0.75302511,
 const SSTBV = [   0.99646632,      0.99633704,      0.99560792,      0.99286786,      0.99531869,      0.99475432,      0.99958051,      1.0]
 const SHUAV = [   0.22202419,      0.30849712,      0.48387998,      0.63071680,      0.31449602,      0.23544281,     -0.32790574,      0.0]
 const SHUBV = [   0.98068638,      0.98230320,      0.95800823,      0.96256471,      0.92572442,      0.98997709,      1.01202488,      1.0]
-=#
+else
 const SHFAC = [   0.40476290,      1.88000590,     -0.15313876,     -0.20986150,     -1.92607845,      0.41340456,     -0.31452873,      0.0]
 const SHFBC = [   1.12875249,      1.02103705,      1.06120941,      1.60375087,      1.05691156,      1.05375513,      1.03946407,      1.0]
 const LHFAC = [-9999.00000000,            NaN,             NaN,             NaN,             NaN,             NaN,             NaN,      0.0]
@@ -98,7 +99,7 @@ const SSTAV = [  -0.03113354,      0.07807148,     -0.14724356,     -0.09754014,
 const SSTBV = [   1.00283453,      1.00288125,      1.00458194,      1.00291613,      1.00173787,      1.00356420,      1.13738199,      1.0]
 const SHUAV = [  -0.10027473,      0.03957023,      0.13552597,      0.10338911,     -0.18675591,     -0.01365873,     -0.06233484,      0.0]
 const SHUBV = [   1.00511561,      0.99777984,      0.98115861,      0.98766467,      1.00249669,      1.00068277,      1.00121666,      1.0]
-
+end
 const SHFRC = [ 378.50557917,    346.27919089,    316.31494744,    428.77415608,    236.30473270,    336.74619578,    288.70277851,      0.0]
 const LHFRC = [   0.00000000,   3103.72241154,   3368.31026468,   1891.16116883,   2153.94680805,   2519.93924922,   2787.15394381,      0.0]
 const WSPRC = [   5.33871542,      6.21164760,      7.18682919,      7.23156993,      8.88686058,      6.83639998,      6.55919942,      0.0]
@@ -409,7 +410,7 @@ for (a, rana) in enumerate(RANGA)                                             # 
       calval[a,b,c,:,MSPD] = allmas[:,2]
       calval[a,b,c,:,MSST] = allmas[:,3]
 
-      if RECALIB
+      if STORAGE
         fpb = My.ouvre(ARGS[1] * ".cali", "w")
         form = @sprintf("const %sA%c = [%15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf, %15.8lf,      0.0]\n",
           varname[1:3], varname[5], allalp[1], allalp[2], allalp[3], allalp[4], MISS, allalp[5], allalp[6], allalp[7])
