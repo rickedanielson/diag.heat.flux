@@ -214,7 +214,7 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
        rm commands
 
-# perform a triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
+# perform a global triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
 wrks ; cd all ; mkdir zali.recalib.false.iterate.false zali.recalib.false.iterate.true zali.recalib.true.iterate.false zali.recalib.true.iterate.true
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commands
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
@@ -233,7 +233,12 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.h
        cd       zali.recalib.true.iterate.true   ; diff zali.recalib.*.iterate.true/*calib.shfx*cali
        wrks ; rm commands
 
-
+# perform a local triple collocation cal/val and convert the second-order polynomial coeffs to tables
+wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commands
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
+       cd all
+       jjj 
 
 
 # perform another eight-analysis evaulation, but this time with calibration (versus the 2.0_valid_remainder obs)

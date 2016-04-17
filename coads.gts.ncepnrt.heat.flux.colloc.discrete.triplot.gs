@@ -2,6 +2,7 @@
 * It can be executed using a command like
 *
 *          grads -blc   "coads.gts.ncepnrt.heat.flux.colloc.discrete.triplot  55.000 75.000  -40.000  30.000 1"
+*          grads -blc   "coads.gts.ncepnrt.heat.flux.colloc.discrete.triplot -90.000 90.000 -180.000 180.000 1"
 * parallel grads -blc '"'coads.gts.ncepnrt.heat.flux.colloc.discrete.triplot -90.000 90.000 -180.000 180.000 ::: `seq 1 365` ::: '"'
 *
 * - RD November 2012
@@ -66,14 +67,15 @@ dellon = z2
 "set lon "minlon" "maxlon
 "set gxout shaded"
 "set ccols  9   4   5   3   7    8"
-"set clevs  -50  50  150 250 350"
+*"set clevs  -50  50  150 250 350"
 *"set clevs   0.5 0.75 1.0 1.25 1.5"
-*"set clevs   25  50  75  100 125"
+"set clevs   25  50  75  100 125"
 *"set clevs   0.1 0.3 0.5 0.7 0.9"
-"set grads off" ; "set clab off" ; "d  1.58142453*air*air + 0.21192243*spd*spd + 1.67550186*(sst-273.15)*(sst-273.15) - 0.41619424*air*spd - 3.24287984*air*(sst-273.15) + 0.45987590*spd*(sst-273.15) + 1.70888986*air - 3.84710777*spd - 2.46165525*(sst-273.15) + 18.81675320"
+*"set grads off" ; "set clab off" ; "d  1.58142453*air*air + 0.21192243*spd*spd + 1.67550186*(sst-273.15)*(sst-273.15) - 0.41619424*air*spd - 3.24287984*air*(sst-273.15) + 0.45987590*spd*(sst-273.15) + 1.70888986*air - 3.84710777*spd - 2.46165525*(sst-273.15) + 18.81675320"
 *"set grads off" ; "set clab off" ; "d -0.03783432*air*air + 0.02171992*spd*spd - 0.03027189*(sst-273.15)*(sst-273.15) - 0.01635796*air*spd + 0.07194274*air*(sst-273.15) + 0.01944569*spd*(sst-273.15) + 0.03169998*air - 0.51312824*spd - 0.18250736*(sst-273.15) +  4.20293794"
 *"set grads off" ; "set clab off" ; "d  0.22812659*air*air - 0.21859154*spd*spd + 0.30715734*(sst-273.15)*(sst-273.15) - 0.14577318*air*spd - 0.58272658*air*(sst-273.15) + 0.13243353*spd*(sst-273.15) - 7.04641458*air + 6.11999371*spd + 7.63826821*(sst-273.15) +  2.68540473"
 *"set grads off" ; "set clab off" ; "d -0.03947466*air*air + 0.00270543*spd*spd - 0.03975109*(sst-273.15)*(sst-273.15) + 0.00189707*air*spd + 0.07981320*air*(sst-273.15) - 0.00087165*spd*(sst-273.15) - 0.19026551*air - 0.06386870*spd + 0.16114838*(sst-273.15) +  0.80171620"
+ "set grads off" ; "set clab off" ; "d  0.51144810*air*air - 0.06875373*spd*spd + 0.46118014*(sst-273.15)*(sst-273.15) - 0.09309947*air*spd - 1.07129783*air*(sst-273.15) + 0.00312724*spd*(sst-273.15) - 4.44965402*air + 4.40675646*spd + 7.38663450*(sst-273.15) + 0.112152900"
 "q gxinfo" ; _gxinfo = result ; "q shades" ; _shadea = result
 "set gxout contour"
 "run basemap L 99 1"
@@ -91,9 +93,9 @@ dellon = z2
 "run gui_date_simple" ; date = result
 "set string 1 c 6"
 "set strsiz 0.23"
-"draw string 3.85 8.25 SHF bias (Wm`a-2`n) "date
+*"draw string 3.85 8.25 SHF bias (Wm`a-2`n) "date
 *"draw string 3.85 8.25 SHF calib (Wm`a-2`n) "date
-*"draw string 3.85 8.25 SHF RMSE (Wm`a-2`n) "date
+"draw string 3.85 8.25 SHF RMSE (Wm`a-2`n) "date
 *"draw string 3.85 8.25 SHF Correlation "date
 
 "set strsiz 0.13"
