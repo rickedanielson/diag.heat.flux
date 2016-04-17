@@ -44,8 +44,9 @@ const FRAC             = 0.9                            # fractional update duri
 const DELTA            = 0.001                          # generic convergence criterion
 const SDTRIM           = 6.0                            # standard deviation trimming limit
 const STORAGE          = true                           # retain the triple calibration metrics in a file
-const ITERATE          = false                          # iterate on representativeness and calibration
-const RECALIB          = true                           # perform an affine recalibration
+const ITERATE          = true                           # iterate on representativeness and calibration
+const RECALIB          = false                          # perform an affine recalibration
+const GLOBAL           = true                           # with STORAGE = ITERATE = true and RECALIB = false
 const ANALYS           = 8                              # number of flux analyses
 
 const DIRS  = [         "cfsr",    "erainterim",         "hoaps",   "ifremerflux",        "jofuro",         "merra",        "oaflux",       "seaflux", "insitu"]
@@ -149,7 +150,7 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
 
   for a = 1:ANALYS
     for b = 1:ANALYS                                                          # in addition to the "now" in situ obs,
-      @show a, b
+#     @show a, b
       mask = masquextreme(flux[1,:,9], SDTRIM) &                              # use bef analysis "a" and aft analysis "b"
              masquextreme(flux[1,:,a], SDTRIM) &                              # (having removed collocations that are beyond
              masquextreme(flux[2,:,b], SDTRIM)                                # SDTRIM standard deviations from their mean)
@@ -326,16 +327,17 @@ end
  =#
 
 const MISS             = -9999.0                        # generic missing value
-#=
-const RANGA            = -40.0:10.0:30.0                # target sampling range for AIRT dimension
-const RANGB            =   0.0:10.0:30.0                # target sampling range for WSPD dimension
-const RANGC            =   0.0:10.0:30.0                # target sampling range for SSTT dimension
-const CUTOFF           = 5000                           # number of collocations in a subset
-=#
-const RANGA            =   0.0:10.0: 0.0                # target sampling range for AIRT dimension
-const RANGB            =   0.0:10.0: 0.0                # target sampling range for WSPD dimension
-const RANGC            =   0.0:10.0: 0.0                # target sampling range for SSTT dimension
-const CUTOFF           = 4500000000                     # number of collocations in a subset
+if GLOBAL
+  const RANGA          =   0.0:10.0: 0.0                # target sampling range for AIRT dimension
+  const RANGB          =   0.0:10.0: 0.0                # target sampling range for WSPD dimension
+  const RANGC          =   0.0:10.0: 0.0                # target sampling range for SSTT dimension
+  const CUTOFF         = 4500000000                     # number of collocations in a subset
+else
+  const RANGA          = -40.0:10.0:30.0                # target sampling range for AIRT dimension
+  const RANGB          =   0.0:10.0:30.0                # target sampling range for WSPD dimension
+  const RANGC          =   0.0:10.0:30.0                # target sampling range for SSTT dimension
+  const CUTOFF         = 5000                           # number of collocations in a subset
+end
 
 const ALPH             = 1                              # error model x = ALPH + BETA * truth + error
 const BETA             = 2                              # error model x = ALPH + BETA * truth + error
@@ -439,7 +441,7 @@ for (a, rana) in enumerate(RANGA)                                             # 
   end
 end
 
-exit(0)
+if GLOBAL  exit(0)  end
 
 varair = Array(Float64, 0)                                                    # the sqerror closure requires data
 varspd = Array(Float64, 0)                                                    # arrays in global scope
