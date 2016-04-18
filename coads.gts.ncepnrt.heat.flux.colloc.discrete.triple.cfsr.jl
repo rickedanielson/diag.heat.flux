@@ -47,6 +47,8 @@ const DIRS  = [   "erainterim",         "hoaps",        "jofuro",        "oaflux
 if ITERATE
 const SHFAC = [     6.24992430,      7.14114799,      4.93780367,      5.07144623,     10.99645300,      0.0]
 const SHFBC = [     0.81290645,      0.68790858,      0.79493814,      0.84955653,      0.72768338,      1.0]
+ const LHFAC = [     6.24992430,      7.14114799,      4.93780367,      5.07144623,     10.99645300,      0.0]
+ const LHFBC = [     0.81290645,      0.68790858,      0.79493814,      0.84955653,      0.72768338,      1.0]
 const WSPAC = [     1.22476559,      1.36801472,      1.00689880,      1.23279259,      1.17136414,      0.0]
 const WSPBC = [     0.78995222,      0.85613779,      0.88094722,      0.83854963,      0.83722027,      1.0]
 const AIRAC = [     0.06931034,      0.32640154,  -9999.00000000,      0.07773199,     -0.79092396,      0.0]
@@ -58,6 +60,8 @@ const SHUBC = [     0.98260652,      0.95915222,      1.02582675,      0.9908528
 
 const SHFAV = [     6.49885498,      7.21177883,      4.84536680,      5.11536764,     11.05294579,      0.0]
 const SHFBV = [     0.81693410,      0.69133561,      0.81396840,      0.85957407,      0.72592657,      1.0]
+ const LHFAV = [     6.49885498,      7.21177883,      4.84536680,      5.11536764,     11.05294579,      0.0]
+ const LHFBV = [     0.81693410,      0.69133561,      0.81396840,      0.85957407,      0.72592657,      1.0]
 const WSPAV = [     1.41864074,      1.51224626,      1.03799481,      1.32092957,      1.23789345,      0.0]
 const WSPBV = [     0.74397171,      0.82011755,      0.85501971,      0.80375301,      0.80527460,      1.0]
 const AIRAV = [    -0.12896839,      0.18860128,  -9999.00000000,     -0.06614087,     -0.94268222,      0.0]
@@ -69,6 +73,8 @@ const SHUBV = [     0.98383861,      0.96270478,      1.02010012,      0.9899903
 else
 const SHFAC = [     8.51462467,      8.25657614,      5.65803040,      5.71056084,     12.33005036,      0.0]
 const SHFBC = [     0.83130809,      0.66563808,      0.82473768,      0.91865970,      0.70854158,      1.0]
+ const LHFAC = [     8.51462467,      8.25657614,      5.65803040,      5.71056084,     12.33005036,      0.0]
+ const LHFBC = [     0.83130809,      0.66563808,      0.82473768,      0.91865970,      0.70854158,      1.0]
 const WSPAC = [     1.00038551,      1.10756333,      0.51183743,      0.99995397,      0.94044061,      0.0]
 const WSPBC = [     0.78779015,      0.88059356,      0.92997817,      0.84559242,      0.84289275,      1.0]
 const AIRAC = [     0.03488944,      0.33472407,  -9999.00000000,      0.05682392,     -0.96639214,      0.0]
@@ -80,6 +86,8 @@ const SHUBC = [     0.97456743,      0.94316910,      1.07139697,      0.9927986
 
 const SHFAV = [     8.55937433,      8.33963061,      5.83304804,      5.65367709,     12.38408779,      0.0]
 const SHFBV = [     0.85040358,      0.67609520,      0.85363464,      0.93977760,      0.71131129,      1.0]
+ const LHFAV = [     8.55937433,      8.33963061,      5.83304804,      5.65367709,     12.38408779,      0.0]
+ const LHFBV = [     0.85040358,      0.67609520,      0.85363464,      0.93977760,      0.71131129,      1.0]
 const WSPAV = [     1.17990303,      1.26076233,      0.52348929,      1.07682721,      0.99133345,      0.0]
 const WSPBV = [     0.73306188,      0.82405432,      0.88454135,      0.79836020,      0.80113129,      1.0]
 const AIRAV = [    -0.19124566,      0.20360958,  -9999.00000000,     -0.15103869,     -1.11781430,      0.0]
@@ -144,17 +152,17 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
 
   for a = 1:ANALYS
     for b = 1:ANALYS                                                          # in addition to the "now" in situ obs,
-#     @show a, b
-      mask = masquextreme(flux[1,:,9], SDTRIM) &                              # use bef analysis "a" and aft analysis "b"
-             masquextreme(flux[1,:,a], SDTRIM) &                              # (having removed collocations that are beyond
-             masquextreme(flux[2,:,b], SDTRIM)                                # SDTRIM standard deviations from their mean)
-      sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
-      sampsate = flux[1,mask,a]                                               # then get the parametric center of mass of
-      sampfore = flux[2,mask,b]                                               # the resulting subset using its buoy values
+      mask = masquextreme(flux[1,:,ANALYS+1], SDTRIM) &                       # use bef analysis "a" and aft analysis "b"
+             masquextreme(flux[1,:,       a], SDTRIM) &                       # (having removed collocations that are beyond
+             masquextreme(flux[2,:,       b], SDTRIM)                         # SDTRIM standard deviations from their mean)
+      sampbuoy = flux[1,mask,ANALYS+1]                                        # and iterate if "b" is higher resolution
+      sampsate = flux[1,mask,       a]                                        # then get the parametric center of mass of
+      sampfore = flux[2,mask,       b]                                        # the resulting subset using its buoy values
       sampairt = mean(flux[1,mask,ANALYS+2])
       sampwspd = mean(flux[2,mask,ANALYS+1])
       sampsstt = mean(flux[2,mask,ANALYS+2])
       allmasa[a,b,:] = [sampairt sampwspd sampsstt]
+      if GLOBAL  @show a, b  end
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
       bet2 = bet3 = 1.0
@@ -224,12 +232,12 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allsiga[a,b] = sig3
       allcora[a,b] = cor3
 
-      mask = masquextreme(flux[1,:,9], SDTRIM) &                              # use aft analysis "a" and bef analysis "b"
-             masquextreme(flux[2,:,a], SDTRIM) &                              # (having removed collocations that are beyond
-             masquextreme(flux[1,:,b], SDTRIM)                                # SDTRIM standard deviations from their mean)
-      sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
-      sampsate = flux[2,mask,a]                                               # then get the parametric center of mass of
-      sampfore = flux[1,mask,b]                                               # the resulting subset using its buoy values
+      mask = masquextreme(flux[1,:,ANALYS+1], SDTRIM) &                       # use aft analysis "a" and bef analysis "b"
+             masquextreme(flux[2,:,       a], SDTRIM) &                       # (having removed collocations that are beyond
+             masquextreme(flux[1,:,       b], SDTRIM)                         # SDTRIM standard deviations from their mean)
+      sampbuoy = flux[1,mask,ANALYS+1]                                        # and iterate if "b" is higher resolution
+      sampsate = flux[2,mask,       a]                                        # then get the parametric center of mass of
+      sampfore = flux[1,mask,       b]                                        # the resulting subset using its buoy values
       sampairt = mean(flux[1,mask,ANALYS+2])
       sampwspd = mean(flux[2,mask,ANALYS+1])
       sampsstt = mean(flux[2,mask,ANALYS+2])

@@ -148,17 +148,17 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
 
   for a = 1:ANALYS
     for b = 1:ANALYS                                                          # in addition to the "now" in situ obs,
-#     @show a, b
-      mask = masquextreme(flux[1,:,9], SDTRIM) &                              # use bef analysis "a" and aft analysis "b"
-             masquextreme(flux[1,:,a], SDTRIM) &                              # (having removed collocations that are beyond
-             masquextreme(flux[2,:,b], SDTRIM)                                # SDTRIM standard deviations from their mean)
-      sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
-      sampsate = flux[1,mask,a]                                               # then get the parametric center of mass of
-      sampfore = flux[2,mask,b]                                               # the resulting subset using its buoy values
+      mask = masquextreme(flux[1,:,ANALYS+1], SDTRIM) &                       # use bef analysis "a" and aft analysis "b"
+             masquextreme(flux[1,:,       a], SDTRIM) &                       # (having removed collocations that are beyond
+             masquextreme(flux[2,:,       b], SDTRIM)                         # SDTRIM standard deviations from their mean)
+      sampbuoy = flux[1,mask,ANALYS+1]                                        # and iterate if "b" is higher resolution
+      sampsate = flux[1,mask,       a]                                        # then get the parametric center of mass of
+      sampfore = flux[2,mask,       b]                                        # the resulting subset using its buoy values
       sampairt = mean(flux[1,mask,ANALYS+2])
       sampwspd = mean(flux[2,mask,ANALYS+1])
       sampsstt = mean(flux[2,mask,ANALYS+2])
       allmasa[a,b,:] = [sampairt sampwspd sampsstt]
+      if GLOBAL  @show a, b  end
 
       deltasqr = rsqr[b] > rsqr[a] ? rsqr[b] - rsqr[a] : 0.0
       bet2 = bet3 = 1.0
@@ -228,12 +228,12 @@ function triple(flux::Array{Float64,3}, rsqr::Array{Float64,1})
       allsiga[a,b] = sig3
       allcora[a,b] = cor3
 
-      mask = masquextreme(flux[1,:,9], SDTRIM) &                              # use aft analysis "a" and bef analysis "b"
-             masquextreme(flux[2,:,a], SDTRIM) &                              # (having removed collocations that are beyond
-             masquextreme(flux[1,:,b], SDTRIM)                                # SDTRIM standard deviations from their mean)
-      sampbuoy = flux[1,mask,9]                                               # and iterate if "b" is higher resolution
-      sampsate = flux[2,mask,a]                                               # then get the parametric center of mass of
-      sampfore = flux[1,mask,b]                                               # the resulting subset using its buoy values
+      mask = masquextreme(flux[1,:,ANALYS+1], SDTRIM) &                       # use aft analysis "a" and bef analysis "b"
+             masquextreme(flux[2,:,       a], SDTRIM) &                       # (having removed collocations that are beyond
+             masquextreme(flux[1,:,       b], SDTRIM)                         # SDTRIM standard deviations from their mean)
+      sampbuoy = flux[1,mask,ANALYS+1]                                        # and iterate if "b" is higher resolution
+      sampsate = flux[2,mask,       a]                                        # then get the parametric center of mass of
+      sampfore = flux[1,mask,       b]                                        # the resulting subset using its buoy values
       sampairt = mean(flux[1,mask,ANALYS+2])
       sampwspd = mean(flux[2,mask,ANALYS+1])
       sampsstt = mean(flux[2,mask,ANALYS+2])
