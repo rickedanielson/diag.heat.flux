@@ -234,24 +234,31 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.h
        cd       zali.recalib.true.iterate.true   ; diff zali.recalib.*.iterate.true/*calib.shfx*cali
        wrks ; rm commands
 
+# convert the triple collocation cal/val results to markdown
+wrks ; cd all/zali.recalib.false.iterate.true
+       jjj analysis.evaluation.table.performance.jl all.flux.daily.locate_2.0_calib*
+       cat all.flux.daily.locate_2.0_calib.shfx.got2000_obs.comb.cali.md all.flux.daily.locate_2.0_calib.lhfx.got2000_obs.coml.cali.md all.flux.daily.locate_2.0_calib.wspd.got2000_obs.comb.cali.md all.flux.daily.locate_2.0_calib.shum.got2000_obs.comb.cali.md all.flux.daily.locate_2.0_calib.sstt.got2000_obs.comt.cali.md all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt.cali.md > analysis.evaluation.table.performance.md
+       pandoc analysis.evaluation.table.performance.md -o analysis.evaluation.table.performance.html
+
 # perform a local triple collocation cal/val and convert the second-order polynomial coeffs to tables
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commands
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
        cd all
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.airt.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.lhfx.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.shfx.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.shum.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.sstt.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.wspd.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.airt.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.lhfx.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.shfx.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.shum.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.sstt.got2000_obs.com?.*
-       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.wspd.got2000_obs.com?.*
-       cat *trip.metrics > all.trip.metrics.md ; pandoc all.trip.metrics.md -o all.trip.metrics.html
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_calib.airt.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_calib.lhfx.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_calib.shfx.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_calib.shum.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_calib.sstt.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_calib.wspd.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_valid.airt.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_valid.lhfx.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_valid.shfx.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_valid.shum.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_valid.sstt.got2000_obs.com?.*
+       jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_valid.wspd.got2000_obs.com?.*
+       cat all.flux.daily.locate_2.0_calib.shfx.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.lhfx.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.wspd.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.shum.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.sstt.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.airt.got2000_obs.trip.metrics > analysis.evaluation.table.coefficients.md
+       pandoc analysis.evaluation.table.coefficients.md -o analysis.evaluation.table.coefficients.html
 
 # perform another eight-analysis evaulation, but this time with calibration (versus the 2.0_valid_remainder obs)
 jjj analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_remainder_obs shfx
