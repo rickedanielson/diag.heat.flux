@@ -216,14 +216,15 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation
 
 # perform a global triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
 wrks ; cd all ; mkdir zali.recalib.false.iterate.false zali.recalib.false.iterate.true zali.recalib.true.iterate.false zali.recalib.true.iterate.true
-wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort  > commands
+wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort  > commands
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort >> commands
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
-       mv *cali zali.recalib.false.iterate.false
+       mv *cali zali.recalib.false.iterate.false                            (following "grep const *colloc.discrete.triple* | grep -i alib")
        cd       zali.recalib.false.iterate.false ; cat *calib.shfx*cali *calib.lhfx*cali *calib.wspd*cali *calib.airt*cali *calib.sstt*cali *calib.shum*cali | grep const
                                                    cat *valid.shfx*cali *valid.lhfx*cali *valid.wspd*cali *valid.airt*cali *valid.sstt*cali *valid.shum*cali | grep const
        vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.j*
-       mv *cali zali.recalib.false.iterate.true
+       mv *cali zali.recalib.false.iterate.true                             (following "grep const *colloc.discrete.triple* | grep -i alib")
        cd       zali.recalib.false.iterate.true  ; cat *calib.shfx*cali *calib.lhfx*cali *calib.wspd*cali *calib.airt*cali *calib.sstt*cali *calib.shum*cali | grep const
                                                    cat *valid.shfx*cali *valid.lhfx*cali *valid.wspd*cali *valid.airt*cali *valid.sstt*cali *valid.shum*cali | grep const
        vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.j*
@@ -238,14 +239,22 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.h
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
        cd all
-       jjj 
-
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.airt.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.lhfx.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.shfx.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.shum.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.sstt.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_calib.wspd.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.airt.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.lhfx.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.shfx.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.shum.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.sstt.got2000_obs.com?.*
+       jjj analysis.evaluation.table.jl all.flux.daily.locate_2.0_valid.wspd.got2000_obs.com?.*
+       cat *trip.metrics > all.trip.metrics.md ; pandoc all.trip.metrics.md -o all.trip.metrics.html
 
 # perform another eight-analysis evaulation, but this time with calibration (versus the 2.0_valid_remainder obs)
 jjj analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_remainder_obs shfx
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_remainder_obs ::: shfx lhfx wspd airt sstt shum | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        rm commands ; cd all ; cat *shfx.summ *lhfx.summ *wspd.summ *airt.summ *sstt.summ *shum.summ
-
-# extra commands
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort >> commands
