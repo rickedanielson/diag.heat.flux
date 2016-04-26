@@ -64,7 +64,7 @@ xlab = Array(UTF8String, 0)                                                   # 
 xpos = Array(     Int64, 0)                                                   # (first date and then first day of
 date = "1999-10-01"                                                           #  each subsequent year)
 push!(xlab, "1 Oct\n$(date[1:4])") ; push!(xpos, 1)
-for a = 2:3745
+for a = 2:DAYS
   date = dateadd(date, 1, "dy")
   if date[6:10] == "01-01" && date[1:4] != "2000"
     push!(xlab, date[1:4]) ; push!(xpos, a)
