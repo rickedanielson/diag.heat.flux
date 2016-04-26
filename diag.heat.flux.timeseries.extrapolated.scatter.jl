@@ -28,119 +28,134 @@ if size(ARGS) != (2,)
   exit(1)
 end
 
-data = Array(Float64, PARAMS, SRCS, TIMS)
+shfi = 1.00 ; shfs = collect( -250.0 : shfi :  500.0) ; shfn = zeros(length(shfs), length(shfs))
+lhfi = 1.00 ; lhfs = collect( -500.0 : lhfi : 2000.0) ; lhfn = zeros(length(lhfs), length(lhfs))
+wspi = 0.10 ; wsps = collect(  -50.0 : wspi :  100.0) ; wspn = zeros(length(wsps), length(wsps))
+shui = 0.05 ; shus = collect(   -5.0 : shui :   30.0) ; shun = zeros(length(shus), length(shus))
+ssti = 0.05 ; ssts = collect(   -5.0 : ssti :   40.0) ; sstn = zeros(length(ssts), length(ssts))
+airi = 0.10 ; airs = collect(  -50.0 : airi :  100.0) ; airn = zeros(length(airs), length(airs))
 
-fpa = My.ouvre("$(ARGS[1])/$(ARGS[2])", "r")                                  # loop through the list of locations
-files = readlines(fpa) ; close(fpa)                                           # and read the three timeseries
+function count(bound::Array{Float64,1}, grid::Array{Float64,2}, bef::Float64, now::Float64, aft::Float64)
+  (bef < -3333 || now < -3333 || aft < -3333 || bef > 3333 || now > 3333 || aft > 3333) && return
+  delbef, indbef = findmin(abs(bound - bef)) ; bound[indbef] > bef && indbef > 1 && (indbef -= 1)
+  delnow, indnow = findmin(abs(bound - now)) ; bound[indnow] > now && indnow > 1 && (indnow -= 1)
+  delaft, indaft = findmin(abs(bound - aft)) ; bound[indaft] > aft && indaft > 1 && (indaft -= 1)
+  grid[indbef,indnow] += 1 ; grid[indaft,indnow] += 1
+end                                                                           # (grid boundaries refer to lower limits)
+
+fpa = My.ouvre("$(ARGS[1])/$(ARGS[2])", "r")                                  # loop through the list of locations and
+files = readlines(fpa) ; close(fpa)                                           # grid the three timeseries, where valid
 for fila in files
   fila = strip(fila)
   fpa = My.ouvre("$(ARGS[1])/$fila.bef", "r", false)
-  fpb = My.ouvre("$(ARGS[1])/$fila",     "r", false)
+  fpb = My.ouvre("$(ARGS[1])/$fila",     "r")
   fpc = My.ouvre("$(ARGS[1])/$fila.aft", "r", false)
-
-  lines = readlines(fpa) ; close(fpa)
-  for (a, line) in enumerate(lines)
-    vals = split(line)
-    data[SHFX,BEF,a] = float(vals[1])
-    data[LHFX,BEF,a] = float(vals[2])
-    data[WSPD,BEF,a] = float(vals[9])
-    data[AIRT,BEF,a] = float(vals[12])
-    data[SSTT,BEF,a] = float(vals[14])
-    data[SHUM,BEF,a] = float(vals[15])
+  for a = 1:TIMS
+    line = readline(fpa) ; vala = split(line)
+    line = readline(fpb) ; valb = split(line)
+    line = readline(fpc) ; valc = split(line)
+                           count(shfs, shfn, float(vala[ 1]), float(valb[ 1]), float(valc[ 1]))
+    ARGS[1] !=   "cfsr" && count(lhfs, lhfn, float(vala[ 2]), float(valb[ 2]), float(valc[ 2]))
+                           count(wsps, wspn, float(vala[ 9]), float(valb[ 9]), float(valc[ 9]))
+    ARGS[1] != "jofuro" && count(airs, airn, float(vala[12]), float(valb[12]), float(valc[12]))
+    ARGS[1] != "jofuro" && count(ssts, sstn, float(vala[14]), float(valb[14]), float(valc[14]))
+                           count(shus, shun, float(vala[15]), float(valb[15]), float(valc[15]))
   end
-
-  lines = readlines(fpb) ; close(fpb)
-  for (a, line) in enumerate(lines)
-    vals = split(line)
-    data[SHFX,NOW,a] = float(vals[1])
-    data[LHFX,NOW,a] = float(vals[2])
-    data[WSPD,NOW,a] = float(vals[9])
-    data[AIRT,NOW,a] = float(vals[12])
-    data[SSTT,NOW,a] = float(vals[14])
-    data[SHUM,NOW,a] = float(vals[15])
-  end
-
-  lines = readlines(fpc) ; close(fpc)
-  for (a, line) in enumerate(lines)
-    vals = split(line)
-    data[SHFX,AFT,a] = float(vals[1])
-    data[LHFX,AFT,a] = float(vals[2])
-    data[WSPD,AFT,a] = float(vals[9])
-    data[AIRT,AFT,a] = float(vals[12])
-    data[SSTT,AFT,a] = float(vals[14])
-    data[SHUM,AFT,a] = float(vals[15])
-  end
+  close(fpa)
+  close(fpb)
+  close(fpc)
 end
 
-keep = 1                                                                      # collapse the timeseries, excluding any
-for a = 1:TIMS                                                                # data for which one variable is poorly defined
-  flag = true
-  for b = 1:SRCS
-    for c = 1:PARAMS
-      if ((ARGS[1] ==   "cfsr" &&               c != LHFX)   ||
-          (ARGS[1] == "jofuro" && (c != SSTT || c != AIRT))) &&
-         data[c,b,a] <= -3333 || data[c,b,a] >= 3333  flag = false  end
+function point(bound::Array{Float64,1}, grid::Array{Float64,2})
+  xpts = Array(Float64, 0)
+  ypts = Array(Float64, 0)
+  zpts = Array(Float64, 0)
+  for (a, vala) in enumerate(bound)
+    for (b, valb) in enumerate(bound)
+      if grid[b,a] > 0
+        push!(xpts, vala)
+        push!(ypts, valb)
+        push!(zpts, float(grid[b,a]))
+      end
     end
   end
-
-  if flag
-    for b = 1:SRCS 
-      for c = 1:PARAMS
-        data[c,b,keep] = data[c,b,a]
-      end
-    end 
-    keep += 1
-  end
+  return(xpts, ypts, zpts)
 end
-keep -= 1
-print("kept $keep (out of $TIMS) times as valid for all variables\n")
+
+ARGS[1] ==        "cfsr" && (plotitle = "CFSR")
+ARGS[1] ==  "erainterim" && (plotitle = "ERA Interim")
+ARGS[1] ==       "hoaps" && (plotitle = "HOAPS")
+ARGS[1] == "ifremerflux" && (plotitle = "IfremerFlux")
+ARGS[1] ==      "jofuro" && (plotitle = "J-OFURO")
+ARGS[1] ==       "merra" && (plotitle = "MERRA")
+ARGS[1] ==      "oaflux" && (plotitle = "OAFlux")
+ARGS[1] ==     "seaflux" && (plotitle = "SeaFlux")
 
 ppp = Winston.Table(3,2) ; setattr(ppp, "cellpadding", -0.5)                  # and then create the scatterplots
 for z = 1:PARAMS
   if ((ARGS[1] ==   "cfsr" &&               z != LHFX)   ||
       (ARGS[1] == "jofuro" && (z != SSTT || z != AIRT)))
-    z == SHFX && (varname = "a) Sensible Heat Flux (Wm^{-2})" ; ymin = -100 ; ymax = 250 ; tpos = (1,1))
-    z == LHFX && (varname = "b) Latent Heat Flux (Wm^{-2})"   ; ymin = -250 ; ymax = 750 ; tpos = (1,2))
-    z == WSPD && (varname = "c) Wind Speed (ms^{-1})"         ; ymin =  -10 ; ymax =  30 ; tpos = (2,1))
-    z == SHUM && (varname = "d) Specific Humidity (g/kg)"     ; ymin =    5 ; ymax =  25 ; tpos = (2,2))
-    z == SSTT && (varname = "e) Sea Surface Temp (^{o}C)"     ; ymin =   20 ; ymax =  35 ; tpos = (3,1))
-    z == AIRT && (varname = "f) Air Temperature (^{o}C)"      ; ymin =   10 ; ymax =  35 ; tpos = (3,2))
+    z == SHFX && (varname = "a) Sensible Heat Flux (Wm^{-2})" ; (xpts, ypts, zpts) = point(shfs, shfn) ; tpos = (1,1) ; delt = shfi)
+    z == LHFX && (varname = "b) Latent Heat Flux (Wm^{-2})"   ; (xpts, ypts, zpts) = point(lhfs, lhfn) ; tpos = (1,2) ; delt = lhfi)
+    z == WSPD && (varname = "c) Wind Speed (ms^{-1})"         ; (xpts, ypts, zpts) = point(wsps, wspn) ; tpos = (2,1) ; delt = wspi)
+    z == SHUM && (varname = "d) Specific Humidity (g/kg)"     ; (xpts, ypts, zpts) = point(shus, shun) ; tpos = (2,2) ; delt = shui)
+    z == SSTT && (varname = "e) Sea Surface Temp (^{o}C)"     ; (xpts, ypts, zpts) = point(ssts, sstn) ; tpos = (3,1) ; delt = ssti)
+    z == AIRT && (varname = "f) Air Temperature (^{o}C)"      ; (xpts, ypts, zpts) = point(airs, airn) ; tpos = (3,2) ; delt = airi)
 
-    xmin = min(data[z,NOW,1:keep]...) - 1
-    xmax = max(data[z,NOW,1:keep]...) + 1
-    ymin = min(data[z,BEF,1:keep]...) - 1
-    ymax = max(data[z,BEF,1:keep]...) + 1
+    xpts += 0.5 * delt                                                        # make xpts and ypts refer to grid midpoints
+    ypts += 0.5 * delt                                                        # and locate the plot limits
+    xmin = minimum(xpts) - delt * 5
+    xmax = maximum(xpts) + delt * 5
+    ymin = minimum(ypts) - delt * 5
+    ymax = maximum(ypts) + delt * 5
+
+    cols = ["red",  "blue", "green", "orange", "black", "white"]
+    lims = [    1,      10,     100,     1000,   10000,  100000]
 
     tmp = Winston.FramedPlot(title="$varname", xrange = (xmin,xmax), yrange = (ymin,ymax))
     ppp[tpos...] = Winston.add(tmp)
 
-    ump = Winston.Points(data[z,NOW,1:keep], data[z,BEF,1:keep], kind = "filled circle", "color", parse(Winston.Colorant,   "red"), symbolsize = 0.1)
-          setattr(ump, label = "before")
-          Winston.add(ppp[tpos...], ump)
-    vmp = Winston.Points(data[z,NOW,1:keep], data[z,AFT,1:keep], kind =        "circle", "color", parse(Winston.Colorant, "green"), symbolsize = 0.1)
-          setattr(vmp, label = "after")
-          Winston.add(ppp[tpos...], vmp)
-    tmp = Winston.Legend(0.05, 0.85, Any[ump, vmp])
-          Winston.add(ppp[tpos...], tmp)
+    for (a, color) in enumerate(cols)
+      mask = zpts .>= lims[a]
+      tmp = Winston.Points(xpts[mask], ypts[mask], kind = "filled circle", "color", parse(Winston.Colorant, cols[a]), symbolsize = 0.1)
+            Winston.add(ppp[tpos...], tmp)
+      if z == SHFX
+        tmp = Winston.PlotLabel(0.05, 0.85, plotitle, "texthalign", "left", "size", 3.4)
+              Winston.add(ppp[tpos...], tmp)
+      end
+      if z == SSTT
+        tmp = Winston.PlotLabel(0.05, 1.05 - a * 0.1, "<span foreground=\"$(cols[length(cols) - a + 1])\">\\geq $(lims[length(cols) - a + 1])</span>", "texthalign", "left", "size", 1.4)
+              Winston.add(ppp[tpos...], tmp)
+      end
+    end
 
-    (intbef, slobef) = linreg(vec(data[z,NOW,1:keep]), vec(data[z,BEF,1:keep]))
-    tmp = Winston.Slope(slobef, (0, intbef), kind = "solid", "linewidth", 5, "color", parse(Winston.Colorant,   "red"))
-          Winston.add(ppp[tpos...], tmp)
-    (intaft, sloaft) = linreg(vec(data[z,NOW,1:keep]), vec(data[z,AFT,1:keep]))
-    tmp = Winston.Slope(sloaft, (0, intaft), kind = "solid", "linewidth", 5, "color", parse(Winston.Colorant, "green"))
+    (intbef, slobef) = linreg(xpts, ypts, zpts)
+    tmp = Winston.Slope(slobef, (0, intbef), kind = "solid", "linewidth", 5, "color", parse(Winston.Colorant, "green"))
           Winston.add(ppp[tpos...], tmp)
     tmp = Winston.Slope(     1, (0,      0), kind = "solid")
           Winston.add(ppp[tpos...], tmp)
   end
 end
 
-xyzzy = ARGS[1] * "scatter.png"
+xyzzy = "scatter." * ARGS[1] * ".png"
 print("writing $xyzzy\n")
 Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
 exit(0)
 
 
 #=
+    ump = Array(Any, length(cols))
+    ump[a] = Winston.Curve(specval[1:end,z], spectra[a,1:end,z], "color", parse(Winston.Colorant, cols[b]))
+             style(ump[a], kind = kynd[b])
+             setattr(ump[a], label = "($(specstr[a,z])) $(dirs[a])")
+             Winston.add(ppp[tpos...], ump[a])
+    b += 1
+  end
+  tmp = Winston.Legend(.23, .92, Any[ump[order[1]], ump[order[2]], ump[order[3]], ump[order[4]]])
+        Winston.add(ppp[tpos...], tmp)
+  tmp = Winston.Legend(.58, .92, Any[ump[order[5]], ump[order[6]], ump[order[7]], ump[order[8]]])
+        Winston.add(ppp[tpos...], tmp)
+
           title="$varname Spectra (dB)", xlog = true,
           xlabel="Timescale (days)", xrange = (1/1000,1/2), yrange = (ymin,ymax))
           xlog = true, xrange = (1/1000,1/2), yrange = (ymin,ymax))
@@ -153,8 +168,4 @@ exit(0)
   tpos[1] >= 2 && setattr(tmp.x2, :ticklabels_style, Dict{Symbol, Any}(:color => "transparent"))
   tpos[2] == 1 && setattr(tmp.y1, :ticklabels_style, Dict{Symbol, Any}(:color => "black"))
   tpos[2] == 2 && setattr(tmp.y1, :ticklabels_style, Dict{Symbol, Any}(:color => "transparent"))
-
-  ump = Array(Any, 8)
-  cols = [  "red",  "blue", "green", "orange",    "red",   "blue",  "green", "orange"]
-  kynd = ["solid", "solid", "solid",  "solid", "dashed", "dashed", "dashed", "dashed"]
 =#
