@@ -28,11 +28,11 @@ if size(ARGS) != (2,)
   exit(1)
 end
 
-shfi = 1.00 ; shfs = collect( -250.0 : shfi :  500.0) ; shfn = zeros(length(shfs), length(shfs))
-lhfi = 1.00 ; lhfs = collect( -500.0 : lhfi : 2000.0) ; lhfn = zeros(length(lhfs), length(lhfs))
-wspi = 0.10 ; wsps = collect(  -50.0 : wspi :  100.0) ; wspn = zeros(length(wsps), length(wsps))
-shui = 0.05 ; shus = collect(   -5.0 : shui :   30.0) ; shun = zeros(length(shus), length(shus))
-ssti = 0.05 ; ssts = collect(   -5.0 : ssti :   40.0) ; sstn = zeros(length(ssts), length(ssts))
+shfi = 1.00 ; shfs = collect( -500.0 : shfi : 1000.0) ; shfn = zeros(length(shfs), length(shfs))
+lhfi = 1.00 ; lhfs = collect(-1000.0 : lhfi : 2500.0) ; lhfn = zeros(length(lhfs), length(lhfs))
+wspi = 0.05 ; wsps = collect(  -40.0 : wspi :   80.0) ; wspn = zeros(length(wsps), length(wsps))
+shui = 0.05 ; shus = collect(  -15.0 : shui :   40.0) ; shun = zeros(length(shus), length(shus))
+ssti = 0.05 ; ssts = collect(  -25.0 : ssti :   50.0) ; sstn = zeros(length(ssts), length(ssts))
 airi = 0.10 ; airs = collect(  -50.0 : airi :  100.0) ; airn = zeros(length(airs), length(airs))
 
 function count(bound::Array{Float64,1}, grid::Array{Float64,2}, bef::Float64, now::Float64, aft::Float64)
@@ -124,7 +124,7 @@ for z = 1:PARAMS
               Winston.add(ppp[tpos...], tmp)
       end
       if z == SSTT
-        tmp = Winston.PlotLabel(0.05, 1.05 - a * 0.1, "<span foreground=\"$(cols[length(cols) - a + 1])\">\\geq $(lims[length(cols) - a + 1])</span>", "texthalign", "left", "size", 1.4)
+        tmp = Winston.PlotLabel(0.04, 1.05 - a * 0.1, "<span foreground=\"$(cols[length(cols) - a + 1])\">\\geq $(lims[length(cols) - a + 1])</span>", "texthalign", "left", "size", 1.4)
               Winston.add(ppp[tpos...], tmp)
       end
     end
