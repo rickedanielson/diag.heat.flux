@@ -23,10 +23,11 @@ const SRCS             = 3
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (2,)
-  print("\nUsage: jjj $(basename(@__FILE__)) cfsr z.list\n\n")
+if size(ARGS) != (2,) && size(ARGS) != (3,)
+  print("\nUsage: jjj $(basename(@__FILE__)) cfsr z.list [30]\n\n")
   exit(1)
 end
+maxfiles = 9e9 ; size(ARGS) == (3,) && (maxfiles = parse(Int64, ARGS[3]))
 
 shfi = 1.00 ; shfs = collect( -500.0 : shfi : 1000.0) ; shfn = zeros(length(shfs), length(shfs))
 lhfi = 1.00 ; lhfs = collect(-1000.0 : lhfi : 2500.0) ; lhfn = zeros(length(lhfs), length(lhfs))
@@ -43,14 +44,15 @@ function count(bound::Array{Float64,1}, grid::Array{Float64,2}, bef::Float64, no
   grid[indbef,indnow] += 1 ; grid[indaft,indnow] += 1
 end                                                                           # (grid boundaries refer to lower limits)
 
+nfile = 0
 fpa = My.ouvre("$(ARGS[1])/$(ARGS[2])", "r")                                  # loop through the list of locations and
 files = readlines(fpa) ; close(fpa)                                           # grid the three timeseries, where valid
-for fila in files
+for (a, fila) in enumerate(files)
   fila = strip(fila)
   fpa = My.ouvre("$(ARGS[1])/$fila.bef", "r", false)
   fpb = My.ouvre("$(ARGS[1])/$fila",     "r")
   fpc = My.ouvre("$(ARGS[1])/$fila.aft", "r", false)
-  for a = 1:TIMS
+  for b = 1:TIMS
     line = readline(fpa) ; vala = split(line)
     line = readline(fpb) ; valb = split(line)
     line = readline(fpc) ; valc = split(line)
@@ -64,7 +66,9 @@ for fila in files
   close(fpa)
   close(fpb)
   close(fpc)
+  nfile += 1 ; if nfile > maxfiles  break  end
 end
+print("read $nfile files\n")
 
 function point(bound::Array{Float64,1}, grid::Array{Float64,2})
   xpts = Array(Float64, 0)
@@ -93,8 +97,10 @@ ARGS[1] ==     "seaflux" && (plotitle = "SeaFlux")
 
 ppp = Winston.Table(3,2) ; setattr(ppp, "cellpadding", -0.5)                  # and then create the scatterplots
 for z = 1:PARAMS
-  if ((ARGS[1] ==   "cfsr" &&               z != LHFX)   ||
-      (ARGS[1] == "jofuro" && (z != SSTT || z != AIRT)))
+  if ( ARGS[1] ==  "erainterim" || ARGS[1] ==       "hoaps" || ARGS[1] == "ifremerflux" ||
+       ARGS[1] ==       "merra" || ARGS[1] ==      "oaflux" || ARGS[1] ==     "seaflux" ||
+      (ARGS[1] ==        "cfsr" &&              z != LHFX)   ||
+      (ARGS[1] ==      "jofuro" && z != SSTT && z != AIRT))
     z == SHFX && (varname = "a) Sensible Heat Flux (Wm^{-2})" ; (xpts, ypts, zpts) = point(shfs, shfn) ; tpos = (1,1) ; delt = shfi)
     z == LHFX && (varname = "b) Latent Heat Flux (Wm^{-2})"   ; (xpts, ypts, zpts) = point(lhfs, lhfn) ; tpos = (1,2) ; delt = lhfi)
     z == WSPD && (varname = "c) Wind Speed (ms^{-1})"         ; (xpts, ypts, zpts) = point(wsps, wspn) ; tpos = (2,1) ; delt = wspi)
