@@ -137,8 +137,10 @@ wrks ; cd cfsr ; ls z.list?? ; cd ..
        rm commands
 
 # plot forward and backward extrapolations versus the actual values for assessment of bias in the method
-wrks ; parallel --dry-run julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.scatter.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.list | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "xvfb-run -a" --mem=2000mb
+wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.scatter.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.list | grep flux | sort > commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
+       parallel --dry-run julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.list | grep flux | sort > commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "xvfb-run -a"
        rm commands
 
 # identify the subset of the ICOADS cal/val locations for which analyses are also available for much of 2001-2007 (call these the collocations)
