@@ -66,10 +66,29 @@ for (a, fila) in enumerate(files)
   close(fpa)
   close(fpb)
   close(fpc)
-  nfile += 1 ; if nfile > maxfiles  break  end
+  nfile += 1 ; if nfile >= maxfiles  break  end
 end
 print("read $nfile files\n")
 
+function store(bound::Array{Float64,1}, grid::Array{Float64,2}, fname::UTF8String)
+  fpa = My.ouvre(fname, "w")
+  for (a, vala) in enumerate(bound)
+    for (b, valb) in enumerate(bound)
+      @printf(fpa, "%15.8f\n", float(grid[b,a]))
+    end
+  end
+  close(fpa)
+end
+
+store(shfs, shfn, ARGS[1] * "_" * ARGS[2] * ".shfx.dat")
+store(lhfs, lhfn, ARGS[1] * "_" * ARGS[2] * ".lhfx.dat")
+store(wsps, wspn, ARGS[1] * "_" * ARGS[2] * ".wspd.dat")
+store(airs, airn, ARGS[1] * "_" * ARGS[2] * ".airt.dat")
+store(ssts, sstn, ARGS[1] * "_" * ARGS[2] * ".sstt.dat")
+store(shus, shun, ARGS[1] * "_" * ARGS[2] * ".shum.dat")
+exit(0)
+
+#=
 function point(bound::Array{Float64,1}, grid::Array{Float64,2})
   xpts = Array(Float64, 0)
   ypts = Array(Float64, 0)
@@ -110,10 +129,16 @@ for z = 1:PARAMS
 
     xpts += 0.5 * delt                                                        # make xpts and ypts refer to grid midpoints
     ypts += 0.5 * delt                                                        # and locate the plot limits
-    xmin = minimum(xpts) - delt * 5
-    xmax = maximum(xpts) + delt * 5
-    ymin = minimum(ypts) - delt * 5
-    ymax = maximum(ypts) + delt * 5
+#   xmin = minimum(xpts) - delt * 5
+#   xmax = maximum(xpts) + delt * 5
+#   ymin = minimum(ypts) - delt * 5
+#   ymax = maximum(ypts) + delt * 5
+    z == SHFX && (xmin = 200 ; xmax = 800 ; ymin =  ; ymax =  )
+    z == LHFX && (xmin =  ; xmax =  ; ymin =  ; ymax =  )
+    z == WSPD && (xmin =  ; xmax =  ; ymin =  ; ymax =  )
+    z == SHUM && (xmin =  ; xmax =  ; ymin =  ; ymax =  )
+    z == SSTT && (xmin =  ; xmax =  ; ymin =  ; ymax =  )
+    z == AIRT && (xmin =  ; xmax =  ; ymin =  ; ymax =  )
 
     cols = ["red",  "blue", "green", "orange", "black", "white"]
     lims = [    1,      10,     100,     1000,   10000,  100000]
@@ -147,7 +172,7 @@ xyzzy = "scatter." * ARGS[1] * ".png"
 print("writing $xyzzy\n")
 Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
 exit(0)
-
+=#
 
 #=
     ump = Array(Any, length(cols))
