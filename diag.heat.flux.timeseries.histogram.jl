@@ -21,12 +21,12 @@ if size(ARGS) != (2,) && size(ARGS) != (3,)
 end
 maxfiles = 9e9 ; size(ARGS) == (3,) && (maxfiles = parse(Int64, ARGS[3]))
 
-shfi = 1.00 ; shfs = collect( -600.0 : shfi : 1500.0) ; shfn = zeros(length(shfs))
-lhfi = 1.00 ; lhfs = collect(-1200.0 : lhfi : 2500.0) ; lhfn = zeros(length(lhfs))
-wspi = 0.05 ; wsps = collect(  -40.0 : wspi :   80.0) ; wspn = zeros(length(wsps))
-shui = 0.05 ; shus = collect(  -20.0 : shui :   50.0) ; shun = zeros(length(shus))
-ssti = 0.05 ; ssts = collect(  -20.0 : ssti :   50.0) ; sstn = zeros(length(ssts))
-airi = 0.10 ; airs = collect(  -40.0 : airi :   80.0) ; airn = zeros(length(airs))
+shfi = 1.0 ; shfs = collect( -600.0 : shfi : 1500.0) ; shfn = zeros(length(shfs))
+lhfi = 1.0 ; lhfs = collect(-1200.0 : lhfi : 2500.0) ; lhfn = zeros(length(lhfs))
+wspi = 0.1 ; wsps = collect(  -40.0 : wspi :   80.0) ; wspn = zeros(length(wsps))
+shui = 0.1 ; shus = collect(  -20.0 : shui :   50.0) ; shun = zeros(length(shus))
+ssti = 0.1 ; ssts = collect(  -20.0 : ssti :   50.0) ; sstn = zeros(length(ssts))
+airi = 0.2 ; airs = collect(  -40.0 : airi :   80.0) ; airn = zeros(length(airs))
 
 function count(bound::Array{Float64,1}, grid::Array{Float64,1}, now::Float64)
   (now < -3333 || now > 3333) && return
