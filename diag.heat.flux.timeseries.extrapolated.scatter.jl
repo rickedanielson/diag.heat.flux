@@ -62,6 +62,9 @@ for (a, fila) in enumerate(files)
     ARGS[1] != "jofuro" && count(airs, airn, float(vala[12]), float(valb[12]), float(valc[12]))
     ARGS[1] != "jofuro" && count(ssts, sstn, float(vala[14]), float(valb[14]), float(valc[14]))
                            count(shus, shun, float(vala[15]), float(valb[15]), float(valc[15]))
+#   if float(valb[ 1]) < 50 && (float(vala[ 1]) > 300 || float(valc[ 1]) > 300)
+#     @show vala ; @show valb ; @show valc
+#   end
   end
   close(fpa)
   close(fpb)
@@ -80,10 +83,10 @@ function store(bound::Array{Float64,1}, grid::Array{Float64,2}, fname::UTF8Strin
   close(fpa)
 end
 
-store(shfs, shfn, ARGS[1] * "_" * ARGS[2] * ".shfx.dat")
-store(lhfs, lhfn, ARGS[1] * "_" * ARGS[2] * ".lhfx.dat")
-store(wsps, wspn, ARGS[1] * "_" * ARGS[2] * ".wspd.dat")
-store(airs, airn, ARGS[1] * "_" * ARGS[2] * ".airt.dat")
-store(ssts, sstn, ARGS[1] * "_" * ARGS[2] * ".sstt.dat")
-store(shus, shun, ARGS[1] * "_" * ARGS[2] * ".shum.dat")
+store(shfs, shfn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".shfx.dat")
+store(lhfs, lhfn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".lhfx.dat")
+store(wsps, wspn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".wspd.dat")
+store(airs, airn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".airt.dat")
+store(ssts, sstn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".sstt.dat")
+store(shus, shun, "scatter." * ARGS[1] * "_" * ARGS[2] * ".shum.dat")
 exit(0)
