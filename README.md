@@ -134,7 +134,7 @@ wrks ; xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.times
        mv plot.avail.* all/plot.available
 
 # plot histograms
-wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histogram.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.list | grep flux | sort > commands
+wrks ; echo /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histogram.jl z.list > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
        rm commands
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl
@@ -146,21 +146,19 @@ wrks ; cd cfsr ; ls z.list?? ; cd ..
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        rm commands
 
-# plot forward and backward extrapolations versus the actual values for assessment of bias in the method
-wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.scatter.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.list | grep flux | sort > commands
+# plot extrapolation histograms (forward and backward versus the actual values for assessment of bias in the extrapolation method)
+wrks ; echo /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histogram.jl z.list > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
-       parallel --dry-run julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.list | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e "xvfb-run -a"
        rm commands
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl        cfsr z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl  erainterim z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl       hoaps z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl ifremerflux z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl      jofuro z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl       merra z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl      oaflux z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.tatter.jl     seaflux z.list
-       gzip scatter*dat ; mv scatter* all/scatter
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl        cfsr
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl  erainterim
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl       hoaps
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl ifremerflux
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl      jofuro
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl       merra
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl      oaflux
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl     seaflux
+       gzip extrapolated.histogr*dat ; mv extrapolated.histogr* all/plot.histogr
 
 # identify the subset of the ICOADS cal/val locations for which analyses are also available for much of 2001-2007 (call these the collocations)
 wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.0_calib

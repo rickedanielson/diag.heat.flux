@@ -50,10 +50,6 @@ restore(shus, shun, utf8("shum"))
 
 ppp = Winston.Table(3,2) ; setattr(ppp, "cellpadding", -0.5)                  # and then create the plots
 for z = 1:PARAMS
-# if ( ARGS[1] ==  "erainterim" || ARGS[1] ==       "hoaps" || ARGS[1] == "ifremerflux" ||
-#      ARGS[1] ==       "merra" || ARGS[1] ==      "oaflux" || ARGS[1] ==     "seaflux" ||
-#     (ARGS[1] ==        "cfsr" &&              z != LHFX)   ||
-#     (ARGS[1] ==      "jofuro" && z != SSTT && z != AIRT))
   z == SHFX && (varname = "a) Sensible Heat Flux (Wm^{-2})" ; bound = shfs ; grid = shfn ; tpos = (1,1) ; delt = shfi)
   z == LHFX && (varname = "b) Latent Heat Flux (Wm^{-2})"   ; bound = lhfs ; grid = lhfn ; tpos = (1,2) ; delt = lhfi)
   z == WSPD && (varname = "c) Wind Speed (ms^{-1})"         ; bound = wsps ; grid = wspn ; tpos = (2,1) ; delt = wspi)
@@ -94,3 +90,9 @@ xyzzy = "histogr_z.list.png"
 print("writing $xyzzy\n")
 Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
 exit(0)
+
+
+# if ( ARGS[1] ==  "erainterim" || ARGS[1] ==       "hoaps" || ARGS[1] == "ifremerflux" ||
+#      ARGS[1] ==       "merra" || ARGS[1] ==      "oaflux" || ARGS[1] ==     "seaflux" ||
+#     (ARGS[1] ==        "cfsr" &&              z != LHFX)   ||
+#     (ARGS[1] ==      "jofuro" && z != SSTT && z != AIRT))

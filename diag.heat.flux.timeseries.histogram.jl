@@ -19,7 +19,7 @@ if size(ARGS) != (1,) && size(ARGS) != (2,)
   print("\nUsage: jjj $(basename(@__FILE__)) z.list [30]\n\n")
   exit(1)
 end
-maxfiles = 9e9 ; size(ARGS) == (3,) && (maxfiles = parse(Int64, ARGS[3]))
+maxfiles = 9e9 ; size(ARGS) == (2,) && (maxfiles = parse(Int64, ARGS[2]))
 
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
 dirn = length(dirs)
