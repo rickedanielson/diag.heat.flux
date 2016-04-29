@@ -21,6 +21,7 @@ if size(ARGS) != (0,)
 end
 
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
+dirs = ["cfsr"]
 dirn = length(dirs)
 
 shfi = 1.0 ; shfs = collect( -600.0 : shfi : 1500.0) ; shfn = zeros(length(shfs), length(dirs))
@@ -31,15 +32,13 @@ ssti = 0.1 ; ssts = collect(  -20.0 : ssti :   50.0) ; sstn = zeros(length(ssts)
 airi = 0.2 ; airs = collect(  -40.0 : airi :   80.0) ; airn = zeros(length(airs), length(dirs))
 
 function restore(bound::Array{Float64,1}, grid::Array{Float64,2}, pname::UTF8String)
-  for a = 1:dirn
-    fname = "histogr." * dirs[a] * "_z.list." * pname * ".dat"
-    fpa = My.ouvre(fname, "r")
-    for (b, valb) in enumerate(bound)
-      line = readline(fpa)
-      grid[b,a], = float(split(line))
-    end
-    close(fpa)
+  fname = "histogr." * pname * ".dat"
+  fpa = My.ouvre(fname, "r")
+  for (a, vala) in enumerate(bound)
+    line = readline(fpa)
+    (grid[a,1], grid[a,2], grid[a,3], grid[a,4], grid[a,5], grid[a,6], grid[a,7], grid[a,8]) = float(split(line))
   end
+  close(fpa)
 end
 
 restore(shfs, shfn, utf8("shfx"))
@@ -65,10 +64,10 @@ for z = 1:PARAMS
   bound += 0.5 * delt                                                         # make bound refer to grid midpoints
   z == SHFX && (xmin =  -50 ; xmax =  100 ; ymin = 0 ; ymax =1700000)         # and locate the plot limits
   z == LHFX && (xmin =  -80 ; xmax =  400 ; ymin = 0 ; ymax = 250000)
-  z == WSPD && (xmin =   -2 ; xmax =   23 ; ymin = 0 ; ymax = 220000)
-  z == SHUM && (xmin =    0 ; xmax =   23 ; ymin = 0 ; ymax = 200000)
-  z == SSTT && (xmin =   -5 ; xmax =   35 ; ymin = 0 ; ymax = 180000)
-  z == AIRT && (xmin =  -14 ; xmax =   36 ; ymin = 0 ; ymax = 400000)
+  z == WSPD && (xmin =   -2 ; xmax =   23 ; ymin = 0 ; ymax = 450000)
+  z == SHUM && (xmin =    0 ; xmax =   23 ; ymin = 0 ; ymax = 400000)
+  z == SSTT && (xmin =   -5 ; xmax =   35 ; ymin = 0 ; ymax = 350000)
+  z == AIRT && (xmin =  -14 ; xmax =   36 ; ymin = 0 ; ymax = 800000)
 
   ump = Array(Any, 8)
   cols = [  "red",  "blue", "green", "orange",    "red",   "blue",  "green", "orange"]

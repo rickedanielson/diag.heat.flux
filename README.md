@@ -32,13 +32,15 @@ wrks ; cd coads
 wrks ; mkdir all ; cat coads/ICOADS*dat.flux > all/all.flux ; cd all
        jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
        jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux /home/ricani/data/topography/elev.0.25-deg.nc
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; di plot.ocean.heat.flux.dots.all.flux.locate.png
+       xvfb-run -a grads -blc "coads.gts.ncepnrt.heat.flux.locate all.flux.locate" ; mv plot.ocean.heat.flux.dots.all.flux.locate.png plot.locate
 
 # identify all locations with at least one daily-average observation
 wrks ; mkdir all ; cat coads/ICOADS*dat.flux.daily > all/all.flux.daily ; cd all
+       mkdir plot.available plot.histogr plot.locate plot.scatter
        jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
        jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/ricani/data/topography/elev.0.25-deg.nc
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate" ; di plot.ocean.heat.flux.dots.all.flux.daily.locate.png
+       xvfb-run -a grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate"
+       mv plot.ocean.heat.flux.dots*locate*png plot.locate
 
 # make an initial split of the daily-average observations into cal/val groups (based only on insitu, and not analysis, availability)
 wrks ; cd all
@@ -47,12 +49,12 @@ wrks ; cd all
        mv all.flux.daily.locate_2.0_valid           all.flux.daily.locate_2.0_calib_remainder
        mv all.flux.daily.locate_2.0_valid_2.0_calib all.flux.daily.locate_2.0_valid
        mv all.flux.daily.locate_2.0_valid_2.0_valid all.flux.daily.locate_2.0_valid_remainder
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate"
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib"
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib_remainder"
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid"
-       grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid_remainder"
-       di plot.ocean.heat.flux.dots.all.flux.daily*png
+       xvfb-run -a grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate"
+       xvfb-run -a grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib"
+       xvfb-run -a grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib_remainder"
+       xvfb-run -a grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid"
+       xvfb-run -a grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid_remainder"
+       mv plot.ocean.heat.flux.dots*locate*png plot.locate
 
 # further split the in situ cal/val observations by location and store files in an insitu dir
 wrks ; mkdir insitu
@@ -129,20 +131,14 @@ wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF | grep -v .bef | grep -v .aft >
 wrks ; xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.available.jl ....45.000...-48.500
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.available.jl ....55.000...-12.500
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.available.jl ....48.750...-12.500
+       mv plot.avail.* all/plot.available
 
 # plot histograms
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histogram.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.list | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
        rm commands
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl        cfsr z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl  erainterim z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl       hoaps z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl ifremerflux z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl      jofuro z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl       merra z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl      oaflux z.list
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl     seaflux z.list
-       gzip scatter*dat ; mv scatter* all/scatter
+       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl
+       gzip histogr*dat ; mv histogr* all/plot.histogr
 
 # create the forward and backward extrapolated timeseries
 wrks ; cd cfsr ; ls z.list?? ; cd ..
