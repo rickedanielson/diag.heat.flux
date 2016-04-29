@@ -1,9 +1,9 @@
 #=
- = Loop through timeseries of a given analysis and plot the corresponding forward and
- = backward extrapolated timeseries, for all available variables, relative to actual
+ = Loop through the timeseries of all analyses and plot the corresponding forward and
+ = backward extrapolated timeseries of all available variables, relative to the actual
  = (uninterpolated) values.  Note that BEF refers to an interpolation using analysis
- = data from before the extrapolation; AFT extrapolations use analysis data afterward
- = - RD April 2016.
+ = data from before the extrapolation; AFT extrapolations use analysis data afterward.
+ = Where one analysis is unavailable, all analyses are skipped - RD April 2016.
  =#
 
 using My, Winston
@@ -23,60 +23,64 @@ const SRCS             = 3
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (2,)
-  print("\nUsage: jjj $(basename(@__FILE__)) cfsr z.list\n\n")
+if size(ARGS) != (1,)
+  print("\nUsage: jjj $(basename(@__FILE__)) cfsr\n\n")
   exit(1)
 end
 
-shfi = 1.00 ; shfs = collect( -600.0 : shfi : 1500.0) ; shfn = zeros(length(shfs), length(shfs))
-lhfi = 1.00 ; lhfs = collect(-1200.0 : lhfi : 2500.0) ; lhfn = zeros(length(lhfs), length(lhfs))
-wspi = 0.05 ; wsps = collect(  -40.0 : wspi :   80.0) ; wspn = zeros(length(wsps), length(wsps))
-shui = 0.05 ; shus = collect(  -20.0 : shui :   50.0) ; shun = zeros(length(shus), length(shus))
-ssti = 0.05 ; ssts = collect(  -20.0 : ssti :   50.0) ; sstn = zeros(length(ssts), length(ssts))
-airi = 0.10 ; airs = collect(  -40.0 : airi :   80.0) ; airn = zeros(length(airs), length(airs))
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
+dirn = length(dirs)
 
-function restore(bound::Array{Float64,1}, grid::Array{Float64,2}, fname::UTF8String)
+shfi = 1.0 ; shfs = collect( -600.0 : shfi : 1500.0) ; shfn = zeros(length(shfs), length(shfs), length(dirs))
+lhfi = 1.0 ; lhfs = collect(-1200.0 : lhfi : 2500.0) ; lhfn = zeros(length(lhfs), length(lhfs), length(dirs))
+wspi = 0.1 ; wsps = collect(  -40.0 : wspi :   80.0) ; wspn = zeros(length(wsps), length(wsps), length(dirs))
+shui = 0.1 ; shus = collect(  -20.0 : shui :   50.0) ; shun = zeros(length(shus), length(shus), length(dirs))
+ssti = 0.1 ; ssts = collect(  -20.0 : ssti :   50.0) ; sstn = zeros(length(ssts), length(ssts), length(dirs))
+airi = 0.2 ; airs = collect(  -40.0 : airi :   80.0) ; airn = zeros(length(airs), length(airs), length(dirs))
+
+function restore(bound::Array{Float64,1}, grid::Array{Float64,3}, pname::UTF8String)
+  fname = "extrapolated.histogr." * pname * ".dat"
   fpa = My.ouvre(fname, "r")
   for (a, vala) in enumerate(bound)
     for (b, valb) in enumerate(bound)
       line = readline(fpa)
-      grid[b,a], = float(split(line))
+      (grid[b,a,1], grid[b,a,2], grid[b,a,3], grid[b,a,4], grid[b,a,5], grid[b,a,6], grid[b,a,7], grid[b,a,8]) = float(split(line))
     end
   end
   close(fpa)
 end
 
-restore(shfs, shfn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".shfx.dat")
-restore(lhfs, lhfn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".lhfx.dat")
-restore(wsps, wspn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".wspd.dat")
-restore(airs, airn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".airt.dat")
-restore(ssts, sstn, "scatter." * ARGS[1] * "_" * ARGS[2] * ".sstt.dat")
-restore(shus, shun, "scatter." * ARGS[1] * "_" * ARGS[2] * ".shum.dat")
+restore(shfs, shfn, utf8("shfx"))
+restore(lhfs, lhfn, utf8("lhfx"))
+restore(wsps, wspn, utf8("wspd"))
+restore(airs, airn, utf8("airt"))
+restore(ssts, sstn, utf8("sstt"))
+restore(shus, shun, utf8("shum"))
 
-function point(bound::Array{Float64,1}, grid::Array{Float64,2})
+function point(bound::Array{Float64,1}, grid::Array{Float64,3}, plotind::Int64)
   xpts = Array(Float64, 0)
   ypts = Array(Float64, 0)
   zpts = Array(Float64, 0)
   for (a, vala) in enumerate(bound)
     for (b, valb) in enumerate(bound)
-      if grid[b,a] > 0
+      if grid[b,a,plotind] > 0
         push!(xpts, vala)
         push!(ypts, valb)
-        push!(zpts, float(grid[b,a]))
+        push!(zpts, float(grid[b,a,plotind]))
       end
     end
   end
   return(xpts, ypts, zpts)
 end
 
-ARGS[1] ==        "cfsr" && (plotitle = "CFSR")
-ARGS[1] ==  "erainterim" && (plotitle = "ERA Interim")
-ARGS[1] ==       "hoaps" && (plotitle = "HOAPS")
-ARGS[1] == "ifremerflux" && (plotitle = "IfremerFlux")
-ARGS[1] ==      "jofuro" && (plotitle = "J-OFURO")
-ARGS[1] ==       "merra" && (plotitle = "MERRA")
-ARGS[1] ==      "oaflux" && (plotitle = "OAFlux")
-ARGS[1] ==     "seaflux" && (plotitle = "SeaFlux")
+ARGS[1] ==        "cfsr" && (plotind = 1 ; plotitle = "CFSR")
+ARGS[1] ==  "erainterim" && (plotind = 2 ; plotitle = "ERA Interim")
+ARGS[1] ==       "hoaps" && (plotind = 3 ; plotitle = "HOAPS")
+ARGS[1] == "ifremerflux" && (plotind = 4 ; plotitle = "IfremerFlux")
+ARGS[1] ==      "jofuro" && (plotind = 5 ; plotitle = "J-OFURO")
+ARGS[1] ==       "merra" && (plotind = 6 ; plotitle = "MERRA")
+ARGS[1] ==      "oaflux" && (plotind = 7 ; plotitle = "OAFlux")
+ARGS[1] ==     "seaflux" && (plotind = 8 ; plotitle = "SeaFlux")
 
 ppp = Winston.Table(3,2) ; setattr(ppp, "cellpadding", -0.5)                  # and then create the scatterplots
 for z = 1:PARAMS
@@ -84,12 +88,12 @@ for z = 1:PARAMS
        ARGS[1] ==       "merra" || ARGS[1] ==      "oaflux" || ARGS[1] ==     "seaflux" ||
       (ARGS[1] ==        "cfsr" &&              z != LHFX)   ||
       (ARGS[1] ==      "jofuro" && z != SSTT && z != AIRT))
-    z == SHFX && (varname = "a) Sensible Heat Flux (Wm^{-2})" ; (xpts, ypts, zpts) = point(shfs, shfn) ; tpos = (1,1) ; delt = shfi)
-    z == LHFX && (varname = "b) Latent Heat Flux (Wm^{-2})"   ; (xpts, ypts, zpts) = point(lhfs, lhfn) ; tpos = (1,2) ; delt = lhfi)
-    z == WSPD && (varname = "c) Wind Speed (ms^{-1})"         ; (xpts, ypts, zpts) = point(wsps, wspn) ; tpos = (2,1) ; delt = wspi)
-    z == SHUM && (varname = "d) Specific Humidity (g/kg)"     ; (xpts, ypts, zpts) = point(shus, shun) ; tpos = (2,2) ; delt = shui)
-    z == SSTT && (varname = "e) Sea Surface Temp (^{o}C)"     ; (xpts, ypts, zpts) = point(ssts, sstn) ; tpos = (3,1) ; delt = ssti)
-    z == AIRT && (varname = "f) Air Temperature (^{o}C)"      ; (xpts, ypts, zpts) = point(airs, airn) ; tpos = (3,2) ; delt = airi)
+    z == SHFX && (varname = "a) Sensible Heat Flux (Wm^{-2})" ; (xpts, ypts, zpts) = point(shfs, shfn, plotind) ; tpos = (1,1) ; delt = shfi)
+    z == LHFX && (varname = "b) Latent Heat Flux (Wm^{-2})"   ; (xpts, ypts, zpts) = point(lhfs, lhfn, plotind) ; tpos = (1,2) ; delt = lhfi)
+    z == WSPD && (varname = "c) Wind Speed (ms^{-1})"         ; (xpts, ypts, zpts) = point(wsps, wspn, plotind) ; tpos = (2,1) ; delt = wspi)
+    z == SHUM && (varname = "d) Specific Humidity (g/kg)"     ; (xpts, ypts, zpts) = point(shus, shun, plotind) ; tpos = (2,2) ; delt = shui)
+    z == SSTT && (varname = "e) Sea Surface Temp (^{o}C)"     ; (xpts, ypts, zpts) = point(ssts, sstn, plotind) ; tpos = (3,1) ; delt = ssti)
+    z == AIRT && (varname = "f) Air Temperature (^{o}C)"      ; (xpts, ypts, zpts) = point(airs, airn, plotind) ; tpos = (3,2) ; delt = airi)
 
     xpts += 0.5 * delt                                                        # make xpts and ypts refer to grid midpoints
     ypts += 0.5 * delt                                                        # and locate the plot limits
@@ -132,7 +136,7 @@ for z = 1:PARAMS
   end
 end
 
-xyzzy = "scatter." * ARGS[1] * ".png"
+xyzzy = "extrapolated." * ARGS[1] * ".png"
 print("writing $xyzzy\n")
 Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
 exit(0)

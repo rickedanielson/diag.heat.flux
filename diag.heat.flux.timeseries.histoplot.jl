@@ -21,7 +21,6 @@ if size(ARGS) != (0,)
 end
 
 dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
-dirs = ["cfsr"]
 dirn = length(dirs)
 
 shfi = 1.0 ; shfs = collect( -600.0 : shfi : 1500.0) ; shfn = zeros(length(shfs), length(dirs))
