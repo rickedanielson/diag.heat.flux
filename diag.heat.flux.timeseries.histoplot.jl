@@ -57,14 +57,14 @@ for z = 1:PARAMS
   z == AIRT && (varname = "f) Air Temperature (^{o}C)"      ; bound = airs ; grid = airn ; tpos = (3,2) ; delt = airi)
 
   bound += 0.5 * delt                                                         # make bound refer to grid midpoints
-  z == SHFX && (xmin =  -50 ; xmax =  100 ; ymin = 0 ; ymax =1700000)         # and locate the plot limits
-  z == LHFX && (xmin =  -80 ; xmax =  400 ; ymin = 0 ; ymax = 250000)
-  z == WSPD && (xmin =   -2 ; xmax =   23 ; ymin = 0 ; ymax = 450000)
-  z == SHUM && (xmin =    0 ; xmax =   23 ; ymin = 0 ; ymax = 400000)
-  z == SSTT && (xmin =   -5 ; xmax =   35 ; ymin = 0 ; ymax = 350000)
-  z == AIRT && (xmin =  -14 ; xmax =   36 ; ymin = 0 ; ymax = 800000)
+  z == SHFX && (xmin = -25 ; xmax =   50 ; ymin = 0 ; ymax =1200000)          # and locate the plot limits
+  z == LHFX && (xmin = -60 ; xmax =  340 ; ymin = 0 ; ymax = 170000)
+  z == WSPD && (xmin =  -1 ; xmax =   20 ; ymin = 0 ; ymax = 300000)
+  z == SHUM && (xmin =   0 ; xmax =   23 ; ymin = 0 ; ymax = 250000)
+  z == SSTT && (xmin =  -2 ; xmax =   33 ; ymin = 0 ; ymax = 230000)
+  z == AIRT && (xmin =  -4 ; xmax =   32 ; ymin = 0 ; ymax = 500000)
 
-  ump = Array(Any, 8)
+  ump = Array(Any, dirn)
   cols = [  "red",  "blue", "green", "orange",    "red",   "blue",  "green", "orange"]
   kynd = ["solid", "solid", "solid",  "solid", "dashed", "dashed", "dashed", "dashed"]
 

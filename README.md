@@ -36,7 +36,7 @@ wrks ; mkdir all ; cat coads/ICOADS*dat.flux > all/all.flux ; cd all
 
 # identify all locations with at least one daily-average observation
 wrks ; mkdir all ; cat coads/ICOADS*dat.flux.daily > all/all.flux.daily ; cd all
-       mkdir plot.available plot.histogr plot.locate plot.scatter
+       mkdir plot.available plot.histogr plot.locate
        jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc
        jjj coads.gts.ncepnrt.heat.flux.locate.jl all.flux.daily /home/ricani/data/topography/elev.0.25-deg.nc
        xvfb-run -a grads -blc "coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate"
@@ -144,12 +144,10 @@ wrks ; echo /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histogr
 wrks ; cd cfsr ; ls z.list?? ; cd ..
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.listaa z.listab z.listac z.listad z.listae z.listaf z.listag z.listah | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-       rm commands
+RD     rm commands
 
 # plot extrapolation histograms (forward and backward versus the actual values for assessment of bias in the extrapolation method)
-wrks ; echo /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histogram.jl z.list > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
-       rm commands
+wrks ; nohup julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histogram.jl z.list > extrapolated.xcom &
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl        cfsr
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl  erainterim
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl       hoaps
@@ -158,7 +156,7 @@ wrks ; echo /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapo
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl       merra
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl      oaflux
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl     seaflux
-       gzip extrapolated.histogr*dat ; mv extrapolated.histogr* all/plot.histogr
+       gzip extrapolated.histogr*dat extrapolated.xcom ; mv extrapolated* all/plot.histogr
 
 # identify the subset of the ICOADS cal/val locations for which analyses are also available for much of 2001-2007 (call these the collocations)
 wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.0_calib

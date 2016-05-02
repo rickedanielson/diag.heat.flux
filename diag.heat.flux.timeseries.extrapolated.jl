@@ -58,7 +58,11 @@ for fila in files
     for b = 1+outer:TIMS-outer
       tmp = vec(data[a,NOW,b-inner:b+inner])
       if all(-333 .< tmp .< 3333)
+        tmpmax = maximum(tmp)
+        tmpmin = minimum(tmp)
         itp = interpolate(tmp, BSpline(Quadratic(Line())), OnCell())
+        itp[10] > tmpmax && (itp[10] = tmpmax) ; itp[10] < tmpmin && (itp[10] = tmpmin)
+        itp[ 0] > tmpmax && (itp[ 0] = tmpmax) ; itp[ 0] < tmpmin && (itp[ 0] = tmpmin)
         data[a,BEF,b+outer] = itp[10]
         data[a,AFT,b-outer] = itp[0]
       else
