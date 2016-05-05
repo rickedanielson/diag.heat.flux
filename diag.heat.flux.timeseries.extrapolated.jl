@@ -61,10 +61,10 @@ for fila in files
         tmpmax = maximum(tmp)
         tmpmin = minimum(tmp)
         itp = interpolate(tmp, BSpline(Quadratic(Line())), OnCell())
-        itp[10] > tmpmax && (itp[10] = tmpmax) ; itp[10] < tmpmin && (itp[10] = tmpmin)
-        itp[ 0] > tmpmax && (itp[ 0] = tmpmax) ; itp[ 0] < tmpmin && (itp[ 0] = tmpmin)
-        data[a,BEF,b+outer] = itp[10]
-        data[a,AFT,b-outer] = itp[0]
+        tmpbef = itp[10] ; tmpbef > tmpmax && (tmpbef = tmpmax) ; tmpbef < tmpmin && (tmpbef = tmpmin)
+        tmpaft = itp[ 0] ; tmpaft > tmpmax && (tmpaft = tmpmax) ; tmpaft < tmpmin && (tmpaft = tmpmin)
+        data[a,BEF,b+outer] = tmpbef
+        data[a,AFT,b-outer] = tmpaft
       else
         data[a,BEF,b+outer] = data[a,AFT,b-outer] = MISS
       end

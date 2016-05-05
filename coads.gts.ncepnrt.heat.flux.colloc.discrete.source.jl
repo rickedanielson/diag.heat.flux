@@ -31,16 +31,24 @@ elseif contains(ARGS[1], "airt") || contains(ARGS[1], "sstt")
 else
   dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"] ; fend = ".comb"
 end
-(dirn,) = size(dirs)
+dirn = length(dirs)
+
+function read_nth_line(fn::AbstractString, ln::Int64)
+  stream = open(fn, "r")
+  for i = 1:ln-1  readline(stream)  end
+  line =          readline(stream)
+  close(stream)
+  return line
+end
 
 fpa = My.ouvre(ARGS[1],        "r")
 fpb = My.ouvre(ARGS[1] * fend, "w")
 
 for line in eachline(fpa)                                                     # loop through the insitu locations
   vals = split(line)
-  dat =       vals[ 4][1:8] ; datind = round(Int, My.datesous("19990930", dat, "dy"))
-  lat = float(vals[ 5])
-  lon = float(vals[ 6]) ; lon < -180 && (lon += 360) ; lon > 180 && (lon -= 360)
+  dat =       vals[   4][1:8] ; datind = round(Int, My.datesous("19990930", dat, "dy"))
+  lat = float(vals[   5])
+  lon = float(vals[   6]) ; lon < -180 && (lon += 360) ; lon > 180 && (lon -= 360)
   flx = float(vals[vind])
   hum = float(vals[SHUM])
   spd = float(vals[WSPD])
@@ -53,16 +61,12 @@ for line in eachline(fpa)                                                     # 
   aft = fill(MISS, dirn)
   flag = true
   for (a, dira) in enumerate(dirs)
-    fpc = My.ouvre("$dira/$dira.$tail.bef", "r", false) ; linb = readlines(fpc) ; close(fpc) ; fpc = 0
-    fpd = My.ouvre("$dira/$dira.$tail.aft", "r", false) ; lina = readlines(fpd) ; close(fpd) ; fpd = 0
-
-    tmp = split(linb[datind]) ; bef[a] = float(tmp[vind])
-                                newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != newdat")  end
-    tmp = split(lina[datind]) ; aft[a] = float(tmp[vind])
-                                newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != newdat")  end
+    tmp = split(read_nth_line("$dira/$dira.$tail.bef", datind)) ; bef[a] = float(tmp[vind])
+    newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != $newdat") ; exit(-1)  end
+    tmp = split(read_nth_line("$dira/$dira.$tail.aft", datind)) ; aft[a] = float(tmp[vind])
+    newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != $newdat") ; exit(-1)  end
     if bef[a] < -333.0 || bef[a] > 3333.0 || aft[a] < -333.0 || aft[a] > 3333.0  flag = false  end
   end
-  gc()
 
   if flag                                                                     # and store the line if all values exist
     for (a, dira) in enumerate(dirs)

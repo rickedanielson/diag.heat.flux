@@ -140,11 +140,19 @@ wrks ; echo /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histogr
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.histoplot.jl
        gzip histogr*dat ; mv histogr* all/plot.histogr
 
-# create the forward and backward extrapolated timeseries
+# create the forward and backward extrapolated timeseries (save old extrapolations first)
+wrks ; cd cfsr        ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
+       cd erainterim  ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
+       cd hoaps       ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
+       cd ifremerflux ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
+       cd merra       ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
+       cd oaflux      ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
+       cd seaflux     ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
+       cd jofuro      ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
 wrks ; cd cfsr ; ls z.list?? ; cd ..
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.listaa z.listab z.listac z.listad z.listae z.listaf z.listag z.listah | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-RD     rm commands
+       rm commands
 
 # plot extrapolation histograms (forward and backward versus the actual values for assessment of bias in the extrapolation method)
 wrks ; nohup julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histogram.jl z.list > extrapolated.xcom &
@@ -159,7 +167,8 @@ wrks ; nohup julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.
        gzip extrapolated.histogr*dat extrapolated.xcom ; mv extrapolated* all/plot.histogr
 
 # identify the subset of the ICOADS cal/val locations for which analyses are also available for much of 2001-2007 (call these the collocations)
-wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.0_calib
+wrks ; mkdir fft
+       split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.0_calib
        split -l 400 all/all.flux.daily.locate_2.0_valid all.flux.daily.locate_2.0_valid
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.jl ::: all.flux.daily.locate_2.0_?ali??? ::: shfx lhfx wspd airt sstt shum | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
@@ -192,7 +201,8 @@ wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.
        mv commands all.flux.daily.locate_2.0_?ali?* all/limbo
 
 # plot the location and distribution of the collocations
-       echo julia /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.distribution.plot.jl all/all.flux.daily.locate_2.0_calib.????.got2000 > commands
+wrks ; cd all
+       echo julia /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.distribution.plot.jl all.flux.daily.locate_2.0_calib.????.got2000 > commands
        echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib.shfx.got2000\" >> commands
        echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib.lhfx.got2000\" >> commands
        echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_calib.wspd.got2000\" >> commands
@@ -218,7 +228,7 @@ wrks ; split -l 400 all/all.flux.daily.locate_2.0_calib all.flux.daily.locate_2.
        echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid.sstt.not2000\" >> commands
        echo grads -blc \"coads.gts.ncepnrt.heat.flux.locate.daily all.flux.daily.locate_2.0_valid.shum.not2000\" >> commands ; echo "
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e xvfb-run --mem=2000mb
-       rm commands ; di plot.ocean.heat.flux.dots.all.flux.daily.locate_2.0_?ali?.????.?ot2000.png
+       rm commands ; mv plot.ocean.heat.flux.dots.all.flux.daily.locate_2.0_?ali?.????.?ot2000.png plot.locate
 
 # plot the all-collocation-averaged (weighted by daily obs number) one-sided NFFT spectra for each variable and identify submonthly variance
 wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.avg.jl  ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000      | grep flux | sort > commands
@@ -234,7 +244,7 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs      | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
-       rm commands
+RD     rm commands
 
 # perform a global triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
 wrks ; cd all ; mkdir zali.recalib.false.iterate.false zali.recalib.false.iterate.true zali.recalib.true.iterate.false zali.recalib.true.iterate.true
