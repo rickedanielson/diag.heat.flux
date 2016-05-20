@@ -50,7 +50,7 @@ const MISS             = -9999.0                        # generic missing value
 const FRAC             = 2.0 / 3.0                      # fractional update during iterations
 const DELTA            = 0.001                          # generic convergence criterion
 
-if size(ARGS) != (1,)
+if (argc = length(ARGS)) != 1
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.common.shf\n\n")
   exit(1)
 end

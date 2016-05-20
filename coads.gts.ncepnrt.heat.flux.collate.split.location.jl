@@ -12,7 +12,7 @@ const LOTS             = 1000
 const TIMS             = 3745                           # number in timeseries
 const START            = 2                              # make START-1 a valid array index
 
-if size(ARGS) != (2,)
+if (argc = length(ARGS)) != 2
   print("\nUsage: jjj $(basename(@__FILE__)) all/all.flux.daily_2.0_locate.calib all.flux.daily.sort\n\n")
   exit(1)
 end

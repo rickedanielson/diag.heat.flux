@@ -6,7 +6,7 @@
 
 using My
 
-if size(ARGS) == (0,)
+if (argc = length(ARGS)) != 1
   print("\nUsage: jjj $(basename(@__FILE__)) ICOADS_R3_Beta3_200001.dat.flux\n\n")
   exit(1)
 end

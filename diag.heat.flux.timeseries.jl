@@ -26,7 +26,7 @@ const HGTU             = 17
 const HGTT             = 18
 const PARAMS           = 18
 
-if size(ARGS) != (2,)
+if (argc = length(ARGS)) != 2
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily_2.0_locate.calib.sortac merra\n\n")
   exit(1)
 end

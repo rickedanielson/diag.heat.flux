@@ -9,7 +9,7 @@ using My
 const SPECS            = 1279                           # length of the one-sided spectra
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (1,)
+if (argc = length(ARGS)) != 1
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.airt.got2000\n\n")
   exit(1)
 end

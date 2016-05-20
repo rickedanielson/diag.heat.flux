@@ -4,7 +4,7 @@
  =  files from different subdirs have the same name) - RD September 2015
  =#
 
-if size(ARGS) != (1,)
+if (argc = length(ARGS)) != 1
   print("\nUsage: jjj $(basename(@__FILE__)) /home/cercache/project/oceanheatflux/data/references/ifremerflux\n\n")
   exit(1)
 end

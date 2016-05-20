@@ -16,7 +16,7 @@ const TIMES            = 2556                           # number of days during 
 const VARSUM           = 30                             # cutoff timescale for variance summation (days)
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (6,)
+if (argc = length(ARGS)) != 6
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.????.got2000.spec\n\n")
   exit(1)
 end

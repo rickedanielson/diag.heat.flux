@@ -246,30 +246,62 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
 RD     rm commands
 
-# perform a global triple collocation cal/val and evaluate the calibrated analyses using all.flux.daily.locate_2.0_calib
-wrks ; cd all ; mkdir zali.recalib.false.iterate.false zali.recalib.false.iterate.true zali.recalib.true.iterate.false zali.recalib.true.iterate.true
-wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml | grep flux | sort  > commands
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb | grep flux | sort >> commands
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt | grep flux | sort >> commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
-       mv *cali zali.recalib.false.iterate.false                            (following "grep const *colloc.discrete.triple* | grep -i alib")
-       cd       zali.recalib.false.iterate.false ; cat *calib.shfx*cali *calib.lhfx*cali *calib.wspd*cali *calib.airt*cali *calib.sstt*cali *calib.shum*cali | grep const
-                                                   cat *valid.shfx*cali *valid.lhfx*cali *valid.wspd*cali *valid.airt*cali *valid.sstt*cali *valid.shum*cali | grep const
-       vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.j*
-       mv *cali zali.recalib.false.iterate.true                             (following "grep const *colloc.discrete.triple* | grep -i alib")
-       cd       zali.recalib.false.iterate.true  ; cat *calib.shfx*cali *calib.lhfx*cali *calib.wspd*cali *calib.airt*cali *calib.sstt*cali *calib.shum*cali | grep const
-                                                   cat *valid.shfx*cali *valid.lhfx*cali *valid.wspd*cali *valid.airt*cali *valid.sstt*cali *valid.shum*cali | grep const
-       vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.j*
-       mv *cali zali.recalib.true.iterate.false
-       cd       zali.recalib.true.iterate.false  ; diff zali.recalib.*.iterate.false/*calib.shfx*cali
-       mv *cali zali.recalib.true.iterate.true
-       cd       zali.recalib.true.iterate.true   ; diff zali.recalib.*.iterate.true/*calib.shfx*cali
-       wrks ; rm commands
+# perform a global triple collocation cal/val (GLOBAL = true; RECALIB = false then true) and compare calibrated and uncalibrated RMSE
+wrks ; mkdir all/zali.recalib.false all/zali.recalib.true
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt
+       mv all/*cali.glob all/zali.recalib.false
+       cat               all/zali.recalib.false/*cali.glob | grep const | grep AIR
+       cat               all/zali.recalib.false/*cali.glob | grep const | grep SST
+       cat               all/zali.recalib.false/*cali.glob | grep const | grep LHF
+       cat               all/zali.recalib.false/*cali.glob | grep const | grep -v LHF | grep -v SST | grep -v AIR
+       vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.*               (and inject the various alpha and beta)
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt
+       mv all/*cali.glob all/zali.recalib.true
+       cat               all/zali.recalib.false/*cali.glob | grep cfsr
+       cat               all/zali.recalib.true/*cali.glob  | grep cfsr
+       cat               all/zali.recalib.false/*cali.glob | grep erainterim
+       cat               all/zali.recalib.true/*cali.glob  | grep erainterim
+       cat               all/zali.recalib.false/*cali.glob | grep hoaps
+       cat               all/zali.recalib.true/*cali.glob  | grep hoaps
+       cat               all/zali.recalib.false/*cali.glob | grep ifremerflux
+       cat               all/zali.recalib.true/*cali.glob  | grep ifremerflux
+       cat               all/zali.recalib.false/*cali.glob | grep jofuro
+       cat               all/zali.recalib.true/*cali.glob  | grep jofuro
+       cat               all/zali.recalib.false/*cali.glob | grep merra
+       cat               all/zali.recalib.true/*cali.glob  | grep merra
+       cat               all/zali.recalib.false/*cali.glob | grep oaflux
+       cat               all/zali.recalib.true/*cali.glob  | grep oaflux
+       cat               all/zali.recalib.false/*cali.glob | grep seaflux
+       cat               all/zali.recalib.true/*cali.glob  | grep seaflux
+
+# perform a local triple collocation cal/val (GLOBAL = false; RECALIB = false then true) and compare calibrated and uncalibrated RMSE
+wrkt ; mkdir all/zali.recalib.local
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt
+       mv all/*cali.locl all/zali.recalib.false
+       cat               all/zali.recalib.false/*cali.locl | grep const
+       vi  diag.trajectory.drifters.colloc.discrete.triple.jl                 (and inject the various alpha and beta)
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl        ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comb
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.cfsr.jl   ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.coml
+       parallel julia ~/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jofuro.jl ::: all/all.flux.daily.locate_2.0_?ali?.????.got2000_obs.comt
+       mv all/*cali.glob all/zali.recalib.local
+       cat               all/zali.recalib.false/*cali.glob | grep total
+       cat               all/zali.recalib.true/*cali.glob  | grep total
+       cat               all/zali.recalib.local/*cali.glob | grep total
+
+# plot local calibration and performance as a function of the variable of interest
+wrkt ; cd all
+       jjj diag.trajectory.drifters.evaluation.calval.plot.jl all/zali.recalib.false/*cali.locl
 
 # convert the triple collocation cal/val results to markdown
-wrks ; cd all/zali.recalib.false.iterate.true
-       jjj analysis.evaluation.table.performance.jl all.flux.daily.locate_2.0_calib*
-       cat all.flux.daily.locate_2.0_calib.shfx.got2000_obs.comb.cali.md all.flux.daily.locate_2.0_calib.lhfx.got2000_obs.coml.cali.md all.flux.daily.locate_2.0_calib.wspd.got2000_obs.comb.cali.md all.flux.daily.locate_2.0_calib.shum.got2000_obs.comb.cali.md all.flux.daily.locate_2.0_calib.sstt.got2000_obs.comt.cali.md all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt.cali.md > analysis.evaluation.table.performance.md
+wrks ; cd all/zali.recalib.false
+       jjj analysis.evaluation.table.performance.jl all.flux.daily.locate_2.0_calib*glob
+       cat all.flux.daily.locate_2.0_calib.shfx.got2000_obs.comb.cali.glob.md all.flux.daily.locate_2.0_calib.lhfx.got2000_obs.coml.cali.glob.md all.flux.daily.locate_2.0_calib.wspd.got2000_obs.comb.cali.glob.md all.flux.daily.locate_2.0_calib.shum.got2000_obs.comb.cali.glob.md all.flux.daily.locate_2.0_calib.sstt.got2000_obs.comt.cali.glob.md all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt.cali.glob.md > analysis.evaluation.table.performance.md
        pandoc analysis.evaluation.table.performance.md -o analysis.evaluation.table.performance.html
 
 # perform a local triple collocation cal/val and convert the second-order polynomial coeffs to tables
@@ -291,9 +323,3 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.h
        jjj analysis.evaluation.table.coefficients.jl all.flux.daily.locate_2.0_valid.wspd.got2000_obs.com?.*
        cat all.flux.daily.locate_2.0_calib.shfx.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.lhfx.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.wspd.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.shum.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.sstt.got2000_obs.trip.metrics all.flux.daily.locate_2.0_calib.airt.got2000_obs.trip.metrics > analysis.evaluation.table.coefficients.md
        pandoc analysis.evaluation.table.coefficients.md -o analysis.evaluation.table.coefficients.html
-
-# perform another eight-analysis evaulation, but this time with calibration (versus the 2.0_valid_remainder obs)
-jjj analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_remainder_obs shfx
-wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.versus.insitu.jl all/all.flux.daily.locate_2.0_valid_remainder_obs ::: shfx lhfx wspd airt sstt shum | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-       rm commands ; cd all ; cat *shfx.summ *lhfx.summ *wspd.summ *airt.summ *sstt.summ *shum.summ

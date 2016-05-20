@@ -10,7 +10,7 @@ const VARS             = 4                              # number of triple collo
 const COEF             = 10                             # number of polynomial coefficients
 const MISS             = -9999.0                        # generic missing value
 
-(argc,) = size(ARGS) ; if argc == 0
+if (argc = length(ARGS)) == 0
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib*\n\n")
   exit(1)
 end
@@ -23,8 +23,9 @@ for a = 1:argc                                                                # 
   contains(ARGS[a], "sstt") && (varname = "SST")
   contains(ARGS[a], "shum") && (varname = "Specific Humidity")
 
-  fpa = My.ouvre(ARGS[a],         "r") ; lines = readlines(fpa) ; close(fpa)
-  fpb = My.ouvre(ARGS[a] * ".md", "w")
+  fpa = My.ouvre(                          ARGS[a],         "r") ; lines = readlines(fpa) ; close(fpa)
+  fpa = My.ouvre("../zali.recalib.true/" * ARGS[a],         "r") ; linez = readlines(fpa) ; close(fpa)
+  fpb = My.ouvre(                          ARGS[a] * ".md", "w")
 
   form = "\n$varname\n\n"
   write(fpb, form)
@@ -43,9 +44,14 @@ for a = 1:argc                                                                # 
     contains(lines[b],       "merra") && (dirname =   "Merra")
     contains(lines[b],      "oaflux") && (dirname =  "OAFlux")
     contains(lines[b],     "seaflux") && (dirname = "SeaFlux")
-    vals = split(lines[b])
+    vals = split(lines[b][34:end]) ; nals = float(split(lines[b][34:end]))
+    valz = split(linez[b][34:end]) ; nalz = float(split(linez[b][34:end]))
 
-    form = @sprintf("| %7s | %8s |  %8s |  %8s |  %8s |\n", dirname, vals[2], vals[3], vals[4], vals[5])
+    stra = abs(nals[1] - 0) < abs(nalz[1] - 0) ? "**" * vals[1] * "/" * valz[1] * "**" : vals[1] * "/" * valz[1]
+    strb = abs(nals[2] - 1) < abs(nalz[2] - 1) ? "**" * vals[2] * "/" * valz[2] * "**" : vals[2] * "/" * valz[2]
+    strc =     nals[3]      <     nalz[3]      ? "**" * vals[3] * "/" * valz[3] * "**" : vals[3] * "/" * valz[3]
+    strd =     nals[4]      >     nalz[4]      ? "**" * vals[4] * "/" * valz[4] * "**" : vals[4] * "/" * valz[4]
+    form = @sprintf("| %7s | %18s |  %18s |  %18s |  %18s |\n", dirname, stra, strb, strc, strd)
     write(fpb, form)
   end
   close(fpb)

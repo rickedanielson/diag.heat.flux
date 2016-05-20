@@ -24,7 +24,7 @@ const LOTS             = 1800                           # width of each analysis
 const DAYS             = 3745                           # number of days between 1999-10-01 and 2009-12-31
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (1,)
+if (argc = length(ARGS)) != 1
   print("\nUsage: jjj $(basename(@__FILE__)) ....45.000...-45.500\n\n")
   exit(1)
 end

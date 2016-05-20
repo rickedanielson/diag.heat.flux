@@ -11,7 +11,7 @@ using My, COARE, ICOADSDict
 const MISS             = -9999.0                        # generic missing value
 const D2R              = 3.141592654 / 180.0            # degrees to radians conversion
 
-if size(ARGS) != (1,)
+if (argc = length(ARGS)) != 1
   print("\nUsage: jjj $(basename(@__FILE__)) ICOADS_R3_Beta3_199910.dat\n\n")
   exit(1)
 end

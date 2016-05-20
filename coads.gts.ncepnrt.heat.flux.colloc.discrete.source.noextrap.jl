@@ -12,7 +12,7 @@ const SSTT             = 14
 const SHUM             = 15
 const MISS             = -9999.0                        # generic missing value
 
-if size(ARGS) != (1,)
+if (argc = length(ARGS)) != 1
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.airt.got2000_obs\n\n")
   exit(1)
 end

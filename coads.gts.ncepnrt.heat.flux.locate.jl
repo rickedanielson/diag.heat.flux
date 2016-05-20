@@ -9,7 +9,7 @@
 using My, NetCDF
 const CUTOFF           = -44.0                          # SST minimum value
 
-if size(ARGS) == (0,) || size(ARGS) == (1,)
+if (argc = length(ARGS)) != 2
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux /home/ricani/data/topography/elev.0.25-deg.nc\n")
   print("   or  jjj $(basename(@__FILE__)) all.flux /home/cercache/users/rdaniels/topography/elev.0.25-deg.nc\n\n")
   exit(1)
