@@ -1,0 +1,652 @@
+#=
+ = Perform a series of paired analysis validation (and performance) estimates by triple collocation.
+ = Each of the series involves a recalibration using the OLS slope and intercept from the opposing
+ = collocations.  Fixed-size subsets of the available collocations are selected based on closeness
+ = to a target value of the variable of interest (the actual mean value is obtained as a simple
+ = average and if two averages are close, these might be combined).  The important issue of outlier
+ = detection and removal is treated using the DetMCD algorithm in R.  The target value is varied
+ = over a reasonable range and calibration is obtained for each subset.  Variations in calibration
+ = (as a function of the observed or analyzed variable of interest) are then fit to a polynomial,
+ = applied to all collocations, and global performance of the recalibrated data is reassessed - RD
+ = June, July 2016.
+ =#
+
+using My, Optim, Winston, RCall ; R"library(DetMCD)"
+const ODAT             = 1                              # identify indecies of the input data:
+const OLAT             = 2                              # date/lat/lon on the collocation grid
+const OLON             = 3
+const OCUR             = 4                              # then five buoy parameters
+const SUHM             = 5
+const WSPD             = 6
+const AIRT             = 7
+const SSTT             = 8
+
+const MISS             = -9999.0                        # generic missing value
+const EXTRA            = true                           # recalibrate the extrapolated data using extra collocations
+const PERTRIM          = 0.5                            # Minimum Covariance Determinant trimming (nonoutlier percent)
+const SDTRIM           = 6.0                            # standard deviation trimming limit
+const ANALYS           = 8                              # number of analyses
+
+if (argc = length(ARGS)) != 2
+  print("\nUsage: jjj $(basename(@__FILE__)) all/all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt cfsr\n\n")
+  exit(1)
+end
+
+vind = 0                                                                      # define the location of the variable
+  ARGS[2] ==        "cfsr" && (vind =  9)                                     # of interest in the input data file
+  ARGS[2] ==  "erainterim" && (vind = 12)                                     # (omit cfsr LHFX and jofuro AIRT/SSTT)
+  ARGS[2] ==       "hoaps" && (vind = 15)
+  ARGS[2] == "ifremerflux" && (vind = 18)
+  ARGS[2] ==      "jofuro" && (vind = 21)
+  ARGS[2] ==       "merra" && (vind = 24)
+  ARGS[2] ==      "oaflux" && (vind = 27)
+  ARGS[2] ==     "seaflux" && (vind = 30)
+if contains(ARGS[1], "lhfx")
+  ARGS[2] ==        "cfsr" && (vind =  0)
+  ARGS[2] ==  "erainterim" && (vind =  9)
+  ARGS[2] ==       "hoaps" && (vind = 12)
+  ARGS[2] == "ifremerflux" && (vind = 15)
+  ARGS[2] ==      "jofuro" && (vind = 18)
+  ARGS[2] ==       "merra" && (vind = 21)
+  ARGS[2] ==      "oaflux" && (vind = 24)
+  ARGS[2] ==     "seaflux" && (vind = 27)
+elseif contains(ARGS[1], "airt") || contains(ARGS[1], "sstt")
+  ARGS[2] ==        "cfsr" && (vind =  9)
+  ARGS[2] ==  "erainterim" && (vind = 12)
+  ARGS[2] ==       "hoaps" && (vind = 15)
+  ARGS[2] == "ifremerflux" && (vind = 18)
+  ARGS[2] ==      "jofuro" && (vind =  0)
+  ARGS[2] ==       "merra" && (vind = 21)
+  ARGS[2] ==      "oaflux" && (vind = 24)
+  ARGS[2] ==     "seaflux" && (vind = 27)
+end
+if vind == 0
+  print("\n$(ARGS[1]) does not contain data from $(ARGS[2])\n\n")
+  exit(0)
+end
+const TOTB             = vind
+const TOTN             = vind + 1
+const TOTA             = vind + 2
+
+#=
+ = Function returning triple collocation cal/val measures for a group of analyses, following McColl
+ = et al. (2014).  Inputs are an array of collocated values and stats are returned for a collocation
+ = set, where it is assumed that extrapolation from before and after is done using the same analysis,
+ = so no consideration of relative effective resolution is necessary (cf. Vogelzang et al. 2011)
+ =#
+
+function triple(curr::Array{Float64,3})
+# mask = masquextreme(curr[1,   :,2], SDTRIM) &                               # get the parametric center of mass
+#        masquextreme(curr[1,   :,1], SDTRIM) &                               # after trimming extreme values first
+#        masquextreme(curr[2,   :,1], SDTRIM)
+#=
+  mask = masquepourcent(curr[1, :,2], PERTRIM) &                              # get the parametric center of mass
+         masquepourcent(curr[1, :,1], PERTRIM) &                              # after trimming extreme values first
+         masquepourcent(curr[2, :,1], PERTRIM)
+  sampsitu =          curr[1,mask,2]
+  samprefa =          curr[1,mask,1]
+  samprefb =          curr[2,mask,1]
+  mass     =     mean(curr[2,mask,2])
+
+# @show length(mask) length(mask[mask])
+
+  avg1 = mean(sampsitu)                                                       # and use a robust calculation of covariance
+  avg2 = mean(samprefa)                                                       # (two-pass here, but more algorithms are at
+  avg3 = mean(samprefb)                                                       # en.wikipedia.org/wiki/Algorithms_for_calculating_variance)
+  cv11 = mean((sampsitu - avg1) .* (sampsitu - avg1))
+  cv12 = mean((sampsitu - avg1) .* (samprefa - avg2))
+  cv13 = mean((sampsitu - avg1) .* (samprefb - avg3))
+  cv22 = mean((samprefa - avg2) .* (samprefa - avg2))
+  cv23 = mean((samprefa - avg2) .* (samprefb - avg3))
+  cv33 = mean((samprefb - avg3) .* (samprefb - avg3))
+=#
+  temp = [curr[1,:,2]' curr[1,:,1]' curr[2,:,1]']
+  remp = rcopy(R"DetMCD($temp, alpha = $PERTRIM)")
+  mask = falses(length(temp[:,1])) ; for a in remp[:Hsubsets]  mask[a] = true  end
+  mass = mean(curr[2,mask,2])
+
+  avg1 = remp[:center][1]
+  avg2 = remp[:center][2]
+  avg3 = remp[:center][3]
+  cv11 = remp[:cov][1,1]
+  cv12 = remp[:cov][1,2]
+  cv13 = remp[:cov][1,3]
+  cv22 = remp[:cov][2,2]
+  cv23 = remp[:cov][2,3]
+  cv33 = remp[:cov][3,3]
+
+  bet2 = cv23 / cv13
+  bet3 = cv23 / cv12
+  alp2 = avg2 - bet2 * avg1
+  alp3 = avg3 - bet3 * avg1
+
+  tmpval = cv11 - cv12 * cv13 / cv23 ; sig1 = tmpval > 0 ? sqrt(tmpval) : 0.0
+  tmpval = cv22 - cv12 * cv23 / cv13 ; sig2 = tmpval > 0 ? sqrt(tmpval) : 0.0
+  tmpval = cv33 - cv13 * cv23 / cv12 ; sig3 = tmpval > 0 ? sqrt(tmpval) : 0.0
+  tmpval = cv12 * cv13 / cv11 / cv23 ; cor1 = tmpval > 0 ? sqrt(tmpval) : 0.0
+  tmpval = cv12 * cv23 / cv22 / cv13 ; cor2 = tmpval > 0 ? sqrt(tmpval) : 0.0
+  tmpval = cv13 * cv23 / cv33 / cv12 ; cor3 = tmpval > 0 ? sqrt(tmpval) : 0.0
+
+  return(mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3)    # then return all statistics
+end
+
+#=
+ = main program
+ =#
+
+contains(ARGS[1], "shfx") && (const RANGE = -30.0: 5.0:150.0)  # target sampling range
+contains(ARGS[1], "lhfx") && (const RANGE =  50.0:10.0:450.0)
+contains(ARGS[1], "wspd") && (const RANGE =   2.5: 0.5: 17.5)
+contains(ARGS[1], "airt") && (const RANGE =   0.0: 0.5: 30.0)
+contains(ARGS[1], "sstt") && (const RANGE =   5.0: 0.5: 30.0)
+contains(ARGS[1], "shum") && (const RANGE =   2.5: 0.5: 22.5)
+const CUTOFF           = 10000                          # number of collocations in a subset
+
+const MEMO             = 1                              # center-of-mass parameter
+const MEMB             = 2                              # error model x = ALPH + BETA * truth + error
+const MEMA             = 3                              # error model x = ALPH + BETA * truth + error
+const MEMS             = 3                              # number of triple collocation members
+
+const MASS             = 1                              # center-of-mass parameter (again...)
+const ALPH             = 2                              # error model x = ALPH + BETA * truth + error
+const BETA             = 3                              # error model x = ALPH + BETA * truth + error
+const SIGM             = 4                              # triple coll RMSE
+const CORR             = 5                              # triple coll correlation coefficient
+const PARS             = 5                              # number of triple collocation parameters
+
+ARGS333 = replace(ARGS[1], "calib", "valid")                                  # read both sets of collocations
+fpa    = My.ouvre(ARGS[1], "r") ; tinea = readlines(fpa) ; close(fpa)
+fpb    = My.ouvre(ARGS333, "r") ; tineb = readlines(fpb) ; close(fpb)
+tinuma = length(tinea)
+tinumb = length(tineb)
+
+fname = replace(ARGS[1], "calib", "extra") * "." * ARGS[2] * ".extra.reg"     # as well as the regression coefficient pairs
+fpa = My.ouvre(fname, "r")                                                    # for calibrating the extrapolations relative
+line = readline(fpa)                                                          # to the extra collocation target (TOTN)
+(intb, slob, inta, sloa) = float(split(line))
+close(fpa)
+
+refa = Array(Float64, tinuma)                                                 # and calculate a pair of reference variables
+refb = Array(Float64, tinumb)                                                 # (either from observations or from analyses)
+for a = 1:tinuma
+  vala = float(split(tinea[a]))
+  EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
+            vala[TOTA] = (vala[TOTA] - inta) / sloa)
+  refa[a] = vala[OCUR]
+# refa[a] = vala[TOTN]
+# refa[a] = 0.5 * (vala[OCUR] + vala[TOTN])
+end
+for a = 1:tinumb
+  vala = float(split(tineb[a]))
+  EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
+            vala[TOTA] = (vala[TOTA] - inta) / sloa)
+  refb[a] = vala[OCUR]
+# refb[a] = vala[TOTN]
+# refb[a] = 0.5 * (vala[OCUR] + vala[TOTN])
+end
+
+statis = [MISS for a = 1:4, b = 1:MEMS, c = 1:PARS]                           # allocate a set of global cal/val arrays
+glomas = [MISS for a = 1:4]
+gloalp = [MISS for a = 1:4]
+globet = [MISS for a = 1:4]
+glosig = [MISS for a = 1:4]
+glocor = [MISS for a = 1:4]
+curga  = zeros(2, tinuma, 2)
+curgb  = zeros(2, tinumb, 2)
+
+for a = 1:tinuma                                                              # report cal/val metrics for the first set
+  vals = float(split(tinea[a]))
+  EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
+            vals[TOTA] = (vals[TOTA] - inta) / sloa)
+  curga[1,a,:] = [vals[TOTB] vals[OCUR]]
+  curga[2,a,:] = [vals[TOTA] refa[a]   ]
+end
+a = 1 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curga)
+statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        glomas[a] = mass
+statis[a,MEMO,ALPH] =  0.0 ; statis[a,MEMB,ALPH] = alp2 ; statis[a,MEMA,ALPH] = alp3 ; gloalp[a] = 0.5 * (alp2 + alp3)
+statis[a,MEMO,BETA] =  1.0 ; statis[a,MEMB,BETA] = bet2 ; statis[a,MEMA,BETA] = bet3 ; globet[a] = 0.5 * (bet2 + bet3)
+statis[a,MEMO,SIGM] = sig1 ; statis[a,MEMB,SIGM] = sig2 ; statis[a,MEMA,SIGM] = sig3 ; glosig[a] = 0.5 * (sig2 + sig3)
+statis[a,MEMO,CORR] = cor1 ; statis[a,MEMB,CORR] = cor2 ; statis[a,MEMA,CORR] = cor3 ; glocor[a] = 0.5 * (cor2 + cor3)
+#a = 1 ; (glomas[a], gloalp[a], globet[a], glosig[a], glocor[a]) = triple(curga)
+
+@printf("\nnumb = %15d for %s\n", tinuma, ARGS[1])
+@printf("cala = %15.8f mean(vals[TOTB]) = %15.8f\n",      gloalp[a],  mean(curga[1,:,1]))
+@printf("calb = %15.8f mean(vals[TOTA]) = %15.8f\n",      globet[a],  mean(curga[2,:,1]))
+@printf("mean = %15.8f mean(vals[OCUR]) = %15.8f\n", mean(glomas[a]), mean(curga[1,:,2]))
+@printf("%33s %8s %8s %8s %8s\n", " ", "gloalp", "globet", "glosig", "glocor")
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", gloalp[a], globet[a], glosig[a], glocor[a])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMO,ALPH], statis[a,MEMO,BETA], statis[a,MEMO,SIGM], statis[a,MEMO,CORR])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMB,ALPH], statis[a,MEMB,BETA], statis[a,MEMB,SIGM], statis[a,MEMB,CORR])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMA,ALPH], statis[a,MEMA,BETA], statis[a,MEMA,SIGM], statis[a,MEMA,CORR])
+
+for a = 1:tinumb                                                              # report cal/val metrics for the second set
+  vals = float(split(tineb[a]))
+  EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
+            vals[TOTA] = (vals[TOTA] - inta) / sloa)
+  curgb[1,a,:] = [vals[TOTB] vals[OCUR]]
+  curgb[2,a,:] = [vals[TOTA] refb[a]   ]
+end
+a = 2 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curgb)
+statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        glomas[a] = mass
+statis[a,MEMO,ALPH] =  0.0 ; statis[a,MEMB,ALPH] = alp2 ; statis[a,MEMA,ALPH] = alp3 ; gloalp[a] = 0.5 * (alp2 + alp3)
+statis[a,MEMO,BETA] =  1.0 ; statis[a,MEMB,BETA] = bet2 ; statis[a,MEMA,BETA] = bet3 ; globet[a] = 0.5 * (bet2 + bet3)
+statis[a,MEMO,SIGM] = sig1 ; statis[a,MEMB,SIGM] = sig2 ; statis[a,MEMA,SIGM] = sig3 ; glosig[a] = 0.5 * (sig2 + sig3)
+statis[a,MEMO,CORR] = cor1 ; statis[a,MEMB,CORR] = cor2 ; statis[a,MEMA,CORR] = cor3 ; glocor[a] = 0.5 * (cor2 + cor3)
+#a = 2 ; (glomas[a], gloalp[a], globet[a], glosig[a], glocor[a]) = triple(curgb)
+
+@printf("\nnumb = %15d for %s\n", tinumb, ARGS333)
+@printf("cala = %15.8f mean(vals[TOTB]) = %15.8f\n",      gloalp[a],  mean(curgb[1,:,1]))
+@printf("calb = %15.8f mean(vals[TOTA]) = %15.8f\n",      globet[a],  mean(curgb[2,:,1]))
+@printf("mean = %15.8f mean(vals[OCUR]) = %15.8f\n", mean(glomas[a]), mean(curgb[1,:,2]))
+@printf("%33s %8s %8s %8s %8s\n", " ", "gloalp", "globet", "glosig", "glocor")
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", gloalp[a], globet[a], glosig[a], glocor[a])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMO,ALPH], statis[a,MEMO,BETA], statis[a,MEMO,SIGM], statis[a,MEMO,CORR])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMB,ALPH], statis[a,MEMB,BETA], statis[a,MEMB,SIGM], statis[a,MEMB,CORR])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMA,ALPH], statis[a,MEMA,BETA], statis[a,MEMA,SIGM], statis[a,MEMA,CORR])
+
+fpb = My.ouvre(ARGS[1] * "." * ARGS[2] * ".cali.ploc", "w")
+form = @sprintf("  mean param   MASS is %6.2f\n", mean(glomas[1]))
+write(fpb, form)
+form = @sprintf("  mean param   MASS is %6.2f\n", mean(glomas[2]))
+write(fpb, form)
+form = @sprintf("%77s %8s %8s %8s %8s\n", " ", "gloalp", "globet", "glosig", "glocor")
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", ARGS[1] * "." * ARGS[2], gloalp[1], globet[1], glosig[1], glocor[1])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", ARGS333 * "." * ARGS[2], gloalp[2], globet[2], glosig[2], glocor[2])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "obs", statis[1,MEMO,ALPH], statis[1,MEMO,BETA], statis[1,MEMO,SIGM], statis[1,MEMO,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "obs", statis[2,MEMO,ALPH], statis[2,MEMO,BETA], statis[2,MEMO,SIGM], statis[2,MEMO,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "bef", statis[1,MEMB,ALPH], statis[1,MEMB,BETA], statis[1,MEMB,SIGM], statis[1,MEMB,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "bef", statis[2,MEMB,ALPH], statis[2,MEMB,BETA], statis[2,MEMB,SIGM], statis[2,MEMB,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "aft", statis[1,MEMA,ALPH], statis[1,MEMA,BETA], statis[1,MEMA,SIGM], statis[1,MEMA,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "aft", statis[2,MEMA,ALPH], statis[2,MEMA,BETA], statis[2,MEMA,SIGM], statis[2,MEMA,CORR])
+write(fpb, form)
+close(fpb)
+
+locmas = [MISS for b = RANGE] ; lodmas = [MISS for b = RANGE]                 # allocate two sets of local metrics
+localp = [MISS for b = RANGE] ; lodalp = [MISS for b = RANGE]
+locbet = [MISS for b = RANGE] ; lodbet = [MISS for b = RANGE]
+locsig = [MISS for b = RANGE] ; lodsig = [MISS for b = RANGE]
+loccor = [MISS for b = RANGE] ; lodcor = [MISS for b = RANGE]
+linuma = tinuma < CUTOFF ? tinuma : CUTOFF
+linumb = tinumb < CUTOFF ? tinumb : CUTOFF
+dista  = Array(Float64, tinuma)
+distb  = Array(Float64, tinumb)
+maska  = Array(Bool,    tinuma)
+maskb  = Array(Bool,    tinumb)
+curla  = zeros(2, linuma, 2)
+curlb  = zeros(2, linumb, 2)
+
+for (z, ranz) in enumerate(RANGE)                                             # then loop through the target parameter
+  for a = 1:tinuma   dista[a] = abs(ranz - refa[a])  end                      # and isolate the nearest CUTOFF set of obs
+  for a = 1:tinumb   distb[a] = abs(ranz - refb[a])  end
+  lima = sort(dista)[linuma]
+  limb = sort(distb)[linumb]
+  b = 1 ; for a = 1:tinuma  if dista[a] <= lima && b <= linuma  maska[a] = true ; b += 1  else  maska[a] = false  end  end
+  b = 1 ; for a = 1:tinumb  if distb[a] <= limb && b <= linumb  maskb[a] = true ; b += 1  else  maskb[a] = false  end  end
+  linea = tinea[maska] ; lrefa = refa[maska]
+  lineb = tineb[maskb] ; lrefb = refb[maskb]
+
+  for a = 1:linuma                                                            # compute cal/val metrics for the first set
+    vals = float(split(linea[a]))
+    EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
+              vals[TOTA] = (vals[TOTA] - inta) / sloa)
+    curla[1,a,:] = [vals[TOTB] vals[OCUR]]
+    curla[2,a,:] = [vals[TOTA] lrefa[a]  ]
+  end
+  (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curla)
+  locmas[z] = mass ; localp[z] = 0.5 * (alp2 + alp3) ; locbet[z] = 0.5 * (bet2 + bet3)
+                     locsig[z] = 0.5 * (sig2 + sig3) ; loccor[z] = 0.5 * (cor2 + cor3)
+# (locmas[z], localp[z], locbet[z], locsig[z], loccor[z]) = triple(curla)
+
+  @printf("\nnumb = %15.0f for subset of %s\n", linuma, ARGS[1])
+  @printf("cala = %15.8f\n",                localp[z])
+  @printf("calb = %15.8f\n",                locbet[z])
+  @printf("mean = %15.8f target = %5.2f\n", locmas[z], ranz)
+  @printf("%33s %8s %8s %8s %8s\n", " ", "localp", "locbet", "locsig", "loccor")
+  @printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", localp[z], locbet[z], locsig[z], loccor[z])
+
+  for a = 1:linumb                                                            # compute cal/val metrics for the second set
+    vals = float(split(lineb[a]))
+    EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
+              vals[TOTA] = (vals[TOTA] - inta) / sloa)
+    curlb[1,a,:] = [vals[TOTB] vals[OCUR]]
+    curlb[2,a,:] = [vals[TOTA] lrefb[a]  ]
+  end
+  (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curlb)
+  lodmas[z] = mass ; lodalp[z] = 0.5 * (alp2 + alp3) ; lodbet[z] = 0.5 * (bet2 + bet3)
+                     lodsig[z] = 0.5 * (sig2 + sig3) ; lodcor[z] = 0.5 * (cor2 + cor3)
+# (lodmas[z], lodalp[z], lodbet[z], lodsig[z], lodcor[z]) = triple(curlb)
+
+  @printf("\nnumb = %15.0f for subset of %s\n", linumb, ARGS333)
+  @printf("cala = %15.8f\n",                lodalp[z])
+  @printf("calb = %15.8f\n",                lodbet[z])
+  @printf("mean = %15.8f target = %5.2f\n", lodmas[z], ranz)
+  @printf("%33s %8s %8s %8s %8s\n", " ", "lodalp", "lodbet", "lodsig", "lodcor")
+  @printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", lodalp[z], lodbet[z], lodsig[z], lodcor[z])
+end
+#=
+xclose = Array(Float64, 0)
+yclose = Array(Float64, 0)
+function funa(arra::Array{Float64,1}, arrb::Array{Float64,1})                 # populate the two arrays that define a fitted
+  arra = Array(Float64, 0)                                                    # function for the four collocation statistics
+  for (a, rana) in enumerate(RANGE)  push!(arra, arrb[a])  end                # then fit the function (including fixed limits)
+@show length(arra) length(arrb)
+end
+=#
+function funb(a, b, c, min = -9e99, max = 9e99)
+  x -> (y = a + b * exp(c * x) ; y >= min ? (y < max ? y : max) : min)
+end
+
+      msk = (abs(locbet) .< 10) # trues(length(loccor)) # (0 .< loccor .< 1) # (abs(localp) .< 10000) & (abs(locbet) .< 500) & (0 .< loccor .< 1)
+localpint = funb(My.integralexp(locmas[msk], localp[msk])..., minimum(localp[msk]), maximum(localp[msk]))
+locbetint = funb(My.integralexp(locmas[msk], locbet[msk])..., minimum(locbet[msk]), maximum(locbet[msk]))
+locsigint = funb(My.integralexp(locmas[msk], locsig[msk])...)
+loccorint = funb(My.integralexp(locmas[msk], loccor[msk])..., 0.0, 1.0)
+      msk = (abs(lodbet) .< 10) # trues(length(lodcor)) # (0 .< lodcor .< 1) # (abs(lodalp) .< 10000) & (abs(lodbet) .< 500) & (0 .< lodcor .< 1)
+lodalpint = funb(My.integralexp(locmas[msk], lodalp[msk])..., minimum(lodalp[msk]), maximum(lodalp[msk]))
+lodbetint = funb(My.integralexp(locmas[msk], lodbet[msk])..., minimum(lodbet[msk]), maximum(lodbet[msk]))
+lodsigint = funb(My.integralexp(locmas[msk], lodsig[msk])...)
+lodcorint = funb(My.integralexp(locmas[msk], lodcor[msk])..., 0.0, 1.0)
+
+#=
+funa(xclose, locmas)
+@show length(xclose) length(locmas)
+#funa(yclose, localp
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, localp[a])  end ; localpint = funb(My.integralexp(xclose, yclose)..., minimum(yclose), maximum(yclose))
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, locbet[a])  end ; locbetint = funb(My.integralexp(xclose, yclose)..., minimum(yclose), maximum(yclose))
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, locsig[a])  end ; locsigint = funb(My.integralexp(xclose, yclose)...)
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, loccor[a])  end ; loccorint = funb(My.integralexp(xclose, yclose)..., 0.0, 1.0)
+xclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(xclose, lodmas[a])  end
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, lodalp[a])  end ; lodalpint = funb(My.integralexp(xclose, yclose)..., minimum(yclose), maximum(yclose))
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, lodbet[a])  end ; lodbetint = funb(My.integralexp(xclose, yclose)..., minimum(yclose), maximum(yclose))
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, lodsig[a])  end ; lodsigint = funb(My.integralexp(xclose, yclose)...)
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, lodcor[a])  end ; lodcorint = funb(My.integralexp(xclose, yclose)..., 0.0, 1.0)
+=#
+for a = 1:tinuma                                                              # recalibrate using the calibration parameters from
+  vala = float(split(tinea[a]))                                               # the other set; first get a refbef from gloalp/bet
+  EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
+            vala[TOTA] = (vala[TOTA] - inta) / sloa)
+  alpbef = lodalpint(vala[TOTB]) ; betbef = lodbetint(vala[TOTB])
+  alpaft = lodalpint(vala[TOTA]) ; betaft = lodbetint(vala[TOTA])
+#alpbef = alpaft = localpint(vala[TOTN])
+#betbef = betaft = locbetint(vala[TOTN])
+  vala[TOTB] = (vala[TOTB] - alpbef) / betbef
+  vala[TOTA] = (vala[TOTA] - alpaft) / betaft
+ #refnow = vala[TOTN]
+# if ITERATE
+#   refbef =  vala[TOTB]
+#   refaft =  vala[TOTA]
+ #  for b = 1:100
+#     alpbef = lodalpint.minimum[1] * refbef^2 + lodalpint.minimum[2] * refbef + lodalpint.minimum[3]
+#     alpaft = lodalpint.minimum[1] * refaft^2 + lodalpint.minimum[2] * refaft + lodalpint.minimum[3]
+#     betbef = lodbetint.minimum[1] * refbef^2 + lodbetint.minimum[2] * refbef + lodbetint.minimum[3]
+#     betaft = lodbetint.minimum[1] * refaft^2 + lodbetint.minimum[2] * refaft + lodbetint.minimum[3]
+#     refbef = (vala[TOTB] - alpbef) / betbef
+#     refaft = (vala[TOTA] - alpaft) / betaft
+##    alpnow = lodalpint.minimum[1] * refnow^2 + lodalpint.minimum[2] * refnow + lodalpint.minimum[3]
+##    betnow = lodbetint.minimum[1] * refnow^2 + lodbetint.minimum[2] * refnow + lodbetint.minimum[3]
+ #    alpnow = lodalpint[1] + lodalpint[2] * exp(refnow * lodalpint[3])
+ #    betnow = lodbetint[1] + lodbetint[2] * exp(refnow * lodbetint[3])
+ #    refnow = 0.5 * (refnow + (refnow - alpnow) / betnow)
+ #  end
+# else
+#   refbef = (vala[TOTB] - gloalp[2]) / globet[2]
+#   refaft = (vala[TOTA] - gloalp[2]) / globet[2]
+# end
+# if POLY
+#   alpbef = lodalpint.minimum[1] * refbef^2 + lodalpint.minimum[2] * refbef + lodalpint.minimum[3]
+#   alpaft = lodalpint.minimum[1] * refaft^2 + lodalpint.minimum[2] * refaft + lodalpint.minimum[3]
+#   betbef = lodbetint.minimum[1] * refbef^2 + lodbetint.minimum[2] * refbef + lodbetint.minimum[3]
+#   betaft = lodbetint.minimum[1] * refaft^2 + lodbetint.minimum[2] * refaft + lodbetint.minimum[3]
+##  alpnow = lodalpint.minimum[1] * refnow^2 + lodalpint.minimum[2] * refnow + lodalpint.minimum[3]
+##  betnow = lodbetint.minimum[1] * refnow^2 + lodbetint.minimum[2] * refnow + lodbetint.minimum[3]
+ #  alpnow = lodalpint[1] + lodalpint[2] * exp(refnow * lodalpint[3])
+ #  betnow = lodbetint[1] + lodbetint[2] * exp(refnow * lodbetint[3])
+# else
+#   alpbef = lodalpint[refbef] ; alpaft = lodalpint[refaft]
+#   betbef = lodbetint[refbef] ; betaft = lodbetint[refaft]
+# end
+# vala[TOTB] = (vala[TOTB] - alpbef) / betbef                                 # get alp/betbef from refbef, and similarly for aft
+# vala[TOTA] = (vala[TOTA] - alpaft) / betaft
+ #vala[TOTB] = (vala[TOTB] - alpnow) / betnow
+ #vala[TOTA] = (vala[TOTA] - alpnow) / betnow
+  curga[1,a,:] = [vala[TOTB] vala[OCUR]]
+  curga[2,a,:] = [vala[TOTA] refa[a]   ]
+end
+a = 3 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curga)
+statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        glomas[a] = mass
+statis[a,MEMO,ALPH] =  0.0 ; statis[a,MEMB,ALPH] = alp2 ; statis[a,MEMA,ALPH] = alp3 ; gloalp[a] = 0.5 * (alp2 + alp3)
+statis[a,MEMO,BETA] =  1.0 ; statis[a,MEMB,BETA] = bet2 ; statis[a,MEMA,BETA] = bet3 ; globet[a] = 0.5 * (bet2 + bet3)
+statis[a,MEMO,SIGM] = sig1 ; statis[a,MEMB,SIGM] = sig2 ; statis[a,MEMA,SIGM] = sig3 ; glosig[a] = 0.5 * (sig2 + sig3)
+statis[a,MEMO,CORR] = cor1 ; statis[a,MEMB,CORR] = cor2 ; statis[a,MEMA,CORR] = cor3 ; glocor[a] = 0.5 * (cor2 + cor3)
+#a = 3 ; (glomas[a], gloalp[a], globet[a], glosig[a], glocor[a]) = triple(curga)
+
+tmpstr = "after recalibration only (using alpha and beta from the other collocations)"
+@printf("\nnumb = %15d for %s\n", tinuma, ARGS[1])
+@printf("cala = %15.8f mean(vals[TOTB]) = %15.8f %s\n",      gloalp[a],  mean(curga[1,:,1]), tmpstr)
+@printf("calb = %15.8f mean(vals[TOTA]) = %15.8f %s\n",      globet[a],  mean(curga[2,:,1]), tmpstr)
+@printf("mean = %15.8f mean(vals[OCUR]) = %15.8f %s\n", mean(glomas[a]), mean(curga[1,:,2]), tmpstr)
+@printf("%33s %8s %8s %8s %8s\n", " ", "gloalp", "globet", "glosig", "glocor")
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", gloalp[a], globet[a], glosig[a], glocor[a])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMO,ALPH], statis[a,MEMO,BETA], statis[a,MEMO,SIGM], statis[a,MEMO,CORR])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMB,ALPH], statis[a,MEMB,BETA], statis[a,MEMB,SIGM], statis[a,MEMB,CORR])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMA,ALPH], statis[a,MEMA,BETA], statis[a,MEMA,SIGM], statis[a,MEMA,CORR])
+
+for a = 1:tinumb                                                              # recalibrate using the calibration parameters
+  vala = float(split(tineb[a]))                                               # the other set; first get a refbef from gloalp/bet
+  EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
+            vala[TOTA] = (vala[TOTA] - inta) / sloa)
+  alpbef = localpint(vala[TOTB]) ; betbef = locbetint(vala[TOTB])
+  alpaft = localpint(vala[TOTA]) ; betaft = locbetint(vala[TOTA])
+#alpbef = alpaft = localpint(vala[TOTN])
+#betbef = betaft = locbetint(vala[TOTN])
+  vala[TOTB] = (vala[TOTB] - alpbef) / betbef
+  vala[TOTA] = (vala[TOTA] - alpaft) / betaft
+ #refnow = vala[TOTN]
+# if ITERATE
+#   refbef =  vala[TOTB]
+#   refaft =  vala[TOTA]
+ #  for b = 1:100
+#     alpbef = localpint.minimum[1] * refbef^2 + localpint.minimum[2] * refbef + localpint.minimum[3]
+#     alpaft = localpint.minimum[1] * refaft^2 + localpint.minimum[2] * refaft + localpint.minimum[3]
+#     betbef = locbetint.minimum[1] * refbef^2 + locbetint.minimum[2] * refbef + locbetint.minimum[3]
+#     betaft = locbetint.minimum[1] * refaft^2 + locbetint.minimum[2] * refaft + locbetint.minimum[3]
+#     refbef = (vala[TOTB] - alpbef) / betbef
+#     refaft = (vala[TOTA] - alpaft) / betaft
+##    alpnow = localpint.minimum[1] * refnow^2 + localpint.minimum[2] * refnow + localpint.minimum[3]
+##    betnow = locbetint.minimum[1] * refnow^2 + locbetint.minimum[2] * refnow + locbetint.minimum[3]
+ #    alpnow = localpint[1] + localpint[2] * exp(refnow * localpint[3])
+ #    betnow = locbetint[1] + locbetint[2] * exp(refnow * locbetint[3])
+ #    refnow = 0.5 * (refnow + (refnow - alpnow) / betnow)
+ #  end
+# else
+#   refbef = (vala[TOTB] - gloalp[1]) / globet[1]
+#   refaft = (vala[TOTA] - gloalp[1]) / globet[1]
+# end
+# if POLY
+#   alpbef = localpint.minimum[1] * refbef^2 + localpint.minimum[2] * refbef + localpint.minimum[3]
+#   alpaft = localpint.minimum[1] * refaft^2 + localpint.minimum[2] * refaft + localpint.minimum[3]
+#   betbef = locbetint.minimum[1] * refbef^2 + locbetint.minimum[2] * refbef + locbetint.minimum[3]
+#   betaft = locbetint.minimum[1] * refaft^2 + locbetint.minimum[2] * refaft + locbetint.minimum[3]
+##  alpnow = localpint.minimum[1] * refnow^2 + localpint.minimum[2] * refnow + localpint.minimum[3]
+##  betnow = locbetint.minimum[1] * refnow^2 + locbetint.minimum[2] * refnow + locbetint.minimum[3]
+ #  alpnow = localpint[1] + localpint[2] * exp(refnow * localpint[3])
+ #  betnow = locbetint[1] + locbetint[2] * exp(refnow * locbetint[3])
+# else
+#   alpbef = localpint[refbef] ; alpaft = localpint[refaft]
+#   betbef = locbetint[refbef] ; betaft = locbetint[refaft]
+# end
+# vala[TOTB] = (vala[TOTB] - alpbef) / betbef                                 # then get alp/betbef from refbef, and similarly for aft
+# vala[TOTA] = (vala[TOTA] - alpaft) / betaft
+ #vala[TOTB] = (vala[TOTB] - alpnow) / betnow
+ #vala[TOTA] = (vala[TOTA] - alpnow) / betnow
+  curgb[1,a,:] = [vala[TOTB] vala[OCUR]]
+  curgb[2,a,:] = [vala[TOTA] refb[a]   ]
+end
+a = 4 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curgb)
+statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        glomas[a] = mass
+statis[a,MEMO,ALPH] =  0.0 ; statis[a,MEMB,ALPH] = alp2 ; statis[a,MEMA,ALPH] = alp3 ; gloalp[a] = 0.5 * (alp2 + alp3)
+statis[a,MEMO,BETA] =  1.0 ; statis[a,MEMB,BETA] = bet2 ; statis[a,MEMA,BETA] = bet3 ; globet[a] = 0.5 * (bet2 + bet3)
+statis[a,MEMO,SIGM] = sig1 ; statis[a,MEMB,SIGM] = sig2 ; statis[a,MEMA,SIGM] = sig3 ; glosig[a] = 0.5 * (sig2 + sig3)
+statis[a,MEMO,CORR] = cor1 ; statis[a,MEMB,CORR] = cor2 ; statis[a,MEMA,CORR] = cor3 ; glocor[a] = 0.5 * (cor2 + cor3)
+#a = 4 ; (glomas[a], gloalp[a], globet[a], glosig[a], glocor[a]) = triple(curgb)
+
+@printf("\nnumb = %15d for %s\n", tinumb, ARGS333)
+@printf("cala = %15.8f mean(vals[TOTB]) = %15.8f %s\n",      gloalp[a],  mean(curgb[1,:,1]), tmpstr)
+@printf("calb = %15.8f mean(vals[TOTA]) = %15.8f %s\n",      globet[a],  mean(curgb[2,:,1]), tmpstr)
+@printf("mean = %15.8f mean(vals[OCUR]) = %15.8f %s\n", mean(glomas[a]), mean(curgb[1,:,2]), tmpstr)
+@printf("%33s %8s %8s %8s %8s\n", " ", "gloalp", "globet", "glosig", "glocor")
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", gloalp[a], globet[a], glosig[a], glocor[a])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMO,ALPH], statis[a,MEMO,BETA], statis[a,MEMO,SIGM], statis[a,MEMO,CORR])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMB,ALPH], statis[a,MEMB,BETA], statis[a,MEMB,SIGM], statis[a,MEMB,CORR])
+@printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMA,ALPH], statis[a,MEMA,BETA], statis[a,MEMA,SIGM], statis[a,MEMA,CORR])
+
+fpb = My.ouvre(ARGS[1] * "." * ARGS[2] * ".cali.ploc", "a")
+form = @sprintf("  mean param   MASS is %6.2f %s\n", mean(glomas[3]), tmpstr)
+write(fpb, form)
+form = @sprintf("  mean param   MASS is %6.2f %s\n", mean(glomas[4]), tmpstr)
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", ARGS[1] * "." * ARGS[2], gloalp[3], globet[3], glosig[3], glocor[3])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", ARGS333 * "." * ARGS[2], gloalp[4], globet[4], glosig[4], glocor[4])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "obs", statis[3,MEMO,ALPH], statis[3,MEMO,BETA], statis[3,MEMO,SIGM], statis[3,MEMO,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "obs", statis[4,MEMO,ALPH], statis[4,MEMO,BETA], statis[4,MEMO,SIGM], statis[4,MEMO,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "bef", statis[3,MEMB,ALPH], statis[3,MEMB,BETA], statis[3,MEMB,SIGM], statis[3,MEMB,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "bef", statis[4,MEMB,ALPH], statis[4,MEMB,BETA], statis[4,MEMB,SIGM], statis[4,MEMB,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "aft", statis[3,MEMA,ALPH], statis[3,MEMA,BETA], statis[3,MEMA,SIGM], statis[3,MEMA,CORR])
+write(fpb, form)
+form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "aft", statis[4,MEMA,ALPH], statis[4,MEMA,BETA], statis[4,MEMA,SIGM], statis[4,MEMA,CORR])
+write(fpb, form)
+close(fpb)
+
+# exit(0)
+
+contains(ARGS[1], "shfx") && (titla = "Sensible Heat Flux")
+contains(ARGS[1], "lhfx") && (titla = "Latent Heat Flux")
+contains(ARGS[1], "wspd") && (titla = "Wind Speed")
+contains(ARGS[1], "airt") && (titla = "Air Temperature")
+contains(ARGS[1], "sstt") && (titla = "Sea Surface Temp")
+contains(ARGS[1], "shum") && (titla = "Specific Humidity")
+ARGS[2] ==        "cfsr" && (titlb =  "CFSR $titla")
+ARGS[2] ==  "erainterim" && (titlb =   "ERA $titla")
+ARGS[2] ==       "hoaps" && (titlb = "HOAPS $titla")
+ARGS[2] == "ifremerflux" && (titlb = "IFREM $titla")
+ARGS[2] ==      "jofuro" && (titlb = "J-OFU $titla")
+ARGS[2] ==       "merra" && (titlb = "MERRA $titla")
+ARGS[2] ==      "oaflux" && (titlb = "OAFLX $titla")
+ARGS[2] ==     "seaflux" && (titlb = "SEAFX $titla")
+
+tars = collect(RANGE)                                                         # plot the binned sums 
+tarn = zeros(length(tars), 2)
+alpn = zeros(length(tars), 2) ; alpo = zeros(length(tars), 2)
+betn = zeros(length(tars), 2) ; beto = zeros(length(tars), 2)
+sign = zeros(length(tars), 2) ; sigo = zeros(length(tars), 2)
+corn = zeros(length(tars), 2) ; coro = zeros(length(tars), 2)
+
+locmsk = (abs(locbet) .< 10) # (0 .< loccor .< 1) # (abs(localp) .< 20000) & (abs(locbet) .< 1000) & (0 .< loccor .< 1)
+lodmsk = (abs(lodbet) .< 10) # (0 .< lodcor .< 1) # (abs(lodalp) .< 20000) & (abs(lodbet) .< 1000) & (0 .< lodcor .< 1)
+numc = length(locmas[locmsk])   ; numd = length(lodmas[lodmsk])
+tarn[1:numc,1] = locmas[locmsk] ; tarn[1:numd,2] = lodmas[lodmsk]
+alpn[1:numc,1] = localp[locmsk] ; alpn[1:numd,2] = lodalp[lodmsk]
+betn[1:numc,1] = locbet[locmsk] ; betn[1:numd,2] = lodbet[lodmsk]
+sign[1:numc,1] = locsig[locmsk] ; sign[1:numd,2] = lodsig[lodmsk]
+corn[1:numc,1] = loccor[locmsk] ; corn[1:numd,2] = lodcor[lodmsk]
+for (a, ref) in enumerate(tars)
+  alpo[a,1] = localpint(ref) ; alpo[a,2] = lodalpint(ref) ; beto[a,1] = locbetint(ref) ; beto[a,2] = lodbetint(ref)
+  sigo[a,1] = locsigint(ref) ; sigo[a,2] = lodsigint(ref) ; coro[a,1] = loccorint(ref) ; coro[a,2] = lodcorint(ref)
+# coro[a,2] = lodcorint.minimum[1] * ref^2 + lodcorint.minimum[2] * ref + lodcorint.minimum[3]
+end
+
+fmt =    " *%.3f/%.3f*"    ; @eval sprintfa(x, y) = @sprintf($fmt, x, y)
+fmt = " \ \ %.3f/%.3f\ \ " ; @eval sprintfb(x, y) = @sprintf($fmt, x, y)
+
+ppp = Winston.Table(2,2) ; setattr(ppp, "cellpadding", -0.5)                  # and then create the plots
+for z = 1:4
+  z == 1 && (varname = "a) $titlb Bias (ms^{-1})" ; bound = tarn ; grid = alpn ; tpos = (1,1) ; grie = alpo)
+  z == 2 && (varname = "b) $titlb Slope"          ; bound = tarn ; grid = betn ; tpos = (1,2) ; grie = beto)
+  z == 3 && (varname = "c) $titlb RMSE (ms^{-1})" ; bound = tarn ; grid = sign ; tpos = (2,1) ; grie = sigo)
+  z == 4 && (varname = "d) $titlb Correlation"    ; bound = tarn ; grid = corn ; tpos = (2,2) ; grie = coro)
+
+  z == 1 && (xmin = 0.05 ; xmax = 1.15 ; ymin = -0.1 ; ymax = 0.05)           # and locate the plot limits
+  z == 2 && (xmin = 0.05 ; xmax = 1.15 ; ymin =  0.4 ; ymax = 3.5)
+  z == 3 && (xmin = 0.05 ; xmax = 1.15 ; ymin =  0.0 ; ymax = 0.2)
+  z == 4 && (xmin = 0.05 ; xmax = 1.15 ; ymin =  0.8 ; ymax = 1.0)
+
+  ump = Array(Any, 4)
+  cols = [  "red",  "blue",    "red",   "blue"]
+  kynd = ["solid", "solid", "dashed", "dashed"]
+  dirs = ["Grp-A", "Grp-B",  "Est-A",  "Est-B"]
+# xmin = 0.0 ; xmax = 1.4 ; ymin = -0.5 ; ymax = 1.0
+  z == 1 && (laba = abs(gloalp[1] - 0) < abs(gloalp[3] - 0) ? sprintfa(gloalp[1], gloalp[3]) : sprintfb(gloalp[1], gloalp[3]))
+  z == 2 && (laba = abs(globet[1] - 1) < abs(globet[3] - 1) ? sprintfa(globet[1], globet[3]) : sprintfb(globet[1], globet[3]))
+  z == 3 && (laba =     glosig[1]      <     glosig[3]      ? sprintfa(glosig[1], glosig[3]) : sprintfb(glosig[1], glosig[3]))
+  z == 4 && (laba =     glocor[1]      >     glocor[3]      ? sprintfa(glocor[1], glocor[3]) : sprintfb(glocor[1], glocor[3]))
+  z == 1 && (labb = abs(gloalp[2] - 0) < abs(gloalp[4] - 0) ? sprintfa(gloalp[2], gloalp[4]) : sprintfb(gloalp[2], gloalp[4]))
+  z == 2 && (labb = abs(globet[2] - 1) < abs(globet[4] - 1) ? sprintfa(globet[2], globet[4]) : sprintfb(globet[2], globet[4]))
+  z == 3 && (labb =     glosig[2]      <     glosig[4]      ? sprintfa(glosig[2], glosig[4]) : sprintfb(glosig[2], glosig[4]))
+  z == 4 && (labb =     glocor[2]      >     glocor[4]      ? sprintfa(glocor[2], glocor[4]) : sprintfb(glocor[2], glocor[4]))
+
+  tmp = Winston.FramedPlot(title="$varname") #, xrange = (xmin,xmax), yrange = (ymin,ymax))
+  ppp[tpos...] = Winston.add(tmp)
+
+  for a = 1:2
+    a == 1 && (labc = dirs[a] * laba ; numlim = numc)
+    a == 2 && (labc = dirs[a] * labb ; numlim = numd)
+    ump[a]   = Winston.Curve(bound[1:numlim,a], grid[1:numlim,a], "color", parse(Winston.Colorant, cols[a]))
+               style(ump[a], kind = kynd[a])
+               setattr(ump[a], label = labc)
+               Winston.add(ppp[tpos...], ump[a])
+    ump[a+2] = Winston.Curve(      tars, grie[:,a], "color", parse(Winston.Colorant, cols[a+2]))
+               style(ump[a+2], kind = kynd[a+2])
+#              setattr(ump[a+2], label = dirs[a+2])
+               Winston.add(ppp[tpos...], ump[a+2])
+  end
+  tmp = Winston.Legend(.10, .90, Any[ump[1], ump[2]])
+        Winston.add(ppp[tpos...], tmp)
+
+# if z == 2
+#   tmp = Winston.Legend(.45, .82, Any[ump[1], ump[2], ump[3], ump[4]])
+#         Winston.add(ppp[tpos...], tmp)
+#   tmp = Winston.Legend(.70, .82, Any[ump[5], ump[6], ump[7], ump[8]])
+#         Winston.add(ppp[tpos...], tmp)
+# end
+end
+
+xyzzy = ARGS[1] * "." * ARGS[2] * ".cali.ploc.png"
+print("writing $xyzzy\n")
+Winston.savefig(ppp, xyzzy, "width", 1700, "height", 1000)
+exit(0)
+
+#=
+#=
+ = Closure function that defines a set of optimal (in a least squares sense) polynomial coefficients.
+ = Given xclose and yclose (e.g., reference current speed and corresponding triple collocation metric
+ = values, respectively, for a set of collocation subsets), this closure returns optimal coefficients.
+ =#
+
+xclose = Array(Float64, 0)                                                    # (data arrays are in global scope)
+yclose = Array(Float64, 0)
+
+function sqerror(coef::Array{Float64,1})
+  err = 0.0
+  for i in 1:length(xclose)
+    res  = coef[1] * xclose[i]^2 + coef[2] * xclose[i] + coef[3]
+    err += (yclose[i] - res)^2
+  end
+  return err
+end
+
+yclose = Array(Float64, 0) ; for (a, rana) in enumerate(RANGE)  push!(yclose, lodcor[a])  end ; lodcorint = optimize(sqerror, [0.0, 0.0, 0.0], iterations = 10000)
+=#

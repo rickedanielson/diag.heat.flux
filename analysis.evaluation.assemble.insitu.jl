@@ -5,7 +5,7 @@
 
 using My
 
-if (argc = length(ARGS)) != 1
+if (argc = length(ARGS)) != 2
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily all.flux.daily.locate_2.0_valid_remainder\n\n")
   exit(1)
 end

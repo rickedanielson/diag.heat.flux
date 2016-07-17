@@ -87,15 +87,15 @@ function triple(coll::Array{Float64,3})
     allmas[a,1] =    mean(coll[2,mask,ANALYS+1])
     totlen += length(coll[1,:,a]) ; msklen += length(coll[1,mask,a])
 
-    avg1 = mean(sampsitu)
-    avg2 = mean(samprefa)
-    avg3 = mean(samprefb)
-    cv11 = mean(sampsitu.*sampsitu) - avg1^2
-    cv12 = mean(sampsitu.*samprefa) - avg1 * avg2
-    cv13 = mean(sampsitu.*samprefb) - avg1 * avg3
-    cv22 = mean(samprefa.*samprefa) - avg2^2
-    cv23 = mean(samprefa.*samprefb) - avg2 * avg3
-    cv33 = mean(samprefb.*samprefb) - avg3^2
+    avg1 = mean(sampsitu)                                                     # and use a robust calculation of covariance
+    avg2 = mean(samprefa)                                                     # (two-pass here, but more algorithms are at
+    avg3 = mean(samprefb)                                                     # en.wikipedia.org/wiki/Algorithms_for_calculating_variance)
+    cv11 = mean((sampsitu - avg1) .* (sampsitu - avg1))
+    cv12 = mean((sampsitu - avg1) .* (samprefa - avg2))
+    cv13 = mean((sampsitu - avg1) .* (samprefb - avg3))
+    cv22 = mean((samprefa - avg2) .* (samprefa - avg2))
+    cv23 = mean((samprefa - avg2) .* (samprefb - avg3))
+    cv33 = mean((samprefb - avg3) .* (samprefb - avg3))
 
     bet2 = cv23 / cv13
     bet3 = cv23 / cv12
