@@ -63,8 +63,10 @@ for fila in files
         tmpmax = maximum(tmp)
         tmpmin = minimum(tmp)
         itp = interpolate(tmp, BSpline(Quadratic(Line())), OnCell())
-        tmpbef = itp[10] ; tmpbef > tmpmax && (tmpbef = tmpmax) ; tmpbef < tmpmin && (tmpbef = tmpmin)
-        tmpaft = itp[ 0] ; tmpaft > tmpmax && (tmpaft = tmpmax) ; tmpaft < tmpmin && (tmpaft = tmpmin)
+#       tmpbef = itp[10] ; tmpbef > tmpmax && (tmpbef = tmpmax) ; tmpbef < tmpmin && (tmpbef = tmpmin)
+#       tmpaft = itp[ 0] ; tmpaft > tmpmax && (tmpaft = tmpmax) ; tmpaft < tmpmin && (tmpaft = tmpmin)
+        tmpbef = itp[10] ; tmpbef > tmpmax && (tmpbef = MISS)   ; tmpbef < tmpmin && (tmpbef = MISS)
+        tmpaft = itp[ 0] ; tmpaft > tmpmax && (tmpaft = MISS)   ; tmpaft < tmpmin && (tmpaft = MISS)
         data[a,BEF,b+outer] = tmpbef
         data[a,AFT,b-outer] = tmpaft
       else
@@ -79,8 +81,8 @@ for fila in files
     end
   end
 
-  filb = "$fila.bef"                                                          # then save all extrapolations
-  filc = "$fila.aft"
+  filb = "$fila.bet"                                                          # then save all extrapolations
+  filc = "$fila.aff"
   fpb = My.ouvre("$(ARGS[1])/$filb", "w", false)
   fpc = My.ouvre("$(ARGS[1])/$filc", "w", false)
   (lll, lat, lon) = split(replace(fila, r"[\.]{2,}", " "))
