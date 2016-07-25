@@ -171,7 +171,7 @@ wrks ; nohup       julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.times
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl      jofuro
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl       merra
        xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl      oaflux
-       xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl     seaflux
+RD     xvfb-run -a julia /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.histoplot.jl     seaflux
        gzip extrapolated.histogr*dat extrapolated.xcom ; mv extrapolated* all/plot.histogr
 
 # identify the subset of the ICOADS cal/val locations for which analyses are also available for much of 2001-2007 (call these the collocations)
@@ -180,11 +180,11 @@ wrks ; mkdir fft
        split -l 400 all/all.flux.daily.locate_2.0_valid all.flux.daily.locate_2.0_valid
        split -l 400 all/all.flux.daily.locate_2.0_extra all.flux.daily.locate_2.0_extra
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.nfft.jl ::: all.flux.daily.locate_2.0_??????? ::: shfx lhfx wspd airt sstt shum | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb -w /home1/homedir1/perso/rdaniels/workspace_tmp
        cat all.flux.daily.locate_2.0_calib??.shfx.got2000 | sort > all/all.flux.daily.locate_2.0_calib.shfx.got2000
        cat all.flux.daily.locate_2.0_calib??.shfx.not2000 | sort > all/all.flux.daily.locate_2.0_calib.shfx.not2000
        cat all.flux.daily.locate_2.0_valid??.shfx.got2000 | sort > all/all.flux.daily.locate_2.0_valid.shfx.got2000
-       cat all.flux.daily.locate_2.0_valid??.shfx.not2000 | sort > all/all.flux.daily.locate_2.0_valid.shfx.not2000
+RD     cat all.flux.daily.locate_2.0_valid??.shfx.not2000 | sort > all/all.flux.daily.locate_2.0_valid.shfx.not2000
        cat all.flux.daily.locate_2.0_calib??.lhfx.got2000 | sort > all/all.flux.daily.locate_2.0_calib.lhfx.got2000
        cat all.flux.daily.locate_2.0_calib??.lhfx.not2000 | sort > all/all.flux.daily.locate_2.0_calib.lhfx.not2000
        cat all.flux.daily.locate_2.0_valid??.lhfx.got2000 | sort > all/all.flux.daily.locate_2.0_valid.lhfx.got2000
@@ -274,10 +274,10 @@ wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.time
        cd .. ; rm commands ; vi coads.gts.ncepnrt.heat.flux.colloc.discrete.triple.jl
 
 # assemble the insitu and analysis data for a triple collocation cal/val
-wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.assemble.insitu.jl all/all.flux.daily    ::: all/all.flux.daily.locate_2.0_?????.????.got2000          | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl        ::: all/all.flux.daily.locate_2.0_?????.????.got2000_obs      | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia
+wrks ; parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.assemble.insitu.jl all/all.flux.daily    ::: all/all.flux.daily.locate_2.0_?????.????.got2000          | grep flux | sort > ~/commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb -w /home1/homedir1/perso/rdaniels/workspace_tmp
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/coads.gts.ncepnrt.heat.flux.colloc.discrete.source.jl        ::: all/all.flux.daily.locate_2.0_?????.????.got2000_obs      | grep flux | sort > ~/commands
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia -w /home1/homedir1/perso/rdaniels/workspace_tmp
 RD     rm commands
 
 # perform global and local calibrations of the two extrapolations (BEF and AFT relative to NOW) using the extra collocation set

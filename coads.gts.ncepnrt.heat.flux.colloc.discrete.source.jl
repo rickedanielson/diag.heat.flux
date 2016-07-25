@@ -12,6 +12,13 @@ const SSTT             = 14
 const SHUM             = 15
 const MISS             = -9999.0                        # generic missing value
 
+cdh = "/home/cercache/users/rdaniels/work/works"
+try cd(cdh) catch err
+  write(STDERR, "ERROR : ¯\_(ツ)_/¯ couldn't cd($cdh)\n")
+  exit(-1)
+end
+print("\ncd $cdh\n\n")
+
 if (argc = length(ARGS)) != 1
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib.airt.got2000_obs\n\n")
   exit(1)
@@ -62,11 +69,11 @@ for line in eachline(fpa)                                                     # 
   aft = fill(MISS, dirn)
   flag = true
   for (a, dira) in enumerate(dirs)
-    tmp = split(read_nth_line("$dira/$dira.$tail.bef", datind)) ; bef[a] = float(tmp[vind])
+    tmp = split(read_nth_line("$dira/$dira.$tail.bet", datind)) ; bef[a] = float(tmp[vind])
     newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != $newdat") ; exit(-1)  end
     tmp = split(read_nth_line("$dira/$dira.$tail",     datind)) ; now[a] = float(tmp[vind])
     newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != $newdat") ; exit(-1)  end
-    tmp = split(read_nth_line("$dira/$dira.$tail.aft", datind)) ; aft[a] = float(tmp[vind])
+    tmp = split(read_nth_line("$dira/$dira.$tail.aff", datind)) ; aft[a] = float(tmp[vind])
     newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != $newdat") ; exit(-1)  end
     if bef[a] < -333.0 || bef[a] > 3333.0 || now[a] < -333.0 || now[a] > 3333.0 ||
        aft[a] < -333.0 || aft[a] > 3333.0  flag = false  end
