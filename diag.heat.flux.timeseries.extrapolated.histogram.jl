@@ -67,9 +67,9 @@ files = readlines(fpa) ; close(fpa)
 for (a, fila) in enumerate(files)
   (z, tail) = split(strip(fila), dirs[1])
   for b = 1:dirn
-    fpna[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail.bef", "r", false)
+    fpna[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail.bet", "r", false)
     fpnb[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail",     "r")
-    fpnc[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail.aft", "r", false)
+    fpnc[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail.aff", "r", false)
   end
 
   for b = 1:TIMS

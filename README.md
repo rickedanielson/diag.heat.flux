@@ -159,7 +159,7 @@ wrks ; cd cfsr        ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
        cd jofuro      ; mkdir old_bef_aft ; mv *.bef *.aft old_bef_aft ; cd ..
 wrks ; cd cfsr ; ls z.list?? ; cd ..
        parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.extrapolated.jl ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ::: z.listaa z.listab z.listac z.listad z.listae z.listaf z.listag z.listah z.listai z.listaj z.listak | grep flux | sort > commands
-       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
+       cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb -w /home1/homedir1/perso/rdaniels/workspace_tmp
        rm commands
 
 # plot extrapolation histograms (forward and backward versus the actual values for assessment of bias in the extrapolation method)
