@@ -23,6 +23,13 @@ const CUTOFF           = 2000                           # minimum number from al
 const MISS             = -9999.0                        # generic missing value
 const CALIB            = 0                              # flag determining whether to calibrate (1 = yes)
 
+cdh = "/home/cercache/users/rdaniels/work/works"
+try cd(cdh) catch err
+  write(STDERR, "ERROR : ¯\_(ツ)_/¯ couldn't cd($cdh)\n")
+  exit(-1)
+end
+print("\ncd $cdh\n\n")
+
 if (argc = length(ARGS)) != 2
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily.locate_2.0_calib shfx\n\n")
   exit(1)
