@@ -17,7 +17,7 @@ const NOW              = 2
 const AFT              = 3
 const SRCS             = 3
 
-const EXTRA            = 9                              # number of points used for extrapolation
+const EXTRA            = 5                              # number of points used for extrapolation
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
