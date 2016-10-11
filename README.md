@@ -71,7 +71,7 @@ wrks ; mkdir insitu
        rm commands all.flux.daily.sort
 
 # create local links to all analysis data files and example ncdumps too
-wrks ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
+wrks ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ensemble bestest
        cd /home/cercache/users/rdaniels/work/works/cfsr        ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/cfsr
        cd /home/cercache/users/rdaniels/work/works/erainterim  ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/erainterim
        cd /home/cercache/users/rdaniels/work/works/hoaps       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/hoaps
@@ -80,6 +80,8 @@ wrks ; mkdir cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux
        cd /home/cercache/users/rdaniels/work/works/merra       ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/merra
        cd /home/cercache/users/rdaniels/work/works/oaflux      ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/oaflux
        cd /home/cercache/users/rdaniels/work/works/seaflux     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/references/seaflux
+       cd /home/cercache/users/rdaniels/work/works/ensemble    ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/products/turbulent-fluxes/ensemble
+       cd /home/cercache/users/rdaniels/work/works/bestest     ; jjj diag.heat.flux.links.jl /home/cercache/project/oceanheatflux/data/products/turbulent-fluxes/best-estimate
 wrks ; mkdir ncdump
        ncdump               cfsr/cfsr-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/cfsr
        ncdump   erainterim/erainterim-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/erainterim
@@ -89,13 +91,15 @@ wrks ; mkdir ncdump
        ncdump             merra/merra-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/merra
        ncdump           oaflux/oaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/oaflux
        ncdump         seaflux/seaflux-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/seaflux
+       ncdump       ensemble/ensemble-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/ensemble
+       ncdump    bestest/bestestimate-20040529120000-OHF-L4-global_daily_0.25x0.25-v0.7-f01.0.nc > ncdump/bestest
 
 # assemble a large third dataset for analysis evaulation (with respect to the 2.0_valid_remainder in situ obs)
 wrks ; cd all ; jjj analysis.evaluation.assemble.insitu.jl all.flux.daily all.flux.daily.locate_2.0_valid_remainder ; cd ..
 #      cd .. ; mv all/all.flux.dailyall.flux.daily.locate_2.0_valid_remainder      all/all.flux.daily.locate_2.0_valid_remainder_obs
        sort -k4,4 -k5,5 -k6,6   all/all.flux.daily.locate_2.0_valid_remainder_obs >    all.flux.daily.locate_2.0_valid_remainder_obs.sort
        split -l 321644              all.flux.daily.locate_2.0_valid_remainder_obs.sort all.flux.daily.locate_2.0_valid_remainder_obs
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.assemble.analyses.jl ::: all.flux.daily.locate_2.0_valid_remainder_obs?? ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep flux | sort > commands
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/analysis.evaluation.assemble.analyses.jl ::: all.flux.daily.locate_2.0_valid_remainder_obs?? ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ensemble bestest | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        cat all.flux.daily.locate_2.0_valid_remainder_obs??.cfsr        | sort > all/all.flux.daily.locate_2.0_valid_remainder_obs.cfsr
        cat all.flux.daily.locate_2.0_valid_remainder_obs??.erainterim  | sort > all/all.flux.daily.locate_2.0_valid_remainder_obs.erainterim
@@ -105,6 +109,8 @@ wrks ; cd all ; jjj analysis.evaluation.assemble.insitu.jl all.flux.daily all.fl
        cat all.flux.daily.locate_2.0_valid_remainder_obs??.merra       | sort > all/all.flux.daily.locate_2.0_valid_remainder_obs.merra
        cat all.flux.daily.locate_2.0_valid_remainder_obs??.oaflux      | sort > all/all.flux.daily.locate_2.0_valid_remainder_obs.oaflux
        cat all.flux.daily.locate_2.0_valid_remainder_obs??.seaflux     | sort > all/all.flux.daily.locate_2.0_valid_remainder_obs.seaflux
+       cat all.flux.daily.locate_2.0_valid_remainder_obs??.ensemble    | sort > all/all.flux.daily.locate_2.0_valid_remainder_obs.ensemble
+       cat all.flux.daily.locate_2.0_valid_remainder_obs??.bestest     | sort > all/all.flux.daily.locate_2.0_valid_remainder_obs.bestest
        wc all/all.flux.daily.locate_2.0_valid_remainder_obs all/all.flux.daily.locate_2.0_valid_remainder_obs.*
        rm commands all.flux.daily.locate_2.0_valid_remainder_obs*
 
@@ -120,7 +126,7 @@ wrks ; sort     all/all.flux.daily.locate_2.0_calib    > all.flux.daily.locate_2
        split -l 400 all.flux.daily.locate_2.0_valid.sort all.flux.daily.locate_2.0_valid.sort
        sort     all/all.flux.daily.locate_2.0_extra    > all.flux.daily.locate_2.0_extra.sort
        split -l 400 all.flux.daily.locate_2.0_extra.sort all.flux.daily.locate_2.0_extra.sort
-       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.daily.locate_2.0_?????.sort?? ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux | grep flux | sort > commands
+       parallel --dry-run /home1/homedir1/perso/rdaniels/bin/diag.heat.flux.timeseries.jl ::: all.flux.daily.locate_2.0_?????.sort?? ::: cfsr erainterim hoaps ifremerflux jofuro merra oaflux seaflux ensemble bestest | grep flux | sort > commands
        cat commands | /home5/begmeil/tools/gogolist/bin/gogolist.py -e julia --mem=2000mb
        rm commands all.flux.daily.locate_2.0_?????.sor*
 
@@ -133,6 +139,8 @@ wrks ; cd cfsr        ; ls -1 cfs* | grep -v OHF | grep -v .bef | grep -v .aft >
        cd oaflux      ; ls -1 oaf* | grep -v OHF | grep -v .bef | grep -v .aft > z.list ; split -l 1000 z.list z.list ; cd ..
        cd seaflux     ; ls -1 sea* | grep -v OHF | grep -v .bef | grep -v .aft > z.list ; split -l 1000 z.list z.list ; cd ..
        cd jofuro      ; ls -1 jof* | grep -v OHF | grep -v .bef | grep -v .aft > z.list ; split -l 1000 z.list z.list ; cd ..
+       cd ensemble    ; ls -1 ens* | grep -v OHF | grep -v .bef | grep -v .aft > z.list ; split -l 1000 z.list z.list ; cd ..
+       cd bestest     ; ls -1 bes* | grep -v OHF | grep -v .bef | grep -v .aft > z.list ; split -l 1000 z.list z.list ; cd ..
        wc *[a-z]/z.list
 
 # plot examples of temporal coverage by all analyses (include in situ) at a few locations

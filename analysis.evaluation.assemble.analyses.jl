@@ -1,7 +1,7 @@
 #=
  = Loop through all analyses and extract variables of interest at the position
  = of a set of ICOADS ship and buoy observations.  Include a conversion of units,
- = as required - RD March 2016.
+ = as required - RD March, October 2016.
  =#
 
 using My, NetCDF
@@ -26,14 +26,16 @@ vars = ["surface_upward_sensible_heat_flux", "surface_upward_latent_heat_flux", 
         "air_temperature", "sea_surface_temperature", "air_surface_specific_humidity"]
 varn = length(vars)
 
-ARGS[2] ==        "cfsr" && (stem =        "cfsr-" ; vars[LHFX] = "" ; vars[AIRT] = "2t")
-ARGS[2] ==  "erainterim" && (stem =  "erainterim-")
-ARGS[2] ==       "hoaps" && (stem =       "hoaps-")
-ARGS[2] == "ifremerflux" && (stem = "ifremerflux-")
-ARGS[2] ==      "jofuro" && (stem =      "jofuro-" ; vars[AIRT] = "" ; vars[SSTT] = "")
-ARGS[2] ==       "merra" && (stem =       "merra-")
-ARGS[2] ==      "oaflux" && (stem =      "oaflux-")                           # define the available variables
-ARGS[2] ==     "seaflux" && (stem =     "seaflux-")                           # and the filename stems/ending
+ARGS[2] ==        "cfsr" && (stem =         "cfsr-" ; vars[LHFX] = "" ; vars[AIRT] = "2t")
+ARGS[2] ==  "erainterim" && (stem =   "erainterim-")
+ARGS[2] ==       "hoaps" && (stem =        "hoaps-")
+ARGS[2] == "ifremerflux" && (stem =  "ifremerflux-")
+ARGS[2] ==      "jofuro" && (stem =       "jofuro-" ; vars[AIRT] = "" ; vars[SSTT] = "")
+ARGS[2] ==       "merra" && (stem =        "merra-")
+ARGS[2] ==      "oaflux" && (stem =       "oaflux-")                          # define the available variables
+ARGS[2] ==     "seaflux" && (stem =      "seaflux-")                          # and the filename stems/ending
+ARGS[2] ==     "bestest" && (stem = "bestestimate-")
+ARGS[2] ==    "ensemble" && (stem =     "ensemble-" ; vars[SHFX] = "surface_sensible_heat_flux" ; vars[LHFX] = "surface_latent_heat_flux")
 
 lats =  -90.0:0.25:89.75  ; latn = length(lats)
 lons = -180.0:0.25:179.75 ; lonn = length(lons)
