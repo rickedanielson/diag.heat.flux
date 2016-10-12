@@ -23,13 +23,6 @@ const SRCS             = 3
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
-cdh = "/home/cercache/users/rdaniels/work/works"
-try cd(cdh) catch err
-  write(STDERR, "ERROR : ¯\_(ツ)_/¯ couldn't cd($cdh)\n")
-  exit(-1)
-end
-print("\ncd $cdh\n\n")
-
 if (argc = length(ARGS)) != 1 && argc != 2
   print("\nUsage: jjj $(basename(@__FILE__)) z.list [30]\n\n")
   exit(1)
@@ -74,9 +67,9 @@ files = readlines(fpa) ; close(fpa)
 for (a, fila) in enumerate(files)
   (z, tail) = split(strip(fila), dirs[1])
   for b = 1:dirn
-    fpna[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail.bet", "r", false)
+    fpna[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail.bef", "r", false)
     fpnb[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail",     "r")
-    fpnc[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail.aff", "r", false)
+    fpnc[b] = My.ouvre("$(dirs[b])/$(dirs[b])$tail.aft", "r", false)
   end
 
   for b = 1:TIMS

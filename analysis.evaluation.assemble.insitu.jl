@@ -5,13 +5,6 @@
 
 using My
 
-cdh = "/home/cercache/users/rdaniels/work/works"
-try cd(cdh) catch err
-  write(STDERR, "ERROR : ¯\_(ツ)_/¯ couldn't cd($cdh)\n")
-  exit(-1)
-end
-print("\ncd $cdh\n\n")
-
 if (argc = length(ARGS)) != 2
   print("\nUsage: jjj $(basename(@__FILE__)) all.flux.daily all.flux.daily.locate_2.0_valid_remainder\n\n")
   exit(1)
