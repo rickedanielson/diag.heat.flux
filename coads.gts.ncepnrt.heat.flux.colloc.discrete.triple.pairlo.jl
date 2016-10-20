@@ -8,7 +8,7 @@
  = over a reasonable range and calibration is obtained for each subset.  Variations in calibration
  = (as a function of the observed or analyzed variable of interest) are then fit to a polynomial,
  = applied to all collocations, and global performance of the recalibrated data is reassessed - RD
- = June, July 2016.
+ = June, July, October 2016.
  =#
 
 using My, Optim, Winston, RCall ; R"library(DetMCD)"
@@ -22,13 +22,12 @@ const AIRT             = 7
 const SSTT             = 8
 
 const MISS             = -9999.0                        # generic missing value
-const EXTRA            = true                           # recalibrate the extrapolated data using extra collocations
-const PERTRIM          = 0.5                            # Minimum Covariance Determinant trimming (nonoutlier percent)
-const SDTRIM           = 6.0                            # standard deviation trimming limit
-const ANALYS           = 8                              # number of analyses
+const EXTRA            = false                          # recalibrate the extrapolated data using extra collocations
+const GOCAL            = true
+const MCDTRIM          = 0.5                            # Minimum Covariance Determinant trimming (nonoutlier percent)
 
-if (argc = length(ARGS)) != 2
-  print("\nUsage: jjj $(basename(@__FILE__)) all/all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt cfsr\n\n")
+if (argc = length(ARGS)) != 3
+  print("\nUsage: jjj $(basename(@__FILE__)) all/all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt cfsr 0.25\n\n")
   exit(1)
 end
 
@@ -41,6 +40,7 @@ vind = 0                                                                      # 
   ARGS[2] ==       "merra" && (vind = 24)
   ARGS[2] ==      "oaflux" && (vind = 27)
   ARGS[2] ==     "seaflux" && (vind = 30)
+  ARGS[2] ==    "ensemble" && (vind = 33)
 if contains(ARGS[1], "lhfx")
   ARGS[2] ==        "cfsr" && (vind =  0)
   ARGS[2] ==  "erainterim" && (vind =  9)
@@ -50,6 +50,7 @@ if contains(ARGS[1], "lhfx")
   ARGS[2] ==       "merra" && (vind = 21)
   ARGS[2] ==      "oaflux" && (vind = 24)
   ARGS[2] ==     "seaflux" && (vind = 27)
+  ARGS[2] ==    "ensemble" && (vind = 30)
 elseif contains(ARGS[1], "airt") || contains(ARGS[1], "sstt")
   ARGS[2] ==        "cfsr" && (vind =  9)
   ARGS[2] ==  "erainterim" && (vind = 12)
@@ -59,6 +60,7 @@ elseif contains(ARGS[1], "airt") || contains(ARGS[1], "sstt")
   ARGS[2] ==       "merra" && (vind = 21)
   ARGS[2] ==      "oaflux" && (vind = 24)
   ARGS[2] ==     "seaflux" && (vind = 27)
+  ARGS[2] ==    "ensemble" && (vind = 30)
 end
 if vind == 0
   print("\n$(ARGS[1]) does not contain data from $(ARGS[2])\n\n")
@@ -68,6 +70,8 @@ const TOTB             = vind
 const TOTN             = vind + 1
 const TOTA             = vind + 2
 
+rescale = float(ARGS[3])
+
 #=
  = Function returning triple collocation cal/val measures for a group of analyses, following McColl
  = et al. (2014).  Inputs are an array of collocated values and stats are returned for a collocation
@@ -76,19 +80,19 @@ const TOTA             = vind + 2
  =#
 
 function triple(curr::Array{Float64,3})
-# mask = masquextreme(curr[1,   :,2], SDTRIM) &                               # get the parametric center of mass
-#        masquextreme(curr[1,   :,1], SDTRIM) &                               # after trimming extreme values first
-#        masquextreme(curr[2,   :,1], SDTRIM)
-#=
-  mask = masquepourcent(curr[1, :,2], PERTRIM) &                              # get the parametric center of mass
-         masquepourcent(curr[1, :,1], PERTRIM) &                              # after trimming extreme values first
-         masquepourcent(curr[2, :,1], PERTRIM)
-  sampsitu =          curr[1,mask,2]
-  samprefa =          curr[1,mask,1]
-  samprefb =          curr[2,mask,1]
-  mass     =     mean(curr[2,mask,2])
-
+#=mask = masquepourcent(curr[1, :,2], MCDTRIM) &                              # get the parametric center of mass
+         masquepourcent(curr[1, :,1], MCDTRIM) &                              # after trimming extreme values first
+         masquepourcent(curr[2, :,1], MCDTRIM)
+  sampsitu =      curr[1,mask,2]
+  samprefa =      curr[1,mask,1]
+  samprefb =      curr[2,mask,1]
+  mass     = mean(curr[2,mask,2])
 # @show length(mask) length(mask[mask])
+
+  mass     = mean(curr[2,:,2])
+  sampsitu =      curr[1,:,2] - mass
+  samprefa =      curr[1,:,1] - mass
+  samprefb =      curr[2,:,1] - mass
 
   avg1 = mean(sampsitu)                                                       # and use a robust calculation of covariance
   avg2 = mean(samprefa)                                                       # (two-pass here, but more algorithms are at
@@ -100,10 +104,14 @@ function triple(curr::Array{Float64,3})
   cv23 = mean((samprefa - avg2) .* (samprefb - avg3))
   cv33 = mean((samprefb - avg3) .* (samprefb - avg3))
 =#
+  mass = mean(curr[2,:,2])
+  curr[1,:,2] -= mass
+  curr[1,:,1] -= mass
+  curr[2,:,1] -= mass
   temp = [curr[1,:,2]' curr[1,:,1]' curr[2,:,1]']
-  remp = rcopy(R"DetMCD($temp, alpha = $PERTRIM)")
+  remp = rcopy(R"DetMCD($temp, alpha = $MCDTRIM)")
   mask = falses(length(temp[:,1])) ; for a in remp[:Hsubsets]  mask[a] = true  end
-  mass = mean(curr[2,mask,2])
+# mass = mean(curr[2,mask,2])
 
   avg1 = remp[:center][1]
   avg2 = remp[:center][2]
@@ -117,8 +125,8 @@ function triple(curr::Array{Float64,3})
 
   bet2 = cv23 / cv13
   bet3 = cv23 / cv12
-  alp2 = avg2 - bet2 * avg1
-  alp3 = avg3 - bet3 * avg1
+  alp2 = avg2 - bet2 * avg1 + mass * (1.0 - bet2)
+  alp3 = avg3 - bet3 * avg1 + mass * (1.0 - bet3)
 
   tmpval = cv11 - cv12 * cv13 / cv23 ; sig1 = tmpval > 0 ? sqrt(tmpval) : 0.0
   tmpval = cv22 - cv12 * cv23 / cv13 ; sig2 = tmpval > 0 ? sqrt(tmpval) : 0.0
@@ -134,13 +142,13 @@ end
  = main program
  =#
 
-contains(ARGS[1], "shfx") && (const RANGE = -30.0: 5.0:150.0)  # target sampling range
-contains(ARGS[1], "lhfx") && (const RANGE =  50.0:10.0:450.0)
+contains(ARGS[1], "shfx") && (const RANGE = -20.0: 5.0:100.0)  # target sampling range
+contains(ARGS[1], "lhfx") && (const RANGE =  20.0:10.0:300.0)
 contains(ARGS[1], "wspd") && (const RANGE =   2.5: 0.5: 17.5)
 contains(ARGS[1], "airt") && (const RANGE =   0.0: 0.5: 30.0)
 contains(ARGS[1], "sstt") && (const RANGE =   5.0: 0.5: 30.0)
 contains(ARGS[1], "shum") && (const RANGE =   2.5: 0.5: 22.5)
-const CUTOFF           = 10000                          # number of collocations in a subset
+const CUTOFF           = 1000                           # number of collocations in a subset
 
 const MEMO             = 1                              # center-of-mass parameter
 const MEMB             = 2                              # error model x = ALPH + BETA * truth + error
@@ -155,16 +163,64 @@ const CORR             = 5                              # triple coll correlatio
 const PARS             = 5                              # number of triple collocation parameters
 
 ARGS333 = replace(ARGS[1], "calib", "valid")                                  # read both sets of collocations
-fpa    = My.ouvre(ARGS[1], "r") ; tinea = readlines(fpa) ; close(fpa)
-fpb    = My.ouvre(ARGS333, "r") ; tineb = readlines(fpb) ; close(fpb)
+fpa = My.ouvre(ARGS[1], "r") ; tinea = readlines(fpa) ; close(fpa)
+fpb = My.ouvre(ARGS333, "r") ; tineb = readlines(fpb) ; close(fpb)
 tinuma = length(tinea)
 tinumb = length(tineb)
 
-fname = replace(ARGS[1], "calib", "extra") * "." * ARGS[2] * ".extra.reg"     # as well as the regression coefficient pairs
-fpa = My.ouvre(fname, "r")                                                    # for calibrating the extrapolations relative
-line = readline(fpa)                                                          # to the extra collocation target (TOTN)
-(intb, slob, inta, sloa) = float(split(line))
-close(fpa)
+if (rescale != 1.0)                                                           # rescale the first set of input data values
+  const ANALYS = div(length(split(tinea[1])) - 8, 3)
+  print("rescaling $(ARGS[1])\n")
+  for a = 1:tinuma
+    dv  = float(split(tinea[a]))
+    out = @sprintf("%8.0f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f", dv[1], dv[2], dv[3], dv[4], dv[5], dv[6], dv[7], dv[8])
+    for b = 1:ANALYS
+      befind = 6 + 3 * b
+      nowind = 7 + 3 * b
+      aftind = 8 + 3 * b
+      dv[befind] = dv[nowind] + rescale * (dv[befind] - dv[nowind])
+      dv[aftind] = dv[nowind] + rescale * (dv[aftind] - dv[nowind])
+      tmp = @sprintf(" %9.3f %9.3f %9.3f", dv[befind], dv[nowind], dv[aftind])
+      out *= tmp
+    end
+    out *= "\n"
+    tinea[a] = out
+  end
+
+  print("rescaling $ARGS333\n")                                               # rescale the second set of input data values
+  for a = 1:tinumb
+    dv  = float(split(tineb[a]))
+    out = @sprintf("%8.0f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f", dv[1], dv[2], dv[3], dv[4], dv[5], dv[6], dv[7], dv[8])
+    for b = 1:ANALYS
+      befind = 6 + 3 * b
+      nowind = 7 + 3 * b
+      aftind = 8 + 3 * b
+      dv[befind] = dv[nowind] + rescale * (dv[befind] - dv[nowind])
+      dv[aftind] = dv[nowind] + rescale * (dv[aftind] - dv[nowind])
+      tmp = @sprintf(" %9.3f %9.3f %9.3f", dv[befind], dv[nowind], dv[aftind])
+      out *= tmp
+    end
+    out *= "\n"
+    tineb[a] = out
+  end
+end
+
+if EXTRA
+  fname = replace(ARGS[1], "calib", "extra") * "." * ARGS[2] * ".extra.reg"   # also read the regression coefficient pairs
+  fpa = My.ouvre(fname, "r")                                                  # for calibrating the extrapolations relative
+  line = readline(fpa)                                                        # to the extra collocation target (TOTN)
+  (intb, slob, inta, sloa) = float(split(line))
+  close(fpa)
+end
+
+if GOCAL
+  (z, stem) = split(ARGS[1], "/")
+  fname = "all/zali.recalib.paired." * ARGS[3] * "/" * stem * "." * ARGS[2] * ".recalibrate"
+  fpa = My.ouvre(fname, "r")
+  line = readline(fpa)                                                        # get the global recalibration coefficients
+  (allalp1, allbet1, allalp2, allbet2) = float(split(line))
+  close(fpa)
+end
 
 refa = Array(Float64, tinuma)                                                 # and calculate a pair of reference variables
 refb = Array(Float64, tinumb)                                                 # (either from observations or from analyses)
@@ -172,17 +228,25 @@ for a = 1:tinuma
   vala = float(split(tinea[a]))
   EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
             vala[TOTA] = (vala[TOTA] - inta) / sloa)
-  refa[a] = vala[OCUR]
+  GOCAL && (vala[TOTB] = (vala[TOTB] - allalp2) / allbet2 ;
+            vala[TOTN] = (vala[TOTN] - allalp2) / allbet2 ;
+            vala[TOTA] = (vala[TOTA] - allalp2) / allbet2)
+# refa[a] = vala[OCUR]
 # refa[a] = vala[TOTN]
-# refa[a] = 0.5 * (vala[OCUR] + vala[TOTN])
+# refa[a] = 0.9 * vala[OCUR] + 0.1 * vala[TOTN]
+  refa[a] = 0.5 * (vala[OCUR] + vala[TOTN])
 end
 for a = 1:tinumb
   vala = float(split(tineb[a]))
   EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
             vala[TOTA] = (vala[TOTA] - inta) / sloa)
-  refb[a] = vala[OCUR]
+  GOCAL && (vala[TOTB] = (vala[TOTB] - allalp1) / allbet1 ;
+            vala[TOTN] = (vala[TOTN] - allalp1) / allbet1 ;
+            vala[TOTA] = (vala[TOTA] - allalp1) / allbet1)
+# refb[a] = vala[OCUR]
 # refb[a] = vala[TOTN]
-# refb[a] = 0.5 * (vala[OCUR] + vala[TOTN])
+# refb[a] = 0.9 * vala[OCUR] + 0.1 * vala[TOTN]
+  refb[a] = 0.5 * (vala[OCUR] + vala[TOTN])
 end
 
 statis = [MISS for a = 1:4, b = 1:MEMS, c = 1:PARS]                           # allocate a set of global cal/val arrays
@@ -198,6 +262,8 @@ for a = 1:tinuma                                                              # 
   vals = float(split(tinea[a]))
   EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
             vals[TOTA] = (vals[TOTA] - inta) / sloa)
+# GOCAL && (vals[TOTB] = (vals[TOTB] - allalp2) / allbet2 ;
+#           vals[TOTA] = (vals[TOTA] - allalp2) / allbet2)
   curga[1,a,:] = [vals[TOTB] vals[OCUR]]
   curga[2,a,:] = [vals[TOTA] refa[a]   ]
 end
@@ -223,6 +289,8 @@ for a = 1:tinumb                                                              # 
   vals = float(split(tineb[a]))
   EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
             vals[TOTA] = (vals[TOTA] - inta) / sloa)
+# GOCAL && (vals[TOTB] = (vals[TOTB] - allalp1) / allbet1 ;
+#           vals[TOTA] = (vals[TOTA] - allalp1) / allbet1)
   curgb[1,a,:] = [vals[TOTB] vals[OCUR]]
   curgb[2,a,:] = [vals[TOTA] refb[a]   ]
 end
@@ -297,6 +365,8 @@ for (z, ranz) in enumerate(RANGE)                                             # 
     vals = float(split(linea[a]))
     EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
               vals[TOTA] = (vals[TOTA] - inta) / sloa)
+    GOCAL && (vals[TOTB] = (vals[TOTB] - allalp2) / allbet2 ;
+              vals[TOTA] = (vals[TOTA] - allalp2) / allbet2)
     curla[1,a,:] = [vals[TOTB] vals[OCUR]]
     curla[2,a,:] = [vals[TOTA] lrefa[a]  ]
   end
@@ -305,10 +375,10 @@ for (z, ranz) in enumerate(RANGE)                                             # 
                      locsig[z] = 0.5 * (sig2 + sig3) ; loccor[z] = 0.5 * (cor2 + cor3)
 # (locmas[z], localp[z], locbet[z], locsig[z], loccor[z]) = triple(curla)
 
-  @printf("\nnumb = %15.0f for subset of %s\n", linuma, ARGS[1])
-  @printf("cala = %15.8f\n",                localp[z])
-  @printf("calb = %15.8f\n",                locbet[z])
-  @printf("mean = %15.8f target = %5.2f\n", locmas[z], ranz)
+# @printf("\nnumb = %15.0f for subset of %s\n", linuma, ARGS[1])
+# @printf("cala = %15.8f\n",                localp[z])
+# @printf("calb = %15.8f\n",                locbet[z])
+  @printf("numb = %15.0f for subset of %s with mean = %15.8f target = %5.2f\n", linuma, ARGS[1], locmas[z], ranz)
   @printf("%33s %8s %8s %8s %8s\n", " ", "localp", "locbet", "locsig", "loccor")
   @printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", localp[z], locbet[z], locsig[z], loccor[z])
 
@@ -316,6 +386,8 @@ for (z, ranz) in enumerate(RANGE)                                             # 
     vals = float(split(lineb[a]))
     EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
               vals[TOTA] = (vals[TOTA] - inta) / sloa)
+    GOCAL && (vals[TOTB] = (vals[TOTB] - allalp1) / allbet1 ;
+              vals[TOTA] = (vals[TOTA] - allalp1) / allbet1)
     curlb[1,a,:] = [vals[TOTB] vals[OCUR]]
     curlb[2,a,:] = [vals[TOTA] lrefb[a]  ]
   end
@@ -324,10 +396,10 @@ for (z, ranz) in enumerate(RANGE)                                             # 
                      lodsig[z] = 0.5 * (sig2 + sig3) ; lodcor[z] = 0.5 * (cor2 + cor3)
 # (lodmas[z], lodalp[z], lodbet[z], lodsig[z], lodcor[z]) = triple(curlb)
 
-  @printf("\nnumb = %15.0f for subset of %s\n", linumb, ARGS333)
-  @printf("cala = %15.8f\n",                lodalp[z])
-  @printf("calb = %15.8f\n",                lodbet[z])
-  @printf("mean = %15.8f target = %5.2f\n", lodmas[z], ranz)
+# @printf("\nnumb = %15.0f for subset of %s\n", linumb, ARGS333)
+# @printf("cala = %15.8f\n",                lodalp[z])
+# @printf("calb = %15.8f\n",                lodbet[z])
+  @printf("numb = %15.0f for subset of %s with mean = %15.8f target = %5.2f\n", linumb, ARGS333, lodmas[z], ranz)
   @printf("%33s %8s %8s %8s %8s\n", " ", "lodalp", "lodbet", "lodsig", "lodcor")
   @printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", lodalp[z], lodbet[z], lodsig[z], lodcor[z])
 end
@@ -344,15 +416,15 @@ function funb(a, b, c, min = -9e99, max = 9e99)
   x -> (y = a + b * exp(c * x) ; y >= min ? (y < max ? y : max) : min)
 end
 
-      msk = (abs(locbet) .< 10) # trues(length(loccor)) # (0 .< loccor .< 1) # (abs(localp) .< 10000) & (abs(locbet) .< 500) & (0 .< loccor .< 1)
+      msk = trues(length(loccor)) # (abs(locbet) .< 10) # trues(length(loccor)) # (0 .< loccor .< 1) # (abs(localp) .< 10000) & (abs(locbet) .< 500) & (0 .< loccor .< 1)
 localpint = funb(My.integralexp(locmas[msk], localp[msk])..., minimum(localp[msk]), maximum(localp[msk]))
 locbetint = funb(My.integralexp(locmas[msk], locbet[msk])..., minimum(locbet[msk]), maximum(locbet[msk]))
-locsigint = funb(My.integralexp(locmas[msk], locsig[msk])...)
+locsigint = funb(My.integralexp(locmas[msk], locsig[msk])..., minimum(locsig[msk]), maximum(locsig[msk]))
 loccorint = funb(My.integralexp(locmas[msk], loccor[msk])..., 0.0, 1.0)
-      msk = (abs(lodbet) .< 10) # trues(length(lodcor)) # (0 .< lodcor .< 1) # (abs(lodalp) .< 10000) & (abs(lodbet) .< 500) & (0 .< lodcor .< 1)
+      msk = trues(length(lodcor)) # (abs(lodbet) .< 10) # trues(length(lodcor)) # (0 .< lodcor .< 1) # (abs(lodalp) .< 10000) & (abs(lodbet) .< 500) & (0 .< lodcor .< 1)
 lodalpint = funb(My.integralexp(locmas[msk], lodalp[msk])..., minimum(lodalp[msk]), maximum(lodalp[msk]))
 lodbetint = funb(My.integralexp(locmas[msk], lodbet[msk])..., minimum(lodbet[msk]), maximum(lodbet[msk]))
-lodsigint = funb(My.integralexp(locmas[msk], lodsig[msk])...)
+lodsigint = funb(My.integralexp(locmas[msk], lodsig[msk])..., minimum(lodsig[msk]), maximum(lodsig[msk]))
 lodcorint = funb(My.integralexp(locmas[msk], lodcor[msk])..., 0.0, 1.0)
 
 #=
@@ -373,6 +445,9 @@ for a = 1:tinuma                                                              # 
   vala = float(split(tinea[a]))                                               # the other set; first get a refbef from gloalp/bet
   EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
             vala[TOTA] = (vala[TOTA] - inta) / sloa)
+  GOCAL && (vala[TOTB] = (vala[TOTB] - allalp2) / allbet2 ;
+            vala[TOTN] = (vala[TOTN] - allalp2) / allbet2 ;
+            vala[TOTA] = (vala[TOTA] - allalp2) / allbet2)
   alpbef = lodalpint(vala[TOTB]) ; betbef = lodbetint(vala[TOTB])
   alpaft = lodalpint(vala[TOTA]) ; betaft = lodbetint(vala[TOTA])
 #alpbef = alpaft = localpint(vala[TOTN])
@@ -439,10 +514,13 @@ tmpstr = "after recalibration only (using alpha and beta from the other collocat
 @printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMB,ALPH], statis[a,MEMB,BETA], statis[a,MEMB,SIGM], statis[a,MEMB,CORR])
 @printf("%33s %8.3f %8.3f %8.3f %8.3f\n", " ", statis[a,MEMA,ALPH], statis[a,MEMA,BETA], statis[a,MEMA,SIGM], statis[a,MEMA,CORR])
 
-for a = 1:tinumb                                                              # recalibrate using the calibration parameters
+for a = 1:tinumb                                                              # recalibrate using the calibration parameters from
   vala = float(split(tineb[a]))                                               # the other set; first get a refbef from gloalp/bet
   EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
             vala[TOTA] = (vala[TOTA] - inta) / sloa)
+  GOCAL && (vala[TOTB] = (vala[TOTB] - allalp1) / allbet1 ;
+            vala[TOTN] = (vala[TOTN] - allalp1) / allbet1 ;
+            vala[TOTA] = (vala[TOTA] - allalp1) / allbet1)
   alpbef = localpint(vala[TOTB]) ; betbef = locbetint(vala[TOTB])
   alpaft = localpint(vala[TOTA]) ; betaft = locbetint(vala[TOTA])
 #alpbef = alpaft = localpint(vala[TOTN])
@@ -547,6 +625,7 @@ ARGS[2] ==      "jofuro" && (titlb = "J-OFU $titla")
 ARGS[2] ==       "merra" && (titlb = "MERRA $titla")
 ARGS[2] ==      "oaflux" && (titlb = "OAFLX $titla")
 ARGS[2] ==     "seaflux" && (titlb = "SEAFX $titla")
+ARGS[2] ==    "ensemble" && (titlb = "ENSEM $titla")
 
 tars = collect(RANGE)                                                         # plot the binned sums 
 tarn = zeros(length(tars), 2)

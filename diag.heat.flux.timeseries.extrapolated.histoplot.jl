@@ -3,7 +3,7 @@
  = backward extrapolated timeseries of all available variables, relative to the actual
  = (uninterpolated) values.  Note that BEF refers to an interpolation using analysis
  = data from before the extrapolation; AFT extrapolations use analysis data afterward.
- = Where one analysis is unavailable, all analyses are skipped - RD April 2016.
+ = Where one analysis is unavailable, all analyses are skipped - RD April, October 2016.
  =#
 
 using My, Winston
@@ -28,7 +28,7 @@ if (argc = length(ARGS)) != 1
   exit(1)
 end
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "ensemble", "bestest"]
 dirn = length(dirs)
 
 shfi = 1.0 ; shfs = collect( -600.0 : shfi : 1500.0) ; shfn = zeros(length(shfs), length(shfs), dirn)
@@ -44,7 +44,7 @@ function restore(bound::Array{Float64,1}, grid::Array{Float64,3}, pname::UTF8Str
   for (a, vala) in enumerate(bound)
     for (b, valb) in enumerate(bound)
       line = readline(fpa)
-      (grid[b,a,1], grid[b,a,2], grid[b,a,3], grid[b,a,4], grid[b,a,5], grid[b,a,6], grid[b,a,7], grid[b,a,8]) = float(split(line))
+      (grid[b,a,1], grid[b,a,2], grid[b,a,3], grid[b,a,4], grid[b,a,5], grid[b,a,6], grid[b,a,7], grid[b,a,8], grid[b,a,9], grid[b,a,10]) = float(split(line))
     end
   end
   close(fpa)
@@ -73,14 +73,16 @@ function point(bound::Array{Float64,1}, grid::Array{Float64,3}, plotind::Int64)
   return(xpts, ypts, zpts)
 end
 
-ARGS[1] ==        "cfsr" && (plotind = 1 ; plotitle = "CFSR")
-ARGS[1] ==  "erainterim" && (plotind = 2 ; plotitle = "ERA Interim")
-ARGS[1] ==       "hoaps" && (plotind = 3 ; plotitle = "HOAPS")
-ARGS[1] == "ifremerflux" && (plotind = 4 ; plotitle = "IfremerFlux")
-ARGS[1] ==      "jofuro" && (plotind = 5 ; plotitle = "J-OFURO")
-ARGS[1] ==       "merra" && (plotind = 6 ; plotitle = "MERRA")
-ARGS[1] ==      "oaflux" && (plotind = 7 ; plotitle = "OAFlux")
-ARGS[1] ==     "seaflux" && (plotind = 8 ; plotitle = "SeaFlux")
+ARGS[1] ==        "cfsr" && (plotind =  1 ; plotitle = "CFSR")
+ARGS[1] ==  "erainterim" && (plotind =  2 ; plotitle = "ERA Interim")
+ARGS[1] ==       "hoaps" && (plotind =  3 ; plotitle = "HOAPS")
+ARGS[1] == "ifremerflux" && (plotind =  4 ; plotitle = "IfremerFlux")
+ARGS[1] ==      "jofuro" && (plotind =  5 ; plotitle = "J-OFURO")
+ARGS[1] ==       "merra" && (plotind =  6 ; plotitle = "MERRA")
+ARGS[1] ==      "oaflux" && (plotind =  7 ; plotitle = "OAFlux")
+ARGS[1] ==     "seaflux" && (plotind =  8 ; plotitle = "SeaFlux")
+ARGS[1] ==    "ensemble" && (plotind =  9 ; plotitle = "Ensemble")
+ARGS[1] ==     "bestest" && (plotind = 10 ; plotitle = "Best Estimate")
 
 ppp = Winston.Table(3,2) ; setattr(ppp, "cellpadding", -0.5)                  # and then create the scatterplots
 for z = 1:PARAMS

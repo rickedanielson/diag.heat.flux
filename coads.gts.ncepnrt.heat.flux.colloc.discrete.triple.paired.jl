@@ -5,7 +5,7 @@
  = of data outlier detection and removal is treated using the DetMCD algorithm in
  = R.  For morphing experiments, the linearity of the bijective mapping into and
  = out of Gaussian-anamorphosis space is also checked (given that the in situ
- = slope and intercept remain the reference) - RD June, July 2016.
+ = slope and intercept remain the reference) - RD June, July, October 2016.
  =#
 
 using My, Morph, RCall ; R"library(DetMCD)"
@@ -19,14 +19,12 @@ const AIRT             = 7
 const SSTT             = 8
 
 const MISS             = -9999.0                        # generic missing value
-const EXTRA            = true                           # recalibrate the extrapolated data using extra collocations
-const PERTRIM          = 0.5                            # Minimum Covariance Determinant trimming (nonoutlier percent)
-const SDTRIM           = 2.0                            # standard deviation trimming limit
 const MORPH            = false                          # perform Gaussian anamorphosis
-const ANALYS           = 8                              # number of analyses
+const EXTRA            = false                          # recalibrate the extrapolated data using extra collocations
+const MCDTRIM          = 0.5                            # Minimum Covariance Determinant trimming (nonoutlier percent)
 
-if (argc = length(ARGS)) != 2
-  print("\nUsage: jjj $(basename(@__FILE__)) all/all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt cfsr\n\n")
+if (argc = length(ARGS)) != 3
+  print("\nUsage: jjj $(basename(@__FILE__)) all/all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt cfsr 0.25\n\n")
   exit(1)
 end
 
@@ -39,6 +37,7 @@ vind = 0                                                                      # 
   ARGS[2] ==       "merra" && (vind = 24)
   ARGS[2] ==      "oaflux" && (vind = 27)
   ARGS[2] ==     "seaflux" && (vind = 30)
+  ARGS[2] ==    "ensemble" && (vind = 33)
 if contains(ARGS[1], "lhfx")
   ARGS[2] ==        "cfsr" && (vind =  0)
   ARGS[2] ==  "erainterim" && (vind =  9)
@@ -48,6 +47,7 @@ if contains(ARGS[1], "lhfx")
   ARGS[2] ==       "merra" && (vind = 21)
   ARGS[2] ==      "oaflux" && (vind = 24)
   ARGS[2] ==     "seaflux" && (vind = 27)
+  ARGS[2] ==    "ensemble" && (vind = 30)
 elseif contains(ARGS[1], "airt") || contains(ARGS[1], "sstt")
   ARGS[2] ==        "cfsr" && (vind =  9)
   ARGS[2] ==  "erainterim" && (vind = 12)
@@ -57,6 +57,7 @@ elseif contains(ARGS[1], "airt") || contains(ARGS[1], "sstt")
   ARGS[2] ==       "merra" && (vind = 21)
   ARGS[2] ==      "oaflux" && (vind = 24)
   ARGS[2] ==     "seaflux" && (vind = 27)
+  ARGS[2] ==    "ensemble" && (vind = 30)
 end
 if vind == 0
   print("\n$(ARGS[1]) does not contain data from $(ARGS[2])\n\n")
@@ -66,6 +67,8 @@ const TOTB             = vind
 const TOTN             = vind + 1
 const TOTA             = vind + 2
 
+rescale = float(ARGS[3])
+
 #=
  = Function returning triple collocation cal/val measures for a group of analyses, following McColl
  = et al. (2014).  Inputs are an array of collocated values and stats are returned for a collocation
@@ -74,19 +77,19 @@ const TOTA             = vind + 2
  =#
 
 function triple(curr::Array{Float64,3})
-# mask = masquextreme(curr[1,   :,2], SDTRIM) &                               # get the parametric center of mass
-#        masquextreme(curr[1,   :,1], SDTRIM) &                               # after trimming extreme values first
-#        masquextreme(curr[2,   :,1], SDTRIM)
-#=
-  mask = masquepourcent(curr[1, :,2], PERTRIM) &                              # get the parametric center of mass
-         masquepourcent(curr[1, :,1], PERTRIM) &                              # after trimming extreme values first
-         masquepourcent(curr[2, :,1], PERTRIM)
-  sampsitu =          curr[1,mask,2]
-  samprefa =          curr[1,mask,1]
-  samprefb =          curr[2,mask,1]
-  mass     =     mean(curr[2,mask,2])
-
+#=mask = masquepourcent(curr[1, :,2], MCDTRIM) &                              # get the parametric center of mass
+         masquepourcent(curr[1, :,1], MCDTRIM) &                              # after trimming extreme values first
+         masquepourcent(curr[2, :,1], MCDTRIM)
+  sampsitu =      curr[1,mask,2]
+  samprefa =      curr[1,mask,1]
+  samprefb =      curr[2,mask,1]
+  mass     = mean(curr[2,mask,2])
 # @show length(mask) length(mask[mask])
+
+  mass     = mean(curr[2,:,2])
+  sampsitu =      curr[1,:,2] - mass
+  samprefa =      curr[1,:,1] - mass
+  samprefb =      curr[2,:,1] - mass
 
   avg1 = mean(sampsitu)                                                       # and use a robust calculation of covariance
   avg2 = mean(samprefa)                                                       # (two-pass here, but more algorithms are at
@@ -98,10 +101,14 @@ function triple(curr::Array{Float64,3})
   cv23 = mean((samprefa - avg2) .* (samprefb - avg3))
   cv33 = mean((samprefb - avg3) .* (samprefb - avg3))
 =#
+  mass = mean(curr[2,:,2])
+  curr[1,:,2] -= mass
+  curr[1,:,1] -= mass
+  curr[2,:,1] -= mass
   temp = [curr[1,:,2]' curr[1,:,1]' curr[2,:,1]']
-  remp = rcopy(R"DetMCD($temp, alpha = $PERTRIM)")
+  remp = rcopy(R"DetMCD($temp, alpha = $MCDTRIM)")
   mask = falses(length(temp[:,1])) ; for a in remp[:Hsubsets]  mask[a] = true  end
-  mass = mean(curr[2,mask,2])
+# mass = mean(curr[2,mask,2])
 
   avg1 = remp[:center][1]
   avg2 = remp[:center][2]
@@ -115,8 +122,8 @@ function triple(curr::Array{Float64,3})
 
   bet2 = cv23 / cv13
   bet3 = cv23 / cv12
-  alp2 = avg2 - bet2 * avg1
-  alp3 = avg3 - bet3 * avg1
+  alp2 = avg2 - bet2 * avg1 + mass * (1.0 - bet2)
+  alp3 = avg3 - bet3 * avg1 + mass * (1.0 - bet3)
 
   tmpval = cv11 - cv12 * cv13 / cv23 ; sig1 = tmpval > 0 ? sqrt(tmpval) : 0.0
   tmpval = cv22 - cv12 * cv23 / cv13 ; sig2 = tmpval > 0 ? sqrt(tmpval) : 0.0
@@ -144,23 +151,84 @@ const SIGM             = 4                              # triple coll RMSE
 const CORR             = 5                              # triple coll correlation coefficient
 const PARS             = 5                              # number of triple collocation parameters
 
-ARGS222 = replace(ARGS[1], "calib", "valid")
-fpa = My.ouvre(ARGS[1], "r") ; linea = readlines(fpa) ; close(fpa)            # read both sets of collocations and allocate
-fpb = My.ouvre(ARGS222, "r") ; lineb = readlines(fpb) ; close(fpb)            # the triple collocation input/output arrays
+ARGS222 = replace(ARGS[1], "calib", "valid")                                  # read both sets of collocations
+fpa = My.ouvre(ARGS[1], "r") ; linea = readlines(fpa) ; close(fpa)
+fpb = My.ouvre(ARGS222, "r") ; lineb = readlines(fpb) ; close(fpb)
 linuma = length(linea) ; cura = zeros(2, linuma, 2)
 linumb = length(lineb) ; curb = zeros(2, linumb, 2)
-statis = [MISS for a = 1:4, b = 1:MEMS, c = 1:PARS]
+
+if (rescale != 1.0)                                                           # rescale the first set of input data values
+  const ANALYS = div(length(split(linea[1])) - 8, 3)
+  print("rescaling $(ARGS[1])\n")
+  for a = 1:linuma
+    dv  = float(split(linea[a]))
+    out = @sprintf("%8.0f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f", dv[1], dv[2], dv[3], dv[4], dv[5], dv[6], dv[7], dv[8])
+    for b = 1:ANALYS
+      befind = 6 + 3 * b
+      nowind = 7 + 3 * b
+      aftind = 8 + 3 * b
+      dv[befind] = dv[nowind] + rescale * (dv[befind] - dv[nowind])
+      dv[aftind] = dv[nowind] + rescale * (dv[aftind] - dv[nowind])
+      tmp = @sprintf(" %9.3f %9.3f %9.3f", dv[befind], dv[nowind], dv[aftind])
+      out *= tmp
+    end
+    out *= "\n"
+    linea[a] = out
+  end
+
+  print("rescaling $ARGS222\n")                                               # rescale the second set of input data values
+  for a = 1:linumb
+    dv  = float(split(lineb[a]))
+    out = @sprintf("%8.0f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f", dv[1], dv[2], dv[3], dv[4], dv[5], dv[6], dv[7], dv[8])
+    for b = 1:ANALYS
+      befind = 6 + 3 * b
+      nowind = 7 + 3 * b
+      aftind = 8 + 3 * b
+      dv[befind] = dv[nowind] + rescale * (dv[befind] - dv[nowind])
+      dv[aftind] = dv[nowind] + rescale * (dv[aftind] - dv[nowind])
+      tmp = @sprintf(" %9.3f %9.3f %9.3f", dv[befind], dv[nowind], dv[aftind])
+      out *= tmp
+    end
+    out *= "\n"
+    lineb[a] = out
+  end
+end
+
+if EXTRA
+  fname = replace(ARGS[1], "calib", "extra") * "." * ARGS[2] * ".extra.reg"   # also read the regression coefficient pairs
+  fpa = My.ouvre(fname, "r") ; line = readline(fpa) ; close(fpa)              # for calibrating the extrapolations relative
+  (intb, slob, inta, sloa) = float(split(line))                               # to the extra collocation target (TOTN)
+# intz = 0.5 * (intb + inta) ; intb = inta = intz
+# sloz = 0.5 * (slob + sloa) ; slob = sloa = sloz
+end
+
+refa = Array(Float64, linuma)                                                 # and calculate a pair of reference variables
+refb = Array(Float64, linumb)                                                 # (either from observations or from analyses)
+for a = 1:linuma
+  vala = float(split(linea[a]))
+  EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
+            vala[TOTA] = (vala[TOTA] - inta) / sloa)
+# refa[a] = vala[OCUR]
+# refa[a] = vala[TOTN]
+# refa[a] = 0.9 * vala[OCUR] + 0.1 * vala[TOTN]
+  refa[a] = 0.5 * (vala[OCUR] + vala[TOTN])
+end
+for a = 1:linumb
+  vala = float(split(lineb[a]))
+  EXTRA && (vala[TOTB] = (vala[TOTB] - intb) / slob ;
+            vala[TOTA] = (vala[TOTA] - inta) / sloa)
+# refb[a] = vala[OCUR]
+# refb[a] = vala[TOTN]
+# refb[a] = 0.9 * vala[OCUR] + 0.1 * vala[TOTN]
+  refb[a] = 0.5 * (vala[OCUR] + vala[TOTN])
+end
+
+statis = [MISS for a = 1:4, b = 1:MEMS, c = 1:PARS]                           # allocate a set of global cal/val arrays
 allmas = [MISS for a = 1:4]
 allalp = [MISS for a = 1:4]
 allbet = [MISS for a = 1:4]
 allsig = [MISS for a = 1:4]
 allcor = [MISS for a = 1:4]
-
-fname = replace(ARGS[1], "calib", "extra") * "." * ARGS[2] * ".extra.reg"     # as well as the regression coefficient pairs
-fpa = My.ouvre(fname, "r") ; line = readline(fpa) ; close(fpa)                # for calibrating the extrapolations relative
-(intb, slob, inta, sloa) = float(split(line))                                 # to the extra collocation target (TOTN)
-#intz = 0.5 * (intb + inta) ; intb = inta = intz
-#sloz = 0.5 * (slob + sloa) ; slob = sloa = sloz
 
 if MORPH                                                                      # define for both collocation sets a mapping
   tmpa = Array(Float64, linuma)                                               # (Gaussian anamorphosis) based on the in situ
@@ -218,7 +286,7 @@ for a = 1:linuma                                                              # 
   EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
             vals[TOTA] = (vals[TOTA] - inta) / sloa)
   cura[1,a,:] = [vals[TOTB] vals[OCUR]]
-  cura[2,a,:] = [vals[TOTA] vals[OCUR]]
+  cura[2,a,:] = [vals[TOTA] refa[a]   ]
 end
 a = 1 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(cura)
 statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        allmas[a] = mass
@@ -243,7 +311,7 @@ for a = 1:linumb                                                              # 
   EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
             vals[TOTA] = (vals[TOTA] - inta) / sloa)
   curb[1,a,:] = [vals[TOTB] vals[OCUR]]
-  curb[2,a,:] = [vals[TOTA] vals[OCUR]]
+  curb[2,a,:] = [vals[TOTA] refb[a]   ]
 end
 a = 2 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curb)
 statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        allmas[a] = mass
@@ -296,16 +364,22 @@ form = @sprintf("%77s %8.3f %8.3f %8.3f %8.3f\n", "aft", statis[2,MEMA,ALPH], st
 write(fpb, form)
 close(fpb)
 
+fpb = My.ouvre(ARGS[1] * "." * ARGS[2] * ".recalibrate", "w")                 # and save these bias corrections
+@printf(fpb, "%33.11f %33.11f %33.11f %33.11f\n",
+allalp[1], allbet[1], allalp[2], allbet[2])
+close(fpb)
+
 if MORPH
   for a = 1:linuma                                                            # compute cal/val parameters for the first set
     vals = float(split(linea[a]))                                             # (in Gaussian units if morphing)
     EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
               vals[TOTA] = (vals[TOTA] - inta) / sloa)
-    MORPH && (vals[TOTB] = rawtonorm(cdfb, rawb, vals[TOTB]))
-    MORPH && (vals[TOTA] = rawtonorm(cdfb, rawb, vals[TOTA]))
-    MORPH && (vals[OCUR] = rawtonorm(cdfb, rawb, vals[OCUR]))
+    MORPH && (vals[TOTB] = rawtonorm(cdfb, rawb, vals[TOTB]) ;
+              vals[TOTA] = rawtonorm(cdfb, rawb, vals[TOTA]) ;
+              vals[OCUR] = rawtonorm(cdfb, rawb, vals[OCUR]) ;
+              refa[a]    = rawtonorm(cdfb, rawb, refa[a]))
     cura[1,a,:] = [vals[TOTB] vals[OCUR]]
-    cura[2,a,:] = [vals[TOTA] vals[OCUR]]
+    cura[2,a,:] = [vals[TOTA] refa[a]   ]
   end
   a = 1 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(cura)
   statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        allmas[a] = mass
@@ -319,11 +393,12 @@ if MORPH
     vals = float(split(lineb[a]))                                             # (in Gaussian units if morphing)
     EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;
               vals[TOTA] = (vals[TOTA] - inta) / sloa)
-    MORPH && (vals[TOTB] = rawtonorm(cdfa, rawa, vals[TOTB]))
-    MORPH && (vals[TOTA] = rawtonorm(cdfa, rawa, vals[TOTA]))
-    MORPH && (vals[OCUR] = rawtonorm(cdfa, rawa, vals[OCUR]))
+    MORPH && (vals[TOTB] = rawtonorm(cdfa, rawa, vals[TOTB]) ;
+              vals[TOTA] = rawtonorm(cdfa, rawa, vals[TOTA]) ;
+              vals[OCUR] = rawtonorm(cdfa, rawa, vals[OCUR]) ;
+              refb[a]    = rawtonorm(cdfb, rawb, refb[a]))
     curb[1,a,:] = [vals[TOTB] vals[OCUR]]
-    curb[2,a,:] = [vals[TOTA] vals[OCUR]]
+    curb[2,a,:] = [vals[TOTA] refb[a]   ]
   end
   a = 2 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curb)
   statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        allmas[a] = mass
@@ -343,18 +418,16 @@ for a = 1:linuma                                                              # 
   vals = float(split(linea[a]))                                               # using calibration parameters (and anamorphosis) from the
   EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;                         # other set and report new cal/val parameters in original
             vals[TOTA] = (vals[TOTA] - inta) / sloa)                          # units
-  MORPH && (vals[TOTB] = rawtonorm(cdfb, rawb, vals[TOTB]))
-  MORPH && (vals[TOTA] = rawtonorm(cdfb, rawb, vals[TOTA]))
-  MORPH && (vals[OCUR] = rawtonorm(cdfb, rawb, vals[OCUR]))
+  MORPH && (vals[TOTB] = rawtonorm(cdfb, rawb, vals[TOTB]) ;
+            vals[TOTA] = rawtonorm(cdfb, rawb, vals[TOTA]))
   vals[TOTB] = (vals[TOTB] - allalp[2]) / allbet[2]
   vals[TOTA] = (vals[TOTA] - allalp[2]) / allbet[2]
 # vals[TOTB] = (vals[TOTB] - statis[2,MEMB,ALPH]) / statis[2,MEMB,ALPH]
 # vals[TOTA] = (vals[TOTA] - statis[2,MEMA,ALPH]) / statis[2,MEMA,BETA]
-  MORPH && (vals[TOTB] = normtoraw(cdfb, rawb, vals[TOTB]))
-  MORPH && (vals[TOTA] = normtoraw(cdfb, rawb, vals[TOTA]))
-  MORPH && (vals[OCUR] = normtoraw(cdfb, rawb, vals[OCUR]))
+  MORPH && (vals[TOTB] = normtoraw(cdfb, rawb, vals[TOTB]) ;
+            vals[TOTA] = normtoraw(cdfb, rawb, vals[TOTA]))
   cura[1,a,:] = [vals[TOTB] vals[OCUR]]
-  cura[2,a,:] = [vals[TOTA] vals[OCUR]]
+  cura[2,a,:] = [vals[TOTA] refa[a]   ]
 end
 a = 3 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(cura)
 statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        allmas[a] = mass
@@ -381,18 +454,16 @@ for a = 1:linumb                                                              # 
   vals = float(split(lineb[a]))                                               # using calibration parameters (and anamorphosis) from the
   EXTRA && (vals[TOTB] = (vals[TOTB] - intb) / slob ;                         # other set and report new cal/val parameters in original
             vals[TOTA] = (vals[TOTA] - inta) / sloa)                          # units
-  MORPH && (vals[TOTB] = rawtonorm(cdfa, rawa, vals[TOTB]))
-  MORPH && (vals[TOTA] = rawtonorm(cdfa, rawa, vals[TOTA]))
-  MORPH && (vals[OCUR] = rawtonorm(cdfa, rawa, vals[OCUR]))
+  MORPH && (vals[TOTB] = rawtonorm(cdfa, rawa, vals[TOTB]) ;
+            vals[TOTA] = rawtonorm(cdfa, rawa, vals[TOTA]))
   vals[TOTB] = (vals[TOTB] - allalp[1]) / allbet[1]
   vals[TOTA] = (vals[TOTA] - allalp[1]) / allbet[1]
 # vals[TOTB] = (vals[TOTB] - statis[1,MEMB,ALPH]) / statis[1,MEMB,ALPH]
 # vals[TOTA] = (vals[TOTA] - statis[1,MEMA,ALPH]) / statis[1,MEMA,BETA]
-  MORPH && (vals[TOTB] = normtoraw(cdfa, rawa, vals[TOTB]))
-  MORPH && (vals[TOTA] = normtoraw(cdfa, rawa, vals[TOTA]))
-  MORPH && (vals[OCUR] = normtoraw(cdfa, rawa, vals[OCUR]))
+  MORPH && (vals[TOTB] = normtoraw(cdfa, rawa, vals[TOTB]) ;
+            vals[TOTA] = normtoraw(cdfa, rawa, vals[TOTA]))
   curb[1,a,:] = [vals[TOTB] vals[OCUR]]
-  curb[2,a,:] = [vals[TOTA] vals[OCUR]]
+  curb[2,a,:] = [vals[TOTA] refb[a]   ]
 end
 a = 4 ; (mass, sig1, cor1, alp2, bet2, sig2, cor2, alp3, bet3, sig3, cor3) = triple(curb)
 statis[a,MEMO,MASS] =        statis[a,MEMB,MASS] =        statis[a,MEMA,MASS] =        allmas[a] = mass

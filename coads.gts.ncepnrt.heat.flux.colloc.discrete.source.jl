@@ -1,6 +1,6 @@
 #=
- = Loop through all locations of interest and assemble valid collocations
- = from the various in situ and analysis subdirs - RD February, March 2016.
+ = Loop through all locations of interest and assemble valid collocations from
+ = the various in situ and analysis subdirs - RD February, March, October 2016.
  =#
 
 using My
@@ -25,11 +25,11 @@ contains(ARGS[1], "airt") && (vind = AIRT)
 contains(ARGS[1], "sstt") && (vind = SSTT)
 contains(ARGS[1], "shum") && (vind = SHUM)
 if contains(ARGS[1], "lhfx")
-  dirs = [        "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"] ; fend = ".coml"
+  dirs = [        "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "ensemble"] ; fend = ".coml"
 elseif contains(ARGS[1], "airt") || contains(ARGS[1], "sstt")
-  dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux",           "merra", "oaflux", "seaflux"] ; fend = ".comt"
+  dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux",           "merra", "oaflux", "seaflux", "ensemble"] ; fend = ".comt"
 else
-  dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"] ; fend = ".comb"
+  dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "ensemble"] ; fend = ".comb"
 end
 dirn = length(dirs)
 
@@ -62,11 +62,11 @@ for line in eachline(fpa)                                                     # 
   aft = fill(MISS, dirn)
   flag = true
   for (a, dira) in enumerate(dirs)
-    tmp = split(read_nth_line("$dira/$dira.$tail.bet", datind)) ; bef[a] = float(tmp[vind])
+    tmp = split(read_nth_line("$dira/$dira.$tail.bef", datind)) ; bef[a] = float(tmp[vind])
     newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != $newdat") ; exit(-1)  end
     tmp = split(read_nth_line("$dira/$dira.$tail",     datind)) ; now[a] = float(tmp[vind])
     newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != $newdat") ; exit(-1)  end
-    tmp = split(read_nth_line("$dira/$dira.$tail.aff", datind)) ; aft[a] = float(tmp[vind])
+    tmp = split(read_nth_line("$dira/$dira.$tail.aft", datind)) ; aft[a] = float(tmp[vind])
     newdat = tmp[4][1:8] ; if dat != newdat  println("ERROR : $dat != $newdat") ; exit(-1)  end
     if bef[a] < -333.0 || bef[a] > 3333.0 || now[a] < -333.0 || now[a] > 3333.0 ||
        aft[a] < -333.0 || aft[a] > 3333.0  flag = false  end

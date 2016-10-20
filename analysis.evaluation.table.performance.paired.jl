@@ -2,7 +2,7 @@
  = Reformat triple collocation metric summaries as markdown
  = tables.  It is assumed that the files passed as arguments
  = are the available group of analyses for a given variable
- = (e.g., wspd) - RD April 2016.
+ = (e.g., wspd) - RD April, October 2016.
  =#
 
 using My
@@ -33,14 +33,15 @@ end
 form  = @sprintf("|%s|||||||\n", varname) ; write(fpa, form)
 
 for a = 1:argc                                                                # and convert each input file to markdown
-  contains(ARGS[a],        "cfsr") && (dirname =    "CFSR")
-  contains(ARGS[a],  "erainterim") && (dirname =     "ERA")
-  contains(ARGS[a],       "hoaps") && (dirname =   "HOAPS")
-  contains(ARGS[a], "ifremerflux") && (dirname = "Ifremer")
-  contains(ARGS[a],      "jofuro") && (dirname = "J-Ofuro")
-  contains(ARGS[a],       "merra") && (dirname =   "Merra")
-  contains(ARGS[a],      "oaflux") && (dirname =  "OAFlux")
-  contains(ARGS[a],     "seaflux") && (dirname = "SeaFlux")
+  contains(ARGS[a],        "cfsr") && (dirname =     "CFSR")
+  contains(ARGS[a],  "erainterim") && (dirname =      "ERA")
+  contains(ARGS[a],       "hoaps") && (dirname =    "HOAPS")
+  contains(ARGS[a], "ifremerflux") && (dirname =  "Ifremer")
+  contains(ARGS[a],      "jofuro") && (dirname =  "J-Ofuro")
+  contains(ARGS[a],       "merra") && (dirname =    "Merra")
+  contains(ARGS[a],      "oaflux") && (dirname =   "OAFlux")
+  contains(ARGS[a],     "seaflux") && (dirname =  "SeaFlux")
+  contains(ARGS[a],    "ensemble") && (dirname = "Ensemble")
   fpb = My.ouvre(ARGS[a], "r") ; lines = readlines(fpb) ; close(fpb)
   vala = split(lines[ 4]) ; valb = split(lines[ 5]) ; obsa = split(lines[ 6]) ; obsb = split(lines[ 7])
   valc = split(lines[14]) ; vald = split(lines[15]) ; obsc = split(lines[16]) ; obsd = split(lines[17])

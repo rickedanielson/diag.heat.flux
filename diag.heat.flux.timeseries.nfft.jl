@@ -41,7 +41,7 @@ if vind == 0
 end
 
 torus(x) = (x - TIMSTA) / TIMLEN - 0.5                                        # map of daily index to NFFT torus [-0.5,0.5)
-dirs     = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
+dirs     = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "ensemble"]
 calalp   = [   2.2,          4.1,     3.4,           3.4,      3.3,     1.9,      3.3,       5.6]
 calbet   = [  0.96,         0.92,    0.82,          0.98,     0.91,    0.87,     0.95,      0.85]
 dirn     = length(dirs)
@@ -67,11 +67,11 @@ for line in eachline(fpa)                                                     # 
     end
   end
 
-  if sum(mask) < CUTOFF                                                       # augment one of the subset list files
+  if sum(mask) < 1 # CUTOFF                                                       # augment one of the subset list files
     write(fpc, line)                                                          # and only create a spectra file if all
   else                                                                        # analyses have good temporal coverage
     write(fpb, line)
-
+#=
     half = div(TIMLEN, 2)
     spec = Array(Float64, half + 1, dirn)
     datb = Array(Float64, 0)
@@ -130,6 +130,7 @@ for line in eachline(fpa)                                                     # 
       write(fpd, tmp)
     end
     close(fpd)
+=#
   end
 end
 

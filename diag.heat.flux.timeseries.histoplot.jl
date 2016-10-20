@@ -1,6 +1,6 @@
 #=
- = Loop through all analyses and plot the binned
- = sums of all available variables - RD April 2016.
+ = Loop through all analyses and plot the binned sums
+ = of all available variables - RD April, October 2016.
  =#
 
 using My, Winston
@@ -20,7 +20,7 @@ if (argc = length(ARGS)) != 0
   exit(1)
 end
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "ensemble", "bestest"]
 dirn = length(dirs)
 
 shfi = 1.0 ; shfs = collect( -600.0 : shfi : 1500.0) ; shfn = zeros(length(shfs), length(dirs))
@@ -35,7 +35,7 @@ function restore(bound::Array{Float64,1}, grid::Array{Float64,2}, pname::UTF8Str
   fpa = My.ouvre(fname, "r")
   for (a, vala) in enumerate(bound)
     line = readline(fpa)
-    (grid[a,1], grid[a,2], grid[a,3], grid[a,4], grid[a,5], grid[a,6], grid[a,7], grid[a,8]) = float(split(line))
+    (grid[a,1], grid[a,2], grid[a,3], grid[a,4], grid[a,5], grid[a,6], grid[a,7], grid[a,8], grid[a,9], grid[a,10]) = float(split(line))
   end
   close(fpa)
 end

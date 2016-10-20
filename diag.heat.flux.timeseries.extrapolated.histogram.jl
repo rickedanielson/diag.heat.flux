@@ -3,7 +3,7 @@
  = backward extrapolated timeseries of all available variables, relative to the actual
  = (uninterpolated) values.  Note that BEF refers to an interpolation using analysis
  = data from before the extrapolation; AFT extrapolations use analysis data afterward.
- = Where one analysis is unavailable, all analyses are skipped - RD April 2016.
+ = Where one analysis is unavailable, all analyses are skipped - RD April, October 2016.
  =#
 
 using My
@@ -29,7 +29,7 @@ if (argc = length(ARGS)) != 1 && argc != 2
 end
 maxfiles = 9e9 ; argc == 2 && (maxfiles = parse(Int64, ARGS[2]))
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "ensemble", "bestest"]
 dirn = length(dirs)
 CFSR = try  findin(dirs, [  "cfsr"])[1]  catch  0  end
 JOFU = try  findin(dirs, ["jofuro"])[1]  catch  0  end
@@ -109,8 +109,8 @@ function store(bound::Array{Float64,1}, grid::Array{Float64,3}, pname::UTF8Strin
   fpa = My.ouvre(fname, "w")
   for (a, vala) in enumerate(bound)
     for (b, valb) in enumerate(bound)
-      @printf(fpa, "%15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",
-        grid[b,a,1], grid[b,a,2], grid[b,a,3], grid[b,a,4], grid[b,a,5], grid[b,a,6], grid[b,a,7], grid[b,a,8])
+      @printf(fpa, "%15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",
+        grid[b,a,1], grid[b,a,2], grid[b,a,3], grid[b,a,4], grid[b,a,5], grid[b,a,6], grid[b,a,7], grid[b,a,8], grid[b,a,9], grid[b,a,10])
     end
   end
   close(fpa)

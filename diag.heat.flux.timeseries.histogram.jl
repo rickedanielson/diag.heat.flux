@@ -1,6 +1,6 @@
 #=
- = Loop through the timeseries of all analyses and bin the values of all available
- = variables.  Where one analysis is unavailable, all analyses are skipped - RD April 2016.
+ = Loop through the timeseries of all analyses and bin the values of all available variables.
+ = Where one analysis is unavailable, all analyses are skipped - RD April, October 2016.
  =#
 
 using My
@@ -21,7 +21,7 @@ if (argc = length(ARGS)) != 1 && argc != 2
 end
 maxfiles = 9e9 ; argc == 2 && (maxfiles = parse(Int64, ARGS[2]))
 
-dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux"]
+dirs = ["cfsr", "erainterim", "hoaps", "ifremerflux", "jofuro", "merra", "oaflux", "seaflux", "ensemble", "bestest"]
 dirn = length(dirs)
 CFSR = try  findin(dirs, [  "cfsr"])[1]  catch  0  end
 JOFU = try  findin(dirs, ["jofuro"])[1]  catch  0  end
@@ -89,8 +89,8 @@ function store(bound::Array{Float64,1}, grid::Array{Float64,2}, pname::UTF8Strin
   fname = "histogr." * pname * ".dat"
   fpa = My.ouvre(fname, "w")
   for (a, vala) in enumerate(bound)
-    @printf(fpa, "%15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",
-      grid[a,1], grid[a,2], grid[a,3], grid[a,4], grid[a,5], grid[a,6], grid[a,7], grid[a,8])
+    @printf(fpa, "%15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f %15.8f\n",
+      grid[a,1], grid[a,2], grid[a,3], grid[a,4], grid[a,5], grid[a,6], grid[a,7], grid[a,8], grid[a,9], grid[a,10])
   end
   close(fpa)
 end

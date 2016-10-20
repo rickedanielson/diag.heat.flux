@@ -1,5 +1,5 @@
 #=
- = Loop through timeseries of a given analysis and create the corresponding forward and
+ = Loop through the timeseries of a given analysis and create the corresponding forward and
  = backward extrapolated timeseries for available variables - RD September 2015, March 2016.
  =#
 
@@ -17,7 +17,7 @@ const NOW              = 2
 const AFT              = 3
 const SRCS             = 3
 
-const EXTRA            = 5                              # number of points used for extrapolation
+const EXTRA            = 9                              # number of points used for extrapolation
 const TIMS             = 3745                           # number in timeseries
 const MISS             = -9999.0                        # generic missing value
 
@@ -35,7 +35,7 @@ fpa = My.ouvre("$(ARGS[1])/$(ARGS[2])", "r")                                  # 
 files = readlines(fpa) ; close(fpa)                                           # and process each timeseries
 for fila in files
   fila = strip(fila)
-  if isfile("$(ARGS[1])/$fila.bet") && isfile("$(ARGS[1])/$fila.aff")  continue  end
+  if isfile("$(ARGS[1])/$fila.bef") && isfile("$(ARGS[1])/$fila.aft")  continue  end
 
   fpa = My.ouvre("$(ARGS[1])/$fila", "r", false)
   lines = readlines(fpa) ; close(fpa)
@@ -63,10 +63,10 @@ for fila in files
         tmpmax = maximum(tmp)
         tmpmin = minimum(tmp)
         itp = interpolate(tmp, BSpline(Quadratic(Line())), OnCell())
-#       tmpbef = itp[10] ; tmpbef > tmpmax && (tmpbef = tmpmax) ; tmpbef < tmpmin && (tmpbef = tmpmin)
-#       tmpaft = itp[ 0] ; tmpaft > tmpmax && (tmpaft = tmpmax) ; tmpaft < tmpmin && (tmpaft = tmpmin)
-        tmpbef = itp[10] ; tmpbef > tmpmax && (tmpbef = MISS)   ; tmpbef < tmpmin && (tmpbef = MISS)
-        tmpaft = itp[ 0] ; tmpaft > tmpmax && (tmpaft = MISS)   ; tmpaft < tmpmin && (tmpaft = MISS)
+        tmpbef = itp[10] ; tmpbef > tmpmax && (tmpbef = tmpmax) ; tmpbef < tmpmin && (tmpbef = tmpmin)
+        tmpaft = itp[ 0] ; tmpaft > tmpmax && (tmpaft = tmpmax) ; tmpaft < tmpmin && (tmpaft = tmpmin)
+#       tmpbef = itp[10] ; tmpbef > tmpmax && (tmpbef = MISS)   ; tmpbef < tmpmin && (tmpbef = MISS)
+#       tmpaft = itp[ 0] ; tmpaft > tmpmax && (tmpaft = MISS)   ; tmpaft < tmpmin && (tmpaft = MISS)
         data[a,BEF,b+outer] = tmpbef
         data[a,AFT,b-outer] = tmpaft
       else
@@ -81,8 +81,8 @@ for fila in files
     end
   end
 
-  filb = "$fila.bet"                                                          # then save all extrapolations
-  filc = "$fila.aff"
+  filb = "$fila.bef"                                                          # then save all extrapolations
+  filc = "$fila.aft"
   fpb = My.ouvre("$(ARGS[1])/$filb", "w", false)
   fpc = My.ouvre("$(ARGS[1])/$filc", "w", false)
   (lll, lat, lon) = split(replace(fila, r"[\.]{2,}", " "))
