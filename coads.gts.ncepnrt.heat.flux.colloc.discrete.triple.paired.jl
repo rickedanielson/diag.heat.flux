@@ -20,11 +20,11 @@ const SSTT             = 8
 
 const MISS             = -9999.0                        # generic missing value
 const MORPH            = false                          # perform Gaussian anamorphosis
-const EXTRA            = false                          # recalibrate the extrapolated data using extra collocations
+const EXTRA            = true                           # recalibrate the extrapolated data using extra collocations
 const MCDTRIM          = 0.5                            # Minimum Covariance Determinant trimming (nonoutlier percent)
 
-if (argc = length(ARGS)) != 3
-  print("\nUsage: jjj $(basename(@__FILE__)) all/all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt cfsr 0.25\n\n")
+if (argc = length(ARGS)) != 2
+  print("\nUsage: jjj $(basename(@__FILE__)) all/all.flux.daily.locate_2.0_calib.airt.got2000_obs.comt cfsr\n\n")
   exit(1)
 end
 
@@ -66,8 +66,6 @@ end
 const TOTB             = vind
 const TOTN             = vind + 1
 const TOTA             = vind + 2
-
-rescale = float(ARGS[3])
 
 #=
  = Function returning triple collocation cal/val measures for a group of analyses, following McColl
@@ -156,43 +154,6 @@ fpa = My.ouvre(ARGS[1], "r") ; linea = readlines(fpa) ; close(fpa)
 fpb = My.ouvre(ARGS222, "r") ; lineb = readlines(fpb) ; close(fpb)
 linuma = length(linea) ; cura = zeros(2, linuma, 2)
 linumb = length(lineb) ; curb = zeros(2, linumb, 2)
-
-if (rescale != 1.0)                                                           # rescale the first set of input data values
-  const ANALYS = div(length(split(linea[1])) - 8, 3)
-  print("rescaling $(ARGS[1])\n")
-  for a = 1:linuma
-    dv  = float(split(linea[a]))
-    out = @sprintf("%8.0f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f", dv[1], dv[2], dv[3], dv[4], dv[5], dv[6], dv[7], dv[8])
-    for b = 1:ANALYS
-      befind = 6 + 3 * b
-      nowind = 7 + 3 * b
-      aftind = 8 + 3 * b
-      dv[befind] = dv[nowind] + rescale * (dv[befind] - dv[nowind])
-      dv[aftind] = dv[nowind] + rescale * (dv[aftind] - dv[nowind])
-      tmp = @sprintf(" %9.3f %9.3f %9.3f", dv[befind], dv[nowind], dv[aftind])
-      out *= tmp
-    end
-    out *= "\n"
-    linea[a] = out
-  end
-
-  print("rescaling $ARGS222\n")                                               # rescale the second set of input data values
-  for a = 1:linumb
-    dv  = float(split(lineb[a]))
-    out = @sprintf("%8.0f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f %9.3f", dv[1], dv[2], dv[3], dv[4], dv[5], dv[6], dv[7], dv[8])
-    for b = 1:ANALYS
-      befind = 6 + 3 * b
-      nowind = 7 + 3 * b
-      aftind = 8 + 3 * b
-      dv[befind] = dv[nowind] + rescale * (dv[befind] - dv[nowind])
-      dv[aftind] = dv[nowind] + rescale * (dv[aftind] - dv[nowind])
-      tmp = @sprintf(" %9.3f %9.3f %9.3f", dv[befind], dv[nowind], dv[aftind])
-      out *= tmp
-    end
-    out *= "\n"
-    lineb[a] = out
-  end
-end
 
 if EXTRA
   fname = replace(ARGS[1], "calib", "extra") * "." * ARGS[2] * ".extra.reg"   # also read the regression coefficient pairs

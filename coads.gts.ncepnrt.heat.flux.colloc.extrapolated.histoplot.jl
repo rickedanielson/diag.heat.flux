@@ -167,6 +167,7 @@ ARGS[2] ==      "jofuro" && (analysis =     "J-OFURO")
 ARGS[2] ==       "merra" && (analysis =       "MERRA")
 ARGS[2] ==      "oaflux" && (analysis =      "OAFlux")
 ARGS[2] ==     "seaflux" && (analysis =     "SeaFlux")
+ARGS[2] ==    "ensemble" && (analysis =    "Ensemble")
 plotitle = analysis * " " * varname
 
 function point(bound::Array{Float64,1}, grid::Array{Float64,3}, plotind::Int64)
